@@ -1,0 +1,117 @@
+CREATE TABLE books (
+                       id				UUID		PRIMARY KEY,
+                       title			VARCHAR		NOT NULL,
+                       author			VARCHAR		NOT NULL,
+                       isbn			VARCHAR		NOT NULL UNIQUE,
+                       published_date	DATE		NOT NULL,
+                       publisher		VARCHAR		NOT NULL,
+                       created_at		TIMESTAMP	NOT NULL,
+                       updated_at		TIMESTAMP	NOT NULL,
+                       is_deleted		BOOLEAN		NOT NULL,
+                       thumbnail_url	VARCHAR		NULL,
+                       description		VARCHAR		NOT NULL
+);
+
+CREATE TABLE users (
+                       id			UUID		PRIMARY KEY,
+                       email		VARCHAR		NOT NULL UNIQUE,
+                       nickname	VARCHAR		NOT NULL,
+                       password	VARCHAR		NOT NULL,
+                       is_deleted	BOOLEAN		DEFAULT false NOT NULL,
+                       created_at	TIMESTAMP	NOT NULL,
+                       updated_at	TIMESTAMP	NOT NULL
+);
+
+
+CREATE TABLE reviews (
+                         id			UUID			 PRIMARY KEY,
+                         rating		DOUBLE PRECISION NOT NULL,
+                         content		VARCHAR(500)	 NOT NULL,
+                         like_count	BIGINT			 DEFAULT 0 NOT NULL,
+                         is_deleted	BOOLEAN			 DEFAULT false NOT NULL,
+                         created_at	TIMESTAMP		 NOT NULL,
+                         updated_at	TIMESTAMP		 NOT NULL,
+                         user_id		UUID			 NOT NULL,
+                         book_id		UUID			 NOT NULL,
+                         CONSTRAINT fk_reviews_users FOREIGN KEY(user_id) REFERENCES users(id),
+                         CONSTRAINT fk_reviews_books FOREIGN KEY(book_id) REFERENCES books(id)
+);
+
+CREATE TABLE popular_books (
+                               id				UUID		PRIMARY KEY,
+                               period_type		VARCHAR		NOT NULL,
+                               calculated_date	DATE		NOT NULL,
+                               rank			BIGINT		NOT NULL,
+                               score			BIGINT		NOT NULL,
+                               created_at		TIMESTAMP	NOT NULL,
+                               rating			DOUBLE	PRECISION DEFAULT 0	NOT NULL,
+                               review_count	BIGINT	DEFAULT 0	NOT NULL,
+                               book_id			UUID		NOT NULL,
+                               CONSTRAINT fk_popular_books_books FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE,
+                               CONSTRAINT check_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
+);
+
+CREATE TABLE power_users (
+                             id					UUID		PRIMARY KEY,
+                             period_type			VARCHAR		NOT NULL,
+                             calculated_date		DATE		NOT NULL,
+                             rank				BIGINT		NOT NULL,
+                             score				BIGINT		NOT NULL,
+                             comment_count		BIGINT		NOT NULL,
+                             like_count			BIGINT		NOT NULL,
+                             review_score_sum	BIGINT		NOT NULL,
+                             created_at			TIMESTAMP	NOT NULL,
+                             user_id				UUID		NOT NULL,
+                             CONSTRAINT fk_power_users_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                             CONSTRAINT check_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
+);
+
+
+CREATE TABLE comments (
+                          id			UUID		 PRIMARY KEY,
+                          content		varchar(500) NOT NULL,
+                          is_deleted	BOOLEAN		 DEFAULT false NOT NULL,
+                          created_at	TIMESTAMP	 NOT NULL,
+                          updated_at	TIMESTAMP	 NOT NULL,
+                          review_id	UUID		 NOT NULL,
+                          user_id		UUID		 NOT NULL,
+                          CONSTRAINT fk_comments_reviews FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+                          CONSTRAINT fk_comments_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE notifications (
+                               id			UUID		PRIMARY KEY,
+                               content		VARCHAR		NULL,
+                               confirmed	BOOLEAN		DEFAULT false NOT NULL,
+                               created_at	TIMESTAMP	NOT NULL,
+                               updated_at	TIMESTAMP	NOT NULL,
+                               review_id	UUID		NOT NULL,
+                               user_id		UUID		NOT NULL,
+                               CONSTRAINT fk_notifications_reviews FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+                               CONSTRAINT fk_notifications_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE popular_reviews (
+                                 id				UUID		PRIMARY KEY,
+                                 period_type		VARCHAR		NOT NULL,
+                                 calculated_date	DATE		NOT NULL,
+                                 rank			BIGINT		NOT NULL,
+                                 score			BIGINT		NOT NULL,
+                                 created_at		TIMESTAMP	NOT NULL,
+                                 like_count		BIGINT		DEFAULT 0 NOT NULL,
+                                 comment_count	BIGINT		DEFAULT 0 NOT NULL,
+                                 review_id		UUID		NOT NULL,
+                                 CONSTRAINT fk_popular_reviews_reviews FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+                                 CONSTRAINT check_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
+);
+
+CREATE TABLE liked_reviews (
+                               id			UUID		PRIMARY KEY,
+                               liked		BOOLEAN		DEFAULT true NOT NULL,
+                               created_at	TIMESTAMP	NOT NULL,
+                               updated_at	TIMESTAMP	NOT NULL,
+                               review_id	UUID		NOT NULL,
+                               user_id		UUID		NOT NULL,
+                               CONSTRAINT fk_liked_reviews_reviews FOREIGN KEY(review_id) REFERENCES reviews(id),
+                               CONSTRAINT fk_liked_reviews_users FOREIGN KEY(user_id) REFERENCES users(id)
+);
