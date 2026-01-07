@@ -3,7 +3,10 @@
 
     <property name="LOG_PATTERN"
               value="%green(%d{yy-MM-dd HH:mm:ss.SSS}) %cyan([%thread]) %boldYellow(%-5level) %highlight(%logger{36}) - %magenta([requestId=%X{requestId}]) %boldGreen([%X{method}]) %boldGreen([%X{uri}]) %msg%n"/>
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [requestId=%X{requestId}] [%X{method} %X{uri}] %msg%n"/>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+
 
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
@@ -19,7 +22,7 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
 
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
