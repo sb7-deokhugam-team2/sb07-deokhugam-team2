@@ -1,3 +1,13 @@
+DROP TABLE IF EXISTS books CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS popular_books CASCADE;
+DROP TABLE IF EXISTS power_users CASCADE;
+DROP TABLE IF EXISTS popular_reviews CASCADE;
+DROP TABLE IF EXISTS comments CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS liked_reviews CASCADE;
+
 CREATE TABLE books (
                        id				UUID		PRIMARY KEY,
                        title			VARCHAR		NOT NULL,
@@ -48,7 +58,7 @@ CREATE TABLE popular_books (
                                review_count	BIGINT	DEFAULT 0	NOT NULL,
                                book_id			UUID		NOT NULL,
                                CONSTRAINT fk_popular_books_books FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE,
-                               CONSTRAINT check_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
+                               CONSTRAINT check_popular_books_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
 );
 
 CREATE TABLE power_users (
@@ -63,7 +73,7 @@ CREATE TABLE power_users (
                              created_at			TIMESTAMP	NOT NULL,
                              user_id				UUID		NOT NULL,
                              CONSTRAINT fk_power_users_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-                             CONSTRAINT check_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
+                             CONSTRAINT check_power_users_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
 );
 
 
@@ -102,7 +112,7 @@ CREATE TABLE popular_reviews (
                                  comment_count	BIGINT		DEFAULT 0 NOT NULL,
                                  review_id		UUID		NOT NULL,
                                  CONSTRAINT fk_popular_reviews_reviews FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
-                                 CONSTRAINT check_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
+                                 CONSTRAINT check_popular_reviews_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
 );
 
 CREATE TABLE liked_reviews (

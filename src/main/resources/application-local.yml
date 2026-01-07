@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:deokhugam
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: on
+      path: /h2-console
