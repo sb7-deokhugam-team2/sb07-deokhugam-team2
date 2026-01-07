@@ -35,7 +35,7 @@ CREATE TABLE users (
 
 CREATE TABLE reviews (
                          id			    UUID			 PRIMARY KEY,
-                         rating		    DOUBLE PRECISION NOT NULL,
+                         rating		    DOUBLE PRECISION DEFAULT 0.0 NOT NULL,
                          content		VARCHAR(500)	 NOT NULL,
                          like_count	    BIGINT			 DEFAULT 0 NOT NULL,
                          is_deleted	    BOOLEAN			 DEFAULT false NOT NULL,
@@ -43,8 +43,8 @@ CREATE TABLE reviews (
                          updated_at	    TIMESTAMP		 NOT NULL,
                          user_id		UUID			 NOT NULL,
                          book_id		UUID			 NOT NULL,
-                         CONSTRAINT fk_reviews_users FOREIGN KEY(user_id) REFERENCES users(id),
-                         CONSTRAINT fk_reviews_books FOREIGN KEY(book_id) REFERENCES books(id)
+                         CONSTRAINT fk_reviews_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                         CONSTRAINT fk_reviews_books FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
 );
 
 CREATE TABLE popular_books (
