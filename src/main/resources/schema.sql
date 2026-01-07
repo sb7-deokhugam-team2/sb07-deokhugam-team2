@@ -12,21 +12,21 @@ CREATE TABLE books (
                        id				UUID		PRIMARY KEY,
                        title			VARCHAR		NOT NULL,
                        author			VARCHAR		NOT NULL,
-                       isbn			VARCHAR		NOT NULL UNIQUE,
+                       isbn			    VARCHAR		NOT NULL UNIQUE,
                        published_date	DATE		NOT NULL,
                        publisher		VARCHAR		NOT NULL,
                        created_at		TIMESTAMP	NOT NULL,
                        updated_at		TIMESTAMP	NOT NULL,
                        is_deleted		BOOLEAN		NOT NULL,
                        thumbnail_url	VARCHAR		NULL,
-                       description		VARCHAR		NOT NULL
+                       description		VARCHAR(1000)		NOT NULL
 );
 
 CREATE TABLE users (
                        id			UUID		PRIMARY KEY,
                        email		VARCHAR		NOT NULL UNIQUE,
-                       nickname	VARCHAR		NOT NULL,
-                       password	VARCHAR		NOT NULL,
+                       nickname	    VARCHAR		NOT NULL,
+                       password	    VARCHAR		NOT NULL,
                        is_deleted	BOOLEAN		DEFAULT false NOT NULL,
                        created_at	TIMESTAMP	NOT NULL,
                        updated_at	TIMESTAMP	NOT NULL
@@ -34,13 +34,13 @@ CREATE TABLE users (
 
 
 CREATE TABLE reviews (
-                         id			UUID			 PRIMARY KEY,
-                         rating		DOUBLE PRECISION NOT NULL,
+                         id			    UUID			 PRIMARY KEY,
+                         rating		    DOUBLE PRECISION NOT NULL,
                          content		VARCHAR(500)	 NOT NULL,
-                         like_count	BIGINT			 DEFAULT 0 NOT NULL,
-                         is_deleted	BOOLEAN			 DEFAULT false NOT NULL,
-                         created_at	TIMESTAMP		 NOT NULL,
-                         updated_at	TIMESTAMP		 NOT NULL,
+                         like_count	    BIGINT			 DEFAULT 0 NOT NULL,
+                         is_deleted	    BOOLEAN			 DEFAULT false NOT NULL,
+                         created_at	    TIMESTAMP		 NOT NULL,
+                         updated_at	    TIMESTAMP		 NOT NULL,
                          user_id		UUID			 NOT NULL,
                          book_id		UUID			 NOT NULL,
                          CONSTRAINT fk_reviews_users FOREIGN KEY(user_id) REFERENCES users(id),
@@ -51,11 +51,11 @@ CREATE TABLE popular_books (
                                id				UUID		PRIMARY KEY,
                                period_type		VARCHAR		NOT NULL,
                                calculated_date	DATE		NOT NULL,
-                               rank			BIGINT		NOT NULL,
+                               rank			    BIGINT		NOT NULL,
                                score			BIGINT		NOT NULL,
                                created_at		TIMESTAMP	NOT NULL,
-                               rating			DOUBLE	PRECISION DEFAULT 0	NOT NULL,
-                               review_count	BIGINT	DEFAULT 0	NOT NULL,
+                               rating			DOUBLE	    PRECISION DEFAULT 0	NOT NULL,
+                               review_count	    BIGINT	    DEFAULT 0	NOT NULL,
                                book_id			UUID		NOT NULL,
                                CONSTRAINT fk_popular_books_books FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE,
                                CONSTRAINT check_popular_books_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
@@ -63,15 +63,15 @@ CREATE TABLE popular_books (
 
 CREATE TABLE power_users (
                              id					UUID		PRIMARY KEY,
-                             period_type			VARCHAR		NOT NULL,
-                             calculated_date		DATE		NOT NULL,
+                             period_type		VARCHAR		NOT NULL,
+                             calculated_date	DATE		NOT NULL,
                              rank				BIGINT		NOT NULL,
                              score				BIGINT		NOT NULL,
                              comment_count		BIGINT		NOT NULL,
                              like_count			BIGINT		NOT NULL,
                              review_score_sum	BIGINT		NOT NULL,
                              created_at			TIMESTAMP	NOT NULL,
-                             user_id				UUID		NOT NULL,
+                             user_id			UUID		NOT NULL,
                              CONSTRAINT fk_power_users_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
                              CONSTRAINT check_power_users_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
 );
@@ -83,7 +83,7 @@ CREATE TABLE comments (
                           is_deleted	BOOLEAN		 DEFAULT false NOT NULL,
                           created_at	TIMESTAMP	 NOT NULL,
                           updated_at	TIMESTAMP	 NOT NULL,
-                          review_id	UUID		 NOT NULL,
+                          review_id	    UUID		 NOT NULL,
                           user_id		UUID		 NOT NULL,
                           CONSTRAINT fk_comments_reviews FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
                           CONSTRAINT fk_comments_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -102,15 +102,15 @@ CREATE TABLE notifications (
 );
 
 CREATE TABLE popular_reviews (
-                                 id				UUID		PRIMARY KEY,
+                                 id				    UUID		PRIMARY KEY,
                                  period_type		VARCHAR		NOT NULL,
                                  calculated_date	DATE		NOT NULL,
-                                 rank			BIGINT		NOT NULL,
-                                 score			BIGINT		NOT NULL,
-                                 created_at		TIMESTAMP	NOT NULL,
-                                 like_count		BIGINT		DEFAULT 0 NOT NULL,
-                                 comment_count	BIGINT		DEFAULT 0 NOT NULL,
-                                 review_id		UUID		NOT NULL,
+                                 rank			    BIGINT		NOT NULL,
+                                 score			    BIGINT		NOT NULL,
+                                 created_at		    TIMESTAMP	NOT NULL,
+                                 like_count		    BIGINT		DEFAULT 0 NOT NULL,
+                                 comment_count	    BIGINT		DEFAULT 0 NOT NULL,
+                                 review_id		    UUID		NOT NULL,
                                  CONSTRAINT fk_popular_reviews_reviews FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
                                  CONSTRAINT check_popular_reviews_period_type CHECK(period_type IN ('DAILY', 'MONTHLY', 'YEARLY', 'ALL_TIME'))
 );
