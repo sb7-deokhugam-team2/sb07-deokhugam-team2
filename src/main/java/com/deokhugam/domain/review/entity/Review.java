@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -25,6 +27,7 @@ public class Review extends BaseDeletableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE) // 실제 쿼리가 날라가는게 아니라 ON DELETE CASCADE 역할을 한다.
     private Book book;
     // TODO: user 연관관계 필드 설정 필요
 }
