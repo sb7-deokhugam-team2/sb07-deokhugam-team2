@@ -9,7 +9,6 @@ import java.util.TimeZone;
 public class DeokhugamApplication {
 
     public static void main(String[] args) {
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
         SpringApplication.run(DeokhugamApplication.class, args);
     }
 

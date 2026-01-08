@@ -1,6 +1,6 @@
-package com.deokhugam.domain.comment.entity;
+package com.deokhugam.domain.likedreview.entity;
 
-import com.deokhugam.domain.base.BaseDeletableEntity;
+import com.deokhugam.domain.base.BaseUpdateEntity;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -12,19 +12,19 @@ import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
-@Table(name = "comments")
+@Table(name = "liked_reviews")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Comment extends BaseDeletableEntity {
-    @Column(name = "content", nullable = false, length = 500)
-    private String content;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private User user;
+public class LikedReview extends BaseUpdateEntity {
+    @Column(name = "liked", nullable = false)
+    private boolean liked = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "review_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Review review;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private User user;
 }
