@@ -18,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @DynamicInsert
 public class Review extends BaseDeletableEntity {
     @Column(name = "rating", nullable = false)
-    private Double rating = 0.0;
+    private Double rating;
 
     @Column(name = "content", nullable = false, length = 500)
     private String content;
