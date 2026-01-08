@@ -7,7 +7,7 @@ spring:
         format_sql: true
         default_batch_fetch_size: 50
         type:
-          preferred_local_datatime_jdbc_type: TIMESTAMP_WITH_TIMEZONE
+          preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
         jdbc:
           time_zone: UTC
     open-in-view: false

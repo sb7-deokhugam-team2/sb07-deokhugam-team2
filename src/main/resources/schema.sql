@@ -56,7 +56,7 @@ CREATE TABLE popular_books
 (
     id              UUID PRIMARY KEY,
     period_type     VARCHAR                  NOT NULL,
-    calculated_date DATE                     NOT NULL,
+    calculated_date TIMESTAMP with time zone NOT NULL,
     rank            BIGINT                   NOT NULL,
     score           DOUBLE PRECISION         NOT NULL,
     created_at      TIMESTAMP with time zone NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE power_users
 (
     id               UUID PRIMARY KEY,
     period_type      VARCHAR                  NOT NULL,
-    calculated_date  DATE                     NOT NULL,
+    calculated_date  TIMESTAMP with time zone NOT NULL,
     rank             BIGINT                   NOT NULL,
     score            DOUBLE PRECISION         NOT NULL,
     comment_count    BIGINT DEFAULT 0         NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE popular_reviews
 (
     id              UUID PRIMARY KEY,
     period_type     VARCHAR                  NOT NULL,
-    calculated_date DATE                     NOT NULL,
+    calculated_date TIMESTAMP with time zone NOT NULL,
     rank            BIGINT                   NOT NULL,
     score           DOUBLE PRECISION         NOT NULL,
     created_at      TIMESTAMP with time zone NOT NULL,

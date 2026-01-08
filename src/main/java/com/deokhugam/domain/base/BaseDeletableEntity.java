@@ -1,9 +1,8 @@
 package com.deokhugam.domain.base;
 
-ㅇimport jakarta.persistence.Column;
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
-import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @MappedSuperclass
