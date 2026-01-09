@@ -24,30 +24,31 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService 테스트")
 public class UserServiceImplTest {
+
     @Mock
     UserRepository userRepository;
     @InjectMocks
     UserServiceImpl userService;
 
-    @Test
-    void register(){
-        //given
+//    @Test
+//    void register(){
+//        //given
+//
+//        //when
+//
+//        //then
+//
+//    }
 
-        //when
-
-        //then
-
-    }
-
-    @Test
-    void login(){
-        //given
-
-        //when
-
-        //then
-
-    }
+//    @Test
+//    void login(){
+//        //given
+//
+//        //when
+//
+//        //then
+//
+//    }
 
     @Test
     void findUser(){

@@ -18,13 +18,13 @@ public class UserRepositoryTest {
     @Autowired
     EntityManager em;
 
-    @Test
-    void existsByEmail(){
-
-    }
-
-    @Test
-    void findByEmail(){
-
-    }
+//    @Test
+//    void existsByEmail(){
+//
+//    }
+//
+//    @Test
+//    void findByEmail(){
+//
+//    }
 }
