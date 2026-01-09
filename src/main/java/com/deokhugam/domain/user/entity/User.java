@@ -23,6 +23,8 @@ public class User extends BaseDeletableEntity {
     private String password;
 
     public void updateNickname(String newNickname){
-        this.nickname=nickname;
+        if(newNickname!=null){
+            this.nickname=nickname;
+        }
     }
 }
