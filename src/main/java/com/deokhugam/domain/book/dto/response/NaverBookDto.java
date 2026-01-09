@@ -7,7 +7,8 @@ public record NaverBookDto(
         String author,
         String description,
         String publisher,
-        LocalDate publishedDate,
+        String publishedDate,
+        String isbn,
         byte[] thumbnailImage
 ) {
 }
