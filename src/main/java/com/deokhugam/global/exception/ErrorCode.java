@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     // User
+    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "요청이 올바르지 않습니다.", "U-001"),
     // Comment
     // Book
     // Popular Book
