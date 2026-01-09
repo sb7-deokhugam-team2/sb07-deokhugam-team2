@@ -6,6 +6,10 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     // User
+    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "요청이 올바르지 않습니다.", "U-001"),
+    USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이메일 중복", "U-002"),
+    USER_EMAIL_NOT_EXISTS(HttpStatus.UNAUTHORIZED, "이메일이 존재하지 않습니다.", "U-003"),
+    USER_PASSWORD_NOT_EQUAL(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.", "U-004"),
     // Comment
     // Book
     // Popular Book
