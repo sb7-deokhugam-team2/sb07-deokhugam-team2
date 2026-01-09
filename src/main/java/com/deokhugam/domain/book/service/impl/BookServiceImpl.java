@@ -56,21 +56,25 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional
     public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
         return null;
     }
 
     @Override
+    @Transactional
     public BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
         return null;
     }
 
     @Override
+    @Transactional
     public void softDeleteBook(UUID bookId) {
         // TODO: 26. 1. 9. 명확한 구분을 위해 soft, hard로 구분 상의 필요  
     }
 
     @Override
+    @Transactional
     public void hardDeleteBook(UUID bookId) {
 
     }
