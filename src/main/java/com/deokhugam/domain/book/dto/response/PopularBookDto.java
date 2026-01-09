@@ -1,4 +1,4 @@
-package com.deokhugam.domain.book.dto.sungyeonimsi;
+package com.deokhugam.domain.book.dto.response;
 
 import com.deokhugam.domain.book.enums.Period;
 
@@ -16,6 +16,7 @@ public record PopularBookDto(
         Double score,
         Long reviewCount,
         Double rating,
-        Instant createdAt) {
+        Instant createdAt
+) {
 
 }
