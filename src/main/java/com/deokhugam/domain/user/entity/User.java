@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,7 +25,7 @@ public class User extends BaseDeletableEntity {
 
     public void updateNickname(String newNickname){
         if(newNickname!=null){
-            this.nickname=nickname;
+            this.nickname=newNickname;
         }
     }
 }
