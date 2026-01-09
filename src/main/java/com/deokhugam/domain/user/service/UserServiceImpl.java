@@ -4,6 +4,7 @@ import com.deokhugam.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.domain.user.dto.response.UserDto;
+import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,20 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserDto register(UserRegisterRequest userRegisterRequest) {
+        /* 이메일, 닉네임, 패스워드 받고
+        * 잘못된 요청 400에러, 이메일 중복 409에러
+        * 이메일 중복 검증
+        */
+        if(userRepository.existsByEmail(userRegisterRequest.email())){
+            throw new IllegalArgumentException("중복된 이메일입니다."); //	CONFLICT(409, Series.CLIENT_ERROR, "Conflict"),
+        }
+
+        User user = new  User(
+                userRegisterRequest.email(),
+                userRegisterRequest.nickname(),
+                userRegisterRequest.password()
+        );
+        // userRepository.save();
         return null;
     }
 
