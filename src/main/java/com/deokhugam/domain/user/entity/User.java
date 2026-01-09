@@ -21,4 +21,8 @@ public class User extends BaseDeletableEntity {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    public void updateNickname(String newNickname){
+        this.nickname=nickname;
+    }
 }
