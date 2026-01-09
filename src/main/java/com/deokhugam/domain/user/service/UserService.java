@@ -12,6 +12,6 @@ public interface UserService {
     UserDto login(UserLoginRequest userLoginRequest);
     UserDto findUser(UUID userId);
     void logicalDelete(UUID userId);
-    UserDto updateNickname(UserUpdateRequest userUpdateRequest);
+    UserDto updateNickname(UUID userId, UserUpdateRequest userUpdateRequest);
     void physicalDelete(UUID userId);
 }
