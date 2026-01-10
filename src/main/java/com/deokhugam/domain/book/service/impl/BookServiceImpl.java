@@ -21,36 +21,40 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
 
 
     @Override
+    @Transactional(readOnly = true)
     public BookDto getBookDetail(UUID bookId) {
         // TODO: 26. 1. 9. 도서 ID로 해당 도서의 상세 정보 조회 로직
         return null;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CursorPageResponseBookDto> searchBook(BookSearchCondition bookSearchCondition) {
         // TODO: 26. 1. 9. Cursor검색(QueryDSL)을 통한 검색 데이터 반환 로직 
         return List.of();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CursorPageResponsePopularBookDto> searchPopularBook(PopularBookSearchCondition popularBookSearchCondition) {
         // TODO: 26. 1. 9. 인기 도서 미구현으로 틀 성생 추후 로직 구현(해당 기능 popularBook 이전 고려 필요)
         return List.of();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public NaverBookDto getBookByIsbn(String isbn) {
         
         return null;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String extractIsbnFromImage(MultipartFile image) {
         return "";
     }
