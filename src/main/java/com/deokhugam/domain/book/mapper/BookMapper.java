@@ -1,4 +1,4 @@
 package com.deokhugam.domain.book.mapper;
 
-public interface BookMapper {
+public class BookMapper {
 }
