@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record PopularBookDto(
-        UUID popularBookId,
+        UUID id,
         UUID bookId,
         String title,
         String author,
