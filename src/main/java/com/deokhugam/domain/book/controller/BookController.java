@@ -5,10 +5,8 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.service.BookService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
