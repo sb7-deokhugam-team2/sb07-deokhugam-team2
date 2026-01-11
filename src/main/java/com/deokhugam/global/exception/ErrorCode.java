@@ -12,6 +12,7 @@ public enum ErrorCode {
     USER_PASSWORD_NOT_EQUAL(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.", "U-004"),
     // Comment
     // Book
+    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
     // Popular Book
     // Power User
     // Review

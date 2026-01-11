@@ -7,8 +7,10 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponsePopularBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
+import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.book.service.BookService;
+import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,8 +30,8 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(readOnly = true)
     public BookDto getBookDetail(UUID bookId) {
-        // TODO: 26. 1. 9. 도서 ID로 해당 도서의 상세 정보 조회 로직
-        return null;
+        return bookRepository.findBookDetailById(bookId)
+                .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
     }
 
     @Override
@@ -49,7 +51,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(readOnly = true)
     public NaverBookDto getBookByIsbn(String isbn) {
-        
+
         return null;
     }
 
