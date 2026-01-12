@@ -6,16 +6,16 @@ import com.deokhugam.global.exception.ErrorCode;
 import java.time.Instant;
 import java.util.Map;
 
-public class S3Exception extends DeokhugamException {
-    public S3Exception(ErrorCode errorCode) {
+public class FileStorageException extends DeokhugamException {
+    public FileStorageException(ErrorCode errorCode) {
         super(errorCode);
     }
 
-    public S3Exception(ErrorCode errorCode, Map<String, Object> details) {
+    public FileStorageException(ErrorCode errorCode, Map<String, Object> details) {
         super(errorCode, details);
     }
 
-    public S3Exception(Instant timestamp, ErrorCode errorCode, Map<String, Object> details) {
+    public FileStorageException(Instant timestamp, ErrorCode errorCode, Map<String, Object> details) {
         super(timestamp, errorCode, details);
     }
 }

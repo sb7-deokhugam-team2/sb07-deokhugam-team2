@@ -1,11 +1,11 @@
 package com.deokhugam.global.storage;
 
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.storage.exception.*;
+import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -16,31 +16,25 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
-public class S3Service {
+public class S3FileStorage extends BaseFileStorage{
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
     @Value("${app.aws.s3.bucket}")
     private String bucketName;
 
-    private static final List<String> ALLOWED_MIME_TYPES = List.of(
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/webp"
-    );
 
+
+    @Override
     public String upload(MultipartFile file) {
         if (file.isEmpty()) {
             log.warn("업로드 실패: 빈 파일이 전달됨");
-            throw new S3Exception(ErrorCode.EMPTY_FILE_EXCEPTION);
+            throw new S3FileStorageException(ErrorCode.EMPTY_FILE_EXCEPTION);
         }
 
         String contentType = file.getContentType();
@@ -64,14 +58,15 @@ public class S3Service {
             return key;
         } catch (IOException e) {
             log.error("S3 업로드 중 IO 오류 발생 - 파일명: {}", originalFilename, e);
-            throw new S3Exception(ErrorCode.IO_EXCEPTION_ON_UPLOAD);
+            throw new S3FileStorageException(ErrorCode.IO_EXCEPTION_ON_UPLOAD);
         } catch (RuntimeException e) {
             log.error("S3 업로드 중 AWS SDK 오류 발생 - Key: {}", key, e);
-            throw new S3Exception(ErrorCode.PUT_OBJECT_EXCEPTION);
+            throw new S3FileStorageException(ErrorCode.PUT_OBJECT_EXCEPTION);
         }
     }
 
-    public String getPresignedUrl(String key) {
+    @Override
+    public String generateUrl(String key) {
         if (key == null || key.isBlank()) return null;
 
         try {
@@ -83,10 +78,11 @@ public class S3Service {
             return s3Presigner.presignGetObject(request).url().toString();
         } catch (Exception e) {
             log.error("Presigned URL 생성 실패 - Key: {}", key, e);
-            throw new S3Exception(ErrorCode.FAIL_TO_GENERATE_URL);
+            throw new S3FileStorageException(ErrorCode.FAIL_TO_GENERATE_URL);
         }
     }
 
+    @Override
     public void delete(String key) {
         if (key == null || key.isBlank()) return;
         try {
@@ -100,20 +96,7 @@ public class S3Service {
         }
     }
 
-    private void validateContentType(String contentType) {
-        if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
-            throw new S3Exception(ErrorCode.INVALID_FILE_EXTENSION);
-        }
-    }
 
-    private String createStoreFileName(String originalFilename) {
-        int extIndex = originalFilename.lastIndexOf(".");
-        if (extIndex == -1) {
-            throw new S3Exception(ErrorCode.NO_FILE_EXTENSION);
-        }
-        String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-        return UUID.randomUUID() + "." + ext;
-    }
 
 
 }

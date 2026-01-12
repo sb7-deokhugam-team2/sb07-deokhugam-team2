@@ -13,7 +13,7 @@ import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.storage.S3Service;
+import com.deokhugam.global.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
-    private final S3Service s3Service;
+    private final FileStorage fileStorage;
 
 
     @Override
@@ -78,7 +78,7 @@ public class BookServiceImpl implements BookService {
         }
         String savedFileKey = null;
         if (thumbnail != null && !thumbnail.isEmpty()) {
-            savedFileKey = s3Service.upload(thumbnail);
+            savedFileKey = fileStorage.upload(thumbnail);
 
             log.debug("썸네일 업로드 완료 - Key: {}", savedFileKey);
 
@@ -88,7 +88,7 @@ public class BookServiceImpl implements BookService {
         Book savedBook = bookRepository.save(Book.create(bookCreateRequest.title(), bookCreateRequest.author(), bookCreateRequest.isbn(), bookCreateRequest.publishedDate()
         , bookCreateRequest.publisher(), savedFileKey, bookCreateRequest.description()));
 
-        String presignedUrl = s3Service.getPresignedUrl(savedFileKey);
+        String presignedUrl = fileStorage.generateUrl(savedFileKey);
 
         log.info("책 생성 완료 - ID: {}, 제목: {}", savedBook.getId(), savedBook.getTitle());
 
@@ -97,7 +97,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
-        Book existingBook = bookRepository.findBookById(bookId);
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
         return null;
     }
 
@@ -120,7 +120,7 @@ public class BookServiceImpl implements BookService {
             public void afterCompletion(int status) {
                 if (status == STATUS_ROLLED_BACK) {
                     log.warn("트랜잭션 롤백 감지: S3 업로드 파일 삭제 시도 - Key: {}", fileKey);
-                    s3Service.delete(fileKey);
+                    fileStorage.delete(fileKey);
                 }
             }
         });
