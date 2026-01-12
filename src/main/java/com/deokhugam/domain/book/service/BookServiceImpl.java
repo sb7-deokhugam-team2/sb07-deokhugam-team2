@@ -7,13 +7,19 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponsePopularBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
+import com.deokhugam.domain.book.entity.Book;
+import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
+import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.exception.ErrorCode;
+import com.deokhugam.global.storage.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -24,6 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
+    private final S3Service s3Service;
 
 
     @Override
@@ -63,12 +70,34 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
-        return null;
-    }
+        log.info("책 생성 요청 - 제목: {}, ISBN: {}, 저자: {}",
+                bookCreateRequest.title(), bookCreateRequest.isbn(), bookCreateRequest.author());
+        if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
+            log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
+            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        }
+        String savedFileKey = null;
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            savedFileKey = s3Service.upload(thumbnail);
 
+            log.debug("썸네일 업로드 완료 - Key: {}", savedFileKey);
+
+            bookCreateFailedRollbackCleanup(savedFileKey);
+        }
+
+        Book savedBook = bookRepository.save(Book.create(bookCreateRequest.title(), bookCreateRequest.author(), bookCreateRequest.isbn(), bookCreateRequest.publishedDate()
+        , bookCreateRequest.publisher(), savedFileKey, bookCreateRequest.description()));
+
+        String presignedUrl = s3Service.getPresignedUrl(savedFileKey);
+
+        log.info("책 생성 완료 - ID: {}, 제목: {}", savedBook.getId(), savedBook.getTitle());
+
+        return BookMapper.bookToBookDto(savedBook, presignedUrl);
+    }
     @Override
     @Transactional
     public BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
+        Book existingBook = bookRepository.findBookById(bookId);
         return null;
     }
 
@@ -82,5 +111,18 @@ public class BookServiceImpl implements BookService {
     @Transactional
     public void hardDeleteBook(UUID bookId) {
 
+    }
+
+    private void bookCreateFailedRollbackCleanup(String fileKey) {
+        if (fileKey == null) return;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    log.warn("트랜잭션 롤백 감지: S3 업로드 파일 삭제 시도 - Key: {}", fileKey);
+                    s3Service.delete(fileKey);
+                }
+            }
+        });
     }
 }
