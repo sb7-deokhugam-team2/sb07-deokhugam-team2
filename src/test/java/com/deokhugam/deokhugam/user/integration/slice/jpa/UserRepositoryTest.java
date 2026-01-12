@@ -4,15 +4,12 @@ import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.repository.UserRepository;
 import com.deokhugam.global.config.JpaAuditingConfig;
 import jakarta.persistence.EntityManager;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(JpaAuditingConfig.class)
@@ -25,11 +22,11 @@ public class UserRepositoryTest {
     EntityManager em;
 
     @Test
-    void existsByEmail(){
+    void existsByEmail() {
         //given
         User user = User.create("test@gmail.com", "nickname", "12345678a!");
-//        userRepository.save(user);
-        em.persist(user);
+        userRepository.save(user);
+
         //when
         boolean result = userRepository.existsByEmail("test@gmail.com");
 
@@ -38,11 +35,10 @@ public class UserRepositoryTest {
     }
 
     @Test
-    void findByEmail(){
+    void findByEmail() {
         //given
         User user = User.create("test@gmail.com", "nickname", "12345678a!");
-//        userRepository.save(user);
-        em.persist(user);
+        userRepository.save(user);
 
         //when
         User findUser = userRepository.findByEmail("test@gmail.com").orElseThrow(RuntimeException::new);
