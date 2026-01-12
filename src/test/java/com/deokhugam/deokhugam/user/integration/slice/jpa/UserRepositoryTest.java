@@ -28,8 +28,8 @@ public class UserRepositoryTest {
     void existsByEmail(){
         //given
         User user = User.create("test@gmail.com", "nickname", "12345678a!");
-        userRepository.save(user);
-
+//        userRepository.save(user);
+        em.persist(user);
         //when
         boolean result = userRepository.existsByEmail("test@gmail.com");
 
@@ -41,7 +41,8 @@ public class UserRepositoryTest {
     void findByEmail(){
         //given
         User user = User.create("test@gmail.com", "nickname", "12345678a!");
-        userRepository.save(user);
+//        userRepository.save(user);
+        em.persist(user);
 
         //when
         User findUser = userRepository.findByEmail("test@gmail.com").orElseThrow(RuntimeException::new);
