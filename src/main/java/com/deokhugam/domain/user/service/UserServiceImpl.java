@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService{
             throw new UserAlreadyExistsException(ErrorCode.USER_EMAIL_ALREADY_EXISTS);
         }
 
-        User user = new  User(
+        User user = User.create(
                 userRegisterRequest.email(),
                 userRegisterRequest.nickname(),
                 userRegisterRequest.password()
@@ -42,7 +42,6 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserDto login(UserLoginRequest userLoginRequest) {
-        // 비밀번호 상세 체크는 DTO에서 진행
         User user = userRepository.findByEmail(userLoginRequest.email())
                 .orElseThrow(() -> new UserEmailNotExistsException(ErrorCode.USER_EMAIL_NOT_EXISTS));
 

@@ -12,7 +12,7 @@ public class UserTest {
     @Test
     @DisplayName("updateNickname() 테스트")
     void updateNickname() {
-        User user = new User("test@gmail.com", "beforeName", "1234");
+        User user = User.create("test@gmail.com", "beforeName", "1234");
         String newName = "afterName";
         user.updateNickname(newName);
 
