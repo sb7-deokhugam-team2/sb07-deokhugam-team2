@@ -23,8 +23,8 @@ logging:
 app:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+      access-key: "123123"
+      secret-key: "123123"
     region:
       static: ap-northeast-2
     s3:
