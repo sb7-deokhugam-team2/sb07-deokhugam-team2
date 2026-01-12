@@ -4,7 +4,7 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.repository.BookRepository;
-import com.deokhugam.domain.book.service.impl.BookServiceImpl;
+import com.deokhugam.domain.book.service.BookServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
