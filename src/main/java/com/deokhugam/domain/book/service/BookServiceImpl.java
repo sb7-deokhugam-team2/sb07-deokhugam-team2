@@ -1,4 +1,4 @@
-package com.deokhugam.domain.book.service.impl;
+package com.deokhugam.domain.book.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
@@ -9,7 +9,6 @@ import com.deokhugam.domain.book.dto.response.CursorPageResponsePopularBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.repository.BookRepository;
-import com.deokhugam.domain.book.service.BookService;
 import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

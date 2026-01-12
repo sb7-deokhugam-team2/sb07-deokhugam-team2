@@ -4,17 +4,13 @@ import com.deokhugam.domain.base.BaseDeletableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Table(name = "books")
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends BaseDeletableEntity {
     @Column(name = "title", nullable = false)
@@ -37,4 +33,21 @@ public class Book extends BaseDeletableEntity {
 
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
+
+    private Book(String title, String author, String isbn, LocalDate publishedDate, String publisher, String thumbnailUrl, String description) {
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn;
+        this.publishedDate = publishedDate;
+        this.publisher = publisher;
+        this.thumbnailUrl = thumbnailUrl;
+        this.description = description;
+    }
+
+    public static Book create(String title, String author, String isbn,
+                              LocalDate publishedDate, String publisher,
+                              String thumbnailUrl, String description){
+        return new Book(title, author, isbn, publishedDate, publisher, thumbnailUrl, description);
+    }
+
 }

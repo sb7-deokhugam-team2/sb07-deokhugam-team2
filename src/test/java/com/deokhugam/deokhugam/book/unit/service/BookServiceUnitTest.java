@@ -4,7 +4,7 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.repository.BookRepository;
-import com.deokhugam.domain.book.service.impl.BookServiceImpl;
+import com.deokhugam.domain.book.service.BookServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ public class BookServiceUnitTest {
         @DisplayName("[Behavior][Positive] 단일 도서 조회 - bookRepository.findBookDetailById() 호출")
         void getById_should_delegate_and_return_result() {
             // given
-            Book book = new Book("title", "author", "1234567890123", LocalDate.now(), "publisher", null, "description");
+            Book book = Book.create("title", "author", "1234567890123", LocalDate.now(), "publisher", null, "description");
             BookDto bookDto = new BookDto(book.getId(), book.getTitle(), book.getAuthor(), book.getDescription(), book.getPublisher(), book.getPublishedDate(), book.getIsbn(), book.getThumbnailUrl(), 0, 0.0, book.getCreatedAt(), book.getUpdatedAt());
             when(bookRepository.findBookDetailById(book.getId())).thenReturn(Optional.of(bookDto));
             // when
