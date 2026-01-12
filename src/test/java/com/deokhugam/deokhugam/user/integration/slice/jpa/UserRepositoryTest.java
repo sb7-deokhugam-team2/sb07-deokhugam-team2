@@ -27,7 +27,7 @@ public class UserRepositoryTest {
     @Test
     void existsByEmail(){
         //given
-        User user = User.create("test@gmail.com", "nickname", "1234");
+        User user = User.create("test@gmail.com", "nickname", "12345678a!");
         userRepository.save(user);
 
         //when
@@ -40,7 +40,7 @@ public class UserRepositoryTest {
     @Test
     void findByEmail(){
         //given
-        User user = User.create("test@gmail.com", "nickname", "1234");
+        User user = User.create("test@gmail.com", "nickname", "12345678a!");
         userRepository.save(user);
 
         //when
