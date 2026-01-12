@@ -5,6 +5,7 @@ import com.deokhugam.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.domain.user.dto.response.UserDto;
 import com.deokhugam.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +32,14 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> findUser(@PathVariable UUID userId) {
-        return null;
+        UserDto userDto = userService.findUser(userId);
+        return ResponseEntity.ok().body(userDto);
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> logicalDelete(@PathVariable UUID userId) {
-        return null;
+        userService.logicalDelete(userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PatchMapping("/{userId}")
@@ -44,11 +47,13 @@ public class UserController {
             @PathVariable UUID userId,
             @ModelAttribute UserUpdateRequest userUpdateRequest
             ) {
-        return null;
+        UserDto userDto = userService.updateNickname(userId, userUpdateRequest);
+        return ResponseEntity.ok().body(userDto);
     }
 
     @DeleteMapping("/{userId}/hard")
     public ResponseEntity<Void> physicalDelete(@PathVariable UUID userId) {
-        return null;
+        userService.physicalDelete(userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
