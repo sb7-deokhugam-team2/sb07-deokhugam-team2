@@ -34,7 +34,6 @@ public class Book extends BaseDeletableEntity {
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
 
-    @Builder(access = AccessLevel.PRIVATE)
     private Book(String title, String author, String isbn, LocalDate publishedDate, String publisher, String thumbnailUrl, String description) {
         this.title = title;
         this.author = author;
@@ -48,15 +47,7 @@ public class Book extends BaseDeletableEntity {
     public static Book create(String title, String author, String isbn,
                               LocalDate publishedDate, String publisher,
                               String thumbnailUrl, String description){
-        return Book.builder()
-                .title(title)
-                .author(author)
-                .isbn(isbn)
-                .publishedDate(publishedDate)
-                .publisher(publisher)
-                .thumbnailUrl(thumbnailUrl)
-                .description(description)
-                .build();
+        return new Book(title, author, isbn, publishedDate, publisher, thumbnailUrl, description);
     }
 
 }
