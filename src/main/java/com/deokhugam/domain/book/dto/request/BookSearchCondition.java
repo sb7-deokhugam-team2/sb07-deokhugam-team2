@@ -5,18 +5,15 @@ import com.deokhugam.domain.book.enums.SortDirection;
 
 public record BookSearchCondition(
         String keyword,
-
-        SortCriteria sortCriteria,
-        SortDirection sortDirection,
-
+        SortCriteria orderBy,
+        SortDirection direction,
         String cursor,
-        String afterCursor,
-
+        String after,
         Integer limit
 ) {
-    public BookSearchCondition{
-        if(sortCriteria == null) sortCriteria = SortCriteria.TITLE;
-        if(sortDirection == null) sortDirection = SortDirection.DESC;
-        if(limit <= 0) limit = 50;
+    public BookSearchCondition {
+        if (orderBy == null) orderBy = SortCriteria.TITLE;
+        if (direction == null) direction = SortDirection.DESC;
+        if (limit == null || limit <= 0) limit = 50;
     }
 }
