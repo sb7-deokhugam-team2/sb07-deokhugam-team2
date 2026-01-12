@@ -41,7 +41,6 @@ public class Review extends BaseDeletableEntity {
         this.content = content;
         this.book = book;
         this.user = user;
-        this.likedCount = 0L;
     }
 
     public static Review create (Double rating, String content, Book book, User user) {
