@@ -35,4 +35,24 @@ public class Review extends BaseDeletableEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    private Review (Double rating, String content, Book book, User user) {
+        this.rating = rating;
+        this.content = content;
+        this.book = book;
+        this.user = user;
+    }
+
+    public static Review create (Double rating, String content, Book book, User user) {
+        return new Review(rating, content, book, user);
+    }
+
+    public void incrementLikedCount() {
+        this.likedCount = this.likedCount + 1L;
+    }
+
+    public void decrementLikedCount() {
+        if (this.likedCount <= 0L) return;
+        this.likedCount = this.likedCount - 1L;
+    }
 }
