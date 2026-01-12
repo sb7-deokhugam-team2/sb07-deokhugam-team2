@@ -41,7 +41,7 @@ public class UserServiceImplTest {
     @DisplayName("회원가입 성공 테스트")
     void register_success() {
         //given
-        User user = new User("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "1234");
         UserRegisterRequest userRegisterRequest = new UserRegisterRequest(user.getEmail(), user.getNickname(), user.getPassword());
 
         lenient().when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
@@ -83,7 +83,7 @@ public class UserServiceImplTest {
         String password = "1234";
         UserLoginRequest userLoginRequest = new UserLoginRequest(email, password);
 
-        User user = new User(email, "nickName", password);
+        User user = User.create(email, "nickName", password);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         //when
         UserDto userDto = userService.login(userLoginRequest);
@@ -116,7 +116,7 @@ public class UserServiceImplTest {
         String email = "test@gamil";
         UserLoginRequest userLoginRequest = new UserLoginRequest(email, "1234");
 
-        User user = new User(email, "nickName", "0000");
+        User user = User.create(email, "nickName", "0000");
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
@@ -131,7 +131,7 @@ public class UserServiceImplTest {
     @Test
     void findUser() {
         //given
-        User user = new User("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "1234");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
@@ -147,7 +147,7 @@ public class UserServiceImplTest {
     @DisplayName("논리 삭제 성공")
     void logicalDelete() {
         //given
-        User user = new User("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "1234");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
@@ -179,7 +179,7 @@ public class UserServiceImplTest {
     void updateNickname() {
         //given
         UserUpdateRequest userUpdateRequest = new UserUpdateRequest("newName");
-        User user = new User("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "1234");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
@@ -207,7 +207,7 @@ public class UserServiceImplTest {
     @DisplayName("물리 삭제 성공")
     void physicalDelete() {
         //given
-        User user = new User("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "1234");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 

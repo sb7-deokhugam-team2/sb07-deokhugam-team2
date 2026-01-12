@@ -51,7 +51,7 @@ public class UserControllerTest {
     void findUser() throws Exception {
         //given
         UUID userId = UUID.randomUUID();
-        User user = new User("test@gmail.com", "test", "1234");
+        User user = User.create("test@gmail.com", "test", "1234");
         UserDto userDto = UserDto.from(user);
         when(userService.findUser(any()))
                 .thenReturn(userDto);
@@ -84,7 +84,7 @@ public class UserControllerTest {
     void updateUser() throws Exception {
         //given
         UUID userId = UUID.randomUUID();
-        User user = new User("test@gmail.com", "newName", "1234");
+        User user = User.create("test@gmail.com", "newName", "1234");
         UserDto userDto = UserDto.from(user);
         when(userService.updateNickname(any(UUID.class), any(UserUpdateRequest.class)))
                 .thenReturn(userDto);
