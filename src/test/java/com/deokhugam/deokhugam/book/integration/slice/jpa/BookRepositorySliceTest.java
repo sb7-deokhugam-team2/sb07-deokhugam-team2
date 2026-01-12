@@ -36,7 +36,7 @@ public class BookRepositorySliceTest {
         @DisplayName("[Success] 도서 등록 - 도서등록후 같은 엔티티로 조회")
         void saveBook_should_success_and_same(){
             //given
-            Book book = new Book("title", "author", "1234567890123", LocalDate.now(), "publisher", null, "description");
+            Book book = Book.create("title", "author", "1234567890123", LocalDate.now(), "publisher", null, "description");
 
             // when
             Book savedBook = bookRepository.save(book);
