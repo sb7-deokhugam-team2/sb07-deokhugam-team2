@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam.user.integration.slice.jpa;
 import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.repository.UserRepository;
 import com.deokhugam.global.config.JpaAuditingConfig;
+import com.deokhugam.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Import;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(JpaAuditingConfig.class)
+@Import({JpaAuditingConfig.class, QuerydslConfig.class})
 public class UserRepositoryTest {
 
     @Autowired
