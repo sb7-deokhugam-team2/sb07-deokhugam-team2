@@ -10,6 +10,9 @@ public enum ErrorCode {
     USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이메일 중복", "U-002"),
     USER_EMAIL_NOT_EXISTS(HttpStatus.UNAUTHORIZED, "이메일이 존재하지 않습니다.", "U-003"),
     USER_PASSWORD_NOT_EQUAL(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.", "U-004"),
+    USER_EMAIL_VALIDATION(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다", "U-005"),
+    USER_PASSWORD_VALIDATION(HttpStatus.BAD_REQUEST, "비밀번호 형식이 올바르지 않습니다.", "U-006"),
+    USER_NICKNAME_VALIDATION(HttpStatus.BAD_REQUEST, "닉네임의 형식이 올바르지 않습니다.", "U-007"),
     // Comment
     // Book
     // Popular Book
