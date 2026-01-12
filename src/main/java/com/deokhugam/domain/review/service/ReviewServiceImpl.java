@@ -1,8 +1,11 @@
 package com.deokhugam.domain.review.service;
 
+import com.deokhugam.domain.review.dto.request.CursorPageRequest;
 import com.deokhugam.domain.review.dto.request.ReviewCreateRequest;
+import com.deokhugam.domain.review.dto.request.ReviewSearchCondition;
 import com.deokhugam.domain.review.dto.request.ReviewUpdateRequest;
 import com.deokhugam.domain.review.dto.response.ReviewDto;
+import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,5 +39,10 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public void hardDelete(UUID reviewId) {
 
+    }
+
+    @Override
+    public ReviewPageResponseDto searchReviews(ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId) {
+        return null;
     }
 }
