@@ -4,6 +4,7 @@ import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
+import com.deokhugam.domain.book.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookController {
 
+    private final BookService bookService;
+
     @GetMapping
     public ResponseEntity<CursorPageResponseBookDto> getAllBooks() {  // TODO: 키워드 목록 조회 추후 추가
         return null;
@@ -23,7 +26,8 @@ public class BookController {
 
     @GetMapping("/{bookId}")
     public ResponseEntity<BookDto> getBookById(@PathVariable UUID bookId) {
-        return null;
+        BookDto bookDetail = bookService.getBookDetail(bookId);
+        return ResponseEntity.ok(bookDetail);
     }
 
     @GetMapping("/info")
@@ -49,7 +53,7 @@ public class BookController {
     }
 
     @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> deleteBook() {
+    public ResponseEntity<Void> deleteBook(@PathVariable String bookId) {
         return null;
     }
 

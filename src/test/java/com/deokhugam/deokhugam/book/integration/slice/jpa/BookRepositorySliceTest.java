@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam.book.integration.slice.jpa;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.config.JpaAuditingConfig;
+import com.deokhugam.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
-@Import(JpaAuditingConfig.class)
+@Import({JpaAuditingConfig.class,QuerydslConfig.class })
 @DisplayName("BookRepository JPA Slice Test")
 public class BookRepositorySliceTest {
 
