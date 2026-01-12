@@ -20,5 +20,4 @@ public interface ReviewService {
 
     void hardDelete(UUID reviewId);
 
-    ReviewPageResponseDto searchReview(UUID requestId, ReviewSearchRequest request);
 }
