@@ -1,10 +1,10 @@
 package com.deokhugam.domain.book.dto.request;
 
-import com.deokhugam.domain.book.enums.Period;
+import com.deokhugam.domain.base.PeriodType;
 import com.deokhugam.domain.book.enums.SortDirection;
 
 public record PopularBookSearchCondition(
-        Period period,
+        PeriodType period,
         SortDirection sortDirection,
 
         String cursor,
@@ -13,7 +13,7 @@ public record PopularBookSearchCondition(
         Integer limit
 ) {
     public PopularBookSearchCondition{
-        if(period == null) period = Period.DAILY;
+        if(period == null) period = PeriodType.DAILY;
         if(sortDirection == null) sortDirection = SortDirection.ASC;
         if(limit <= 0) limit = 50;
     }
