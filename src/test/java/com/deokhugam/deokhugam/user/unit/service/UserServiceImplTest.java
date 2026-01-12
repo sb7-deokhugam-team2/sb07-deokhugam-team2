@@ -41,7 +41,7 @@ public class UserServiceImplTest {
     @DisplayName("회원가입 성공 테스트")
     void register_success() {
         //given
-        User user = User.create("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "12345678a!");
         UserRegisterRequest userRegisterRequest = new UserRegisterRequest(user.getEmail(), user.getNickname(), user.getPassword());
 
         lenient().when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
@@ -63,7 +63,7 @@ public class UserServiceImplTest {
     void register_fail() {
         // given
         UserRegisterRequest userRegisterRequest = new UserRegisterRequest(
-                "duplication@test.com", "testName", "1234");
+                "duplication@test.com", "testName", "12345678a!");
 
         // when & then
         when(userRepository.existsByEmail(userRegisterRequest.email())).thenReturn(true);
@@ -80,7 +80,7 @@ public class UserServiceImplTest {
     void login_success() {
         //given
         String email = "test@gamil";
-        String password = "1234";
+        String password = "12345678a!";
         UserLoginRequest userLoginRequest = new UserLoginRequest(email, password);
 
         User user = User.create(email, "nickName", password);
@@ -98,7 +98,7 @@ public class UserServiceImplTest {
     void login_fail_email() {
         // given
         String email = "test@gmail.com";
-        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "1234");
+        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "12345678a!");
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
@@ -114,9 +114,9 @@ public class UserServiceImplTest {
     void login_fail_password() {
         // given
         String email = "test@gamil";
-        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "1234");
+        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "12345678a!");
 
-        User user = User.create(email, "nickName", "0000");
+        User user = User.create(email, "nickName", "12345678a!!");
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
@@ -131,7 +131,7 @@ public class UserServiceImplTest {
     @Test
     void findUser() {
         //given
-        User user = User.create("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "12345678a!");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
@@ -147,7 +147,7 @@ public class UserServiceImplTest {
     @DisplayName("논리 삭제 성공")
     void logicalDelete() {
         //given
-        User user = User.create("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "12345678a!");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
@@ -179,7 +179,7 @@ public class UserServiceImplTest {
     void updateNickname() {
         //given
         UserUpdateRequest userUpdateRequest = new UserUpdateRequest("newName");
-        User user = User.create("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "12345678a!");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
@@ -207,7 +207,7 @@ public class UserServiceImplTest {
     @DisplayName("물리 삭제 성공")
     void physicalDelete() {
         //given
-        User user = User.create("test@gmail.com", "testName", "1234");
+        User user = User.create("test@gmail.com", "testName", "12345678a!");
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user));
 
