@@ -21,7 +21,7 @@ public record CommentCursorRequest(
 ) {
     public CommentCursorRequest {
         if (limit == null) {
-            limit = 20;
+            limit = 50;
         }
     }
 }
