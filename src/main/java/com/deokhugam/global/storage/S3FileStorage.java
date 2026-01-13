@@ -95,6 +95,7 @@ public class S3FileStorage extends BaseFileStorage{
             log.info("S3 파일 삭제 완료 - Key: {}", realKey);
         } catch (Exception e) {
             log.error("S3 파일 삭제 실패 (고아 객체 수동 확인 필요) - Key: {}", realKey, e);
+            throw new S3FileStorageException(ErrorCode.FAIL_TO_DELETE_FILE);
         }
     }
 

@@ -14,6 +14,7 @@ import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.global.storage.FileStorage;
+import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -156,9 +157,9 @@ public class BookServiceImpl implements BookService {
         if (oldFileKeyToDelete != null) {
             try {
                 s3Storage.delete(oldFileKeyToDelete);
-                log.info("기존 파일(확장자 변경됨) 삭제 완료 - Key: {}", oldFileKeyToDelete);
+                log.info("기존 파일 삭제 완료 - Key: {}", oldFileKeyToDelete);
             } catch (Exception e) {
-                log.warn("기존 파일 삭제 실패 (고아 객체 발생 가능성) - Key: {}", oldFileKeyToDelete, e);
+                log.warn("기존 파일 삭제 실패 (고아 객체 확인 필요) - Key: {}", oldFileKeyToDelete, e);
             }
         }
         String cdnUrl = s3Storage.generateUrl(existingBook.getThumbnailUrl());

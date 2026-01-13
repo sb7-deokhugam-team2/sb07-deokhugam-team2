@@ -36,6 +36,7 @@ public enum ErrorCode {
     INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 확장자입니다.", "S3_004"),
     PUT_OBJECT_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "S3에 이미지를 저장하는 데 실패했습니다.", "S3_005"),
     FAIL_TO_GENERATE_URL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 URL 생성에 실패했습니다.", "S3_006"),
+    FAIL_TO_DELETE_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 삭제게 실패했습니다.", "S3_007"),
     // common
     INVALID_REQUEST(HttpStatus.BAD_REQUEST,"요청이 올바르지 않습니다.", "CM-001"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 오류가 발생했습니다.", "CM-002"),
