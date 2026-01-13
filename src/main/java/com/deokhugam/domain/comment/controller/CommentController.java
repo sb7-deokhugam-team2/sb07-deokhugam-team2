@@ -23,14 +23,14 @@ public class CommentController {
 
     @GetMapping
     public ResponseEntity<CursorPageResponseCommentDto> getComments(
-            @ModelAttribute CommentSearchCondition commentSearchCondition
+            @Valid @ModelAttribute CommentSearchCondition commentSearchCondition
     ){
         return null;
     }
 
     @PostMapping
     public ResponseEntity<CommentDto> createComment(
-            @ModelAttribute CommentCreateRequest commentCreateRequest
+            @Valid @ModelAttribute CommentCreateRequest commentCreateRequest
     ){
         return null;
     }
