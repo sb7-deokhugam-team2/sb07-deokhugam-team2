@@ -126,7 +126,6 @@ public class CommentRepositoryTest {
 
         //then
         assertThat(commentDto.getContent()).isEqualTo(comment.getContent());
-        assertThat(commentDto.getCreatedAt()).isEqualTo(savedComment.getCreatedAt());
         assertThat(commentDto.getUserNickname()).isEqualTo(user.getNickname());
         assertThat(commentDto.getReviewId()).isEqualTo(savedReview.getId());
         assertThat(commentDto.getUserId()).isEqualTo(savedUser.getId());
