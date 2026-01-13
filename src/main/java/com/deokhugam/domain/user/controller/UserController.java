@@ -5,6 +5,7 @@ import com.deokhugam.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.domain.user.dto.response.UserDto;
 import com.deokhugam.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> register(
-            @RequestBody UserRegisterRequest userRegisterRequest
+            @Valid @RequestBody UserRegisterRequest userRegisterRequest
     ) {
         UserDto userDto = userService.register(userRegisterRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
@@ -29,7 +30,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(
-            @RequestBody UserLoginRequest userLoginRequest
+            @Valid @RequestBody UserLoginRequest userLoginRequest
     ) {
         UserDto userDto = userService.login(userLoginRequest);
         return ResponseEntity.ok(userDto);
@@ -50,7 +51,7 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(
             @PathVariable UUID userId,
-            @ModelAttribute UserUpdateRequest userUpdateRequest
+            @Valid @ModelAttribute UserUpdateRequest userUpdateRequest
     ) {
         UserDto userDto = userService.updateNickname(userId, userUpdateRequest);
         return ResponseEntity.ok().body(userDto);

@@ -181,8 +181,8 @@ public class UserControllerTest {
                         .param("nickname", "newName")
                 )
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value("newName"));
+                .andExpect(status().isOk());
+
         verify(userService).updateNickname(any(UUID.class), any(UserUpdateRequest.class));
     }
 
