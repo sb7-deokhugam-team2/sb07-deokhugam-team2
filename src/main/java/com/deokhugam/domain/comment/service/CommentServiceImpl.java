@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CommentServiceImpl implements CommentService {
+@Transactional
+public class CommentServiceImpl implements CommentService{
 
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
@@ -91,7 +92,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public void logicalDelete(UUID commentId, UUID userId) {
         Comment comment = commentRepository.findWithUser(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
 
@@ -103,7 +103,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public CommentDto updateComment(UUID commentId, UUID userId, CommentUpdateRequest commentUpdateRequest) {
         Comment comment = commentRepository.findWithUserAndReview(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
 
@@ -116,7 +115,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public void physicalDelete(UUID commentId, UUID userId) {
         Comment comment = commentRepository.findWithUser(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
 
