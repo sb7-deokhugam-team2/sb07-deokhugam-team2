@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     // User
-    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "요청이 올바르지 않습니다.", "U-001"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "요청이 올바르지 않습니다.", "U-001"),
     USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이메일 중복", "U-002"),
     USER_EMAIL_NOT_EXISTS(HttpStatus.UNAUTHORIZED, "이메일이 존재하지 않습니다.", "U-003"),
     USER_PASSWORD_NOT_EQUAL(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.", "U-004"),
@@ -17,6 +17,8 @@ public enum ErrorCode {
     COMMENT_CONTENT_VALIDATION(HttpStatus.BAD_REQUEST, "댓글 형식이 올바르지 않습니다.", "C-001"),
     COMMENT_USER_NULL(HttpStatus.BAD_REQUEST, "유저는 Null일 수 없습니다.", "C-002"),
     COMMENT_REVIEW_NULL(HttpStatus.BAD_REQUEST, "리뷰는 Null일 수 없습니다.", "C-003"),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.", "C-004"),
+    COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.", "C-005"),
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
     DUPLICATE_BOOK_ISBN(HttpStatus.CONFLICT,"이미 등록된 ISBN입니다.", "B-002"),
