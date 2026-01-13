@@ -15,7 +15,6 @@ import static com.deokhugam.domain.comment.entity.QComment.*;
 import static com.deokhugam.domain.review.entity.QReview.*;
 import static com.deokhugam.domain.user.entity.QUser.*;
 
-@Repository
 @RequiredArgsConstructor
 public class CommentCustomRepositoryImpl implements CommentCustomRepository {
 
@@ -30,6 +29,7 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                 .join(comment.user, user)
                 .where(afterGt(after))
                 .orderBy(direction(direction))
+                .limit(limit)
                 .fetch();
     }
 
