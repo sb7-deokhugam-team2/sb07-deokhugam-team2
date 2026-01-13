@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Import;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -155,7 +156,8 @@ public class CommentRepositoryTest {
         CommentSearchCondition condition = new CommentSearchCondition(
                 savedReview.getId(),
                 "DESC",
-                commentList.get(75).getCreatedAt().toString(),
+                null,
+//                commentList.get(75).getCreatedAt().toString(),
 //                commentList.get(75).getCreatedAt(),
                 null,
                 20);
@@ -170,9 +172,11 @@ public class CommentRepositoryTest {
 
         //then
         assertThat(results.size()).isEqualTo(condition.limit());
-//        assertThat(results).is
-//        assertThat(commentDto.getUserNickname()).isEqualTo(user.getNickname());
-//        assertThat(commentDto.getReviewId()).isEqualTo(savedReview.getId());
-//        assertThat(commentDto.getUserId()).isEqualTo(savedUser.getId());
+        assertThat(results.get(0).getCreatedAt())
+                .isAfterOrEqualTo(results.get(results.size() - 1).getCreatedAt());
+        assertThat(results).extracting(Comment::getCreatedAt).isSortedAccordingTo(Comparator.reverseOrder());
+        assertThat(results).allSatisfy(comment -> {
+            assertThat(comment.getReview().getId()).isEqualTo(savedReview.getId());
+        });
     }
 }
