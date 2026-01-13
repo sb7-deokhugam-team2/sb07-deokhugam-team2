@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @Table(name = "comments")
@@ -68,5 +70,9 @@ public class Comment extends BaseDeletableEntity {
         if (review == null) {
             throw new CommentReviewNullException(ErrorCode.COMMENT_REVIEW_NULL);
         }
+    }
+
+    public boolean isAuthor(UUID userId){
+        return this.user.getId() == userId;
     }
 }

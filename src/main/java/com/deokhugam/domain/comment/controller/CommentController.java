@@ -1,7 +1,7 @@
 package com.deokhugam.domain.comment.controller;
 
 import com.deokhugam.domain.comment.dto.request.CommentCreateRequest;
-import com.deokhugam.domain.comment.dto.request.CommentCursorRequest;
+import com.deokhugam.domain.comment.dto.request.CommentSearchCondition;
 import com.deokhugam.domain.comment.dto.request.CommentUpdateRequest;
 import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.dto.response.CursorPageResponseCommentDto;
@@ -21,7 +21,7 @@ public class CommentController {
 
     @GetMapping
     public ResponseEntity<CursorPageResponseCommentDto> getComments(
-            @ModelAttribute CommentCursorRequest commentCursorRequest
+            @ModelAttribute CommentSearchCondition commentSearchCondition
     ){
         return null;
     }

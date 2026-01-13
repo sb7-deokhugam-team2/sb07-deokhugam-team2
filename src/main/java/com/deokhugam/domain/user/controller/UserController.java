@@ -1,5 +1,6 @@
 package com.deokhugam.domain.user.controller;
 
+import com.deokhugam.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.domain.user.dto.response.UserDto;
@@ -20,14 +21,18 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> register(
-            UserRegisterRequest userRegisterRequest
+            @RequestBody UserRegisterRequest userRegisterRequest
     ) {
-        return null;
+        UserDto userDto = userService.register(userRegisterRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDto> login() {
-        return null;
+    public ResponseEntity<UserDto> login(
+            @RequestBody UserLoginRequest userLoginRequest
+    ) {
+        UserDto userDto = userService.login(userLoginRequest);
+        return ResponseEntity.ok(userDto);
     }
 
     @GetMapping("/{userId}")
@@ -46,7 +51,7 @@ public class UserController {
     public ResponseEntity<UserDto> updateUser(
             @PathVariable UUID userId,
             @ModelAttribute UserUpdateRequest userUpdateRequest
-            ) {
+    ) {
         UserDto userDto = userService.updateNickname(userId, userUpdateRequest);
         return ResponseEntity.ok().body(userDto);
     }
