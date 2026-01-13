@@ -1,14 +1,15 @@
 package com.deokhugam.domain.comment.repository;
 
+import com.deokhugam.domain.comment.dto.request.CommentSearchCondition;
 import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
-import com.deokhugam.domain.review.entity.QReview;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,15 +26,19 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Comment> findCommentByCursor(UUID reviewId, String direction, String cursor, Instant after, Integer limit) {
+    public List<Comment> searchComments(CommentSearchCondition condition) {
 
         return queryFactory.select(comment)
                 .from(comment)
                 .join(comment.review, review).fetchJoin()
                 .join(comment.user, user).fetchJoin()
-                .where(afterGt(after))
-                .orderBy(direction(direction))
-                .limit(limit)
+                .where(
+                        comment.review.id.eq(condition.reviewId()),
+                        cursorCondition(condition.cursor(), condition.direction()),
+                        afterCondition(condition.after(), condition.direction())
+                )
+                .orderBy(direction(condition.direction()))
+                .limit(condition.limit())
                 .fetch();
     }
 
@@ -44,12 +49,21 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
         return new OrderSpecifier[]{ comment.createdAt.desc() };
     }
 
-    private BooleanExpression afterGt(Instant after) {
+    private BooleanExpression cursorCondition(String cursor, String direction) {
+        if(cursor == null){
+            return null;
+        }
+        Instant cursorInstant = Instant.parse(cursor);
+        if (direction.equals("ASC")) return comment.createdAt.gt(cursorInstant);
+        return comment.createdAt.lt(cursorInstant);
+    }
+
+    private BooleanExpression afterCondition(Instant after, String direction) {
         if(after == null){
             return null;
         }
-
-        return comment.createdAt.gt(after);
+        if (direction.equals("ASC")) return comment.createdAt.gt(after);
+        return comment.createdAt.lt(after);
     }
 
     @Override
