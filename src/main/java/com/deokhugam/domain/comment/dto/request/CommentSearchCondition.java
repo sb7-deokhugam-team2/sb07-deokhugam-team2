@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 
-public record CommentCursorRequest(
+public record CommentSearchCondition(
         @NotNull
         UUID reviewId,
 
@@ -19,7 +19,7 @@ public record CommentCursorRequest(
 
         Integer limit
 ) {
-    public CommentCursorRequest {
+    public CommentSearchCondition {
         if (limit == null) {
             limit = 50;
         }
