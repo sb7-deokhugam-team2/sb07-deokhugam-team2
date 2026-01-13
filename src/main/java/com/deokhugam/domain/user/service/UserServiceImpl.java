@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService{
 
     private final UserRepository userRepository;
@@ -41,6 +42,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto login(UserLoginRequest userLoginRequest) {
         User user = userRepository.findByEmail(userLoginRequest.email())
                 .orElseThrow(() -> new UserEmailNotExistsException(ErrorCode.USER_EMAIL_NOT_EXISTS));
@@ -53,6 +55,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto findUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
@@ -60,7 +63,6 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    @Transactional
     public void logicalDelete(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
@@ -68,7 +70,6 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    @Transactional
     public UserDto updateNickname(UUID userId, UserUpdateRequest userUpdateRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
