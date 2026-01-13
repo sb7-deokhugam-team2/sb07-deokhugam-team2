@@ -1,7 +1,10 @@
 package com.deokhugam.domain.comment.repository;
 
+import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
+import com.deokhugam.domain.review.entity.QReview;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.deokhugam.domain.comment.entity.QComment.*;
@@ -25,8 +29,8 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
 
         return queryFactory.select(comment)
                 .from(comment)
-                .join(comment.review, review)
-                .join(comment.user, user)
+                .join(comment.review, review).fetchJoin()
+                .join(comment.user, user).fetchJoin()
                 .where(afterGt(after))
                 .orderBy(direction(direction))
                 .limit(limit)
@@ -46,5 +50,26 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
         }
 
         return comment.createdAt.gt(after);
+    }
+
+    @Override
+    public Optional<CommentDto> findCommentDto(UUID commentId) {
+        CommentDto commentDto = queryFactory
+                .select(Projections.constructor(
+                        CommentDto.class,
+                        comment.id,
+                        comment.review.id,
+                        comment.user.id,
+                        comment.user.nickname,
+                        comment.content,
+                        comment.createdAt,
+                        comment.updatedAt
+                ))
+                .from(comment)
+                .where(comment.id.eq(commentId))
+                .join(comment.review, review)
+                .join(comment.user, user)
+                .fetchOne();
+        return Optional.ofNullable(commentDto);
     }
 }
