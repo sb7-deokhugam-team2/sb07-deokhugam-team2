@@ -6,6 +6,7 @@ import com.deokhugam.domain.comment.dto.request.CommentUpdateRequest;
 import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.dto.response.CursorPageResponseCommentDto;
 import com.deokhugam.domain.comment.service.CommentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,8 @@ public class CommentController {
     public ResponseEntity<CommentDto> getComment(
             @PathVariable UUID commentId
     ){
-        return null;
+        CommentDto commentDto = commentService.findComment(commentId);
+        return ResponseEntity.ok().body(commentDto);
     }
 
     @DeleteMapping("/{commentId}")
@@ -47,16 +49,18 @@ public class CommentController {
             @PathVariable UUID commentId,
             @RequestHeader(value = "Deokhugam-Request-Id") UUID userId
     ){
-        return null;
+        commentService.logicalDelete(commentId, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PatchMapping("/{commentId}")
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable UUID commentId,
             @RequestHeader(value = "Deokhugam-Request-Id") UUID userId,
-            @ModelAttribute CommentUpdateRequest commentUpdateRequest
+            @Valid @ModelAttribute CommentUpdateRequest commentUpdateRequest
     ){
-        return null;
+        CommentDto commentDto = commentService.updateComment(commentId, userId, commentUpdateRequest);
+        return ResponseEntity.ok().body(commentDto);
     }
 
     @DeleteMapping("/{commentId}/hard")
@@ -64,6 +68,7 @@ public class CommentController {
             @PathVariable UUID commentId,
             @RequestHeader(value = "Deokhugam-Request-Id") UUID userId
     ){
-        return null;
+        commentService.physicalDelete(commentId, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
