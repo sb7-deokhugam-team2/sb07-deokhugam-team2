@@ -3,14 +3,57 @@ package com.deokhugam.global.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(DeokhugamException.class)
+    public ResponseEntity<ErrorResponse> handleDeokhugamException(DeokhugamException e) {
+        log.error("[DeokhugamException] = {}", e.getMessage());
+        ErrorCode code = e.getErrorCode();
+        return ResponseEntity.status(code.getStatus())
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        code.getCode(),
+                        code.getMessage(),
+                        Map.of("reason", e.getMessage()),
+                        e.getClass().getSimpleName(),
+                        code.getStatus().value()
+                ));
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ErrorResponse> handleBindException(BindException e) {
+        log.error("[BindException] = {}", e.getMessage());
+        Map<String, Object> details = e.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "Invalid input",
+                        (a, b) -> a, // 같은 필드 중복시 첫 값 유지
+                        LinkedHashMap::new
+                ));
+        ErrorCode code = ErrorCode.INVALID_INPUT_VALUE;
+        return ResponseEntity.status(code.getStatus())
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        code.getCode(),
+                        code.getMessage(),
+                        details,
+                        e.getClass().getSimpleName(),
+                        code.getStatus().value()
+                ));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("[IllegalArgumentException] = {}", e.getMessage());
