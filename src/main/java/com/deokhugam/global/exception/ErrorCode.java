@@ -14,6 +14,9 @@ public enum ErrorCode {
     USER_PASSWORD_VALIDATION(HttpStatus.BAD_REQUEST, "비밀번호 형식이 올바르지 않습니다.", "U-006"),
     USER_NICKNAME_VALIDATION(HttpStatus.BAD_REQUEST, "닉네임의 형식이 올바르지 않습니다.", "U-007"),
     // Comment
+    COMMENT_CONTENT_VALIDATION(HttpStatus.BAD_REQUEST, "댓글 형식이 올바르지 않습니다.", "C-001"),
+    COMMENT_USER_NULL(HttpStatus.BAD_REQUEST, "유저는 Null일 수 없습니다.", "C-002"),
+    COMMENT_REVIEW_NULL(HttpStatus.BAD_REQUEST, "리뷰는 Null일 수 없습니다.", "C-003"),
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
     // Popular Book
