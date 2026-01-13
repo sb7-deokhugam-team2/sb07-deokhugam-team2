@@ -36,6 +36,8 @@ management:
       enabled: true
 app:
   aws:
+    cloud-front:
+      domain: https://d2xt6l6jwa2n3k.cloudfront.net
     credentials:
       access-key: 1234
       secret-key: 1234

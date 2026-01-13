@@ -21,12 +21,12 @@ public abstract class BaseFileStorage implements FileStorage{
         }
     }
 
-    protected String createStoreFileName(String originalFilename) {
+    protected String createStoreFileName(String fileKey , String originalFilename) {
         int extIndex = originalFilename.lastIndexOf(".");
         if (extIndex == -1) {
             throw new FileStorageException(ErrorCode.NO_FILE_EXTENSION);
         }
         String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-        return UUID.randomUUID() + "." + ext;
+        return fileKey + "." + ext;
     }
 }

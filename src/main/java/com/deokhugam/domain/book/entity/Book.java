@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 import java.time.LocalDate;
 
@@ -48,6 +49,23 @@ public class Book extends BaseDeletableEntity {
                               LocalDate publishedDate, String publisher,
                               String thumbnailUrl, String description){
         return new Book(title, author, isbn, publishedDate, publisher, thumbnailUrl, description);
+    }
+
+    public void update(String title, String author, String isbn, LocalDate publishedDate,
+                       String publisher, String description, String thumbnailUrl){
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn;
+        this.publishedDate = publishedDate;
+        this.publisher = publisher;
+        this.description = description;
+        if (thumbnailUrl != null) {
+            this.thumbnailUrl = thumbnailUrl;
+        }
+    }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 
 }
