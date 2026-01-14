@@ -73,6 +73,6 @@ public class Comment extends BaseDeletableEntity {
     }
 
     public boolean isAuthor(UUID userId){
-        return this.user.getId() == userId;
+        return this.user.getId().equals(userId);
     }
 }
