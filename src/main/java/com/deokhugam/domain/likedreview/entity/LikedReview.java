@@ -1,0 +1,30 @@
+package com.deokhugam.domain.likedreview.entity;
+
+import com.deokhugam.domain.base.BaseUpdateEntity;
+import com.deokhugam.domain.review.entity.Review;
+import com.deokhugam.domain.user.entity.User;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Entity
+@Getter
+@Table(name = "liked_reviews")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class LikedReview extends BaseUpdateEntity {
+    @Column(name = "liked", nullable = false)
+    private boolean liked = true;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "review_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Review review;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private User user;
+}

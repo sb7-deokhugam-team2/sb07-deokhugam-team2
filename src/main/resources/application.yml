@@ -1,2 +1,32 @@
 spring:
-  application: name=Deokhugam
+  profiles:
+    active: local
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
+        default_batch_fetch_size: 50
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+logging:
+  level:
+    root: info
+
+app:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: deokhugam-test-bucket
