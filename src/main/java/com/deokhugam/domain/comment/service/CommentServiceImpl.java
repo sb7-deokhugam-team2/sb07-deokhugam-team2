@@ -8,6 +8,7 @@ import com.deokhugam.domain.comment.dto.response.CursorPageResponseCommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
 import com.deokhugam.domain.comment.exception.CommentNotFound;
 import com.deokhugam.domain.comment.exception.CommentUnauthorizedException;
+import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.repository.ReviewRepository;
@@ -32,6 +33,11 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+@Transactional
+public class CommentServiceImpl implements CommentService{
+
+    private final CommentRepository commentRepository;
+    private final CommentQueryRepository commentQueryRepository;
 
     @Override
     public CursorPageResponseCommentDto findContents(CommentSearchCondition commentSearchCondition) {
@@ -87,11 +93,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public CommentDto findComment(UUID commentId) {
-        return commentRepository.findCommentDto(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
+        return commentQueryRepository.findCommentDto(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
     }
 
     @Override
-    @Transactional
     public void logicalDelete(UUID commentId, UUID userId) {
         Comment comment = commentRepository.findWithUser(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
 
@@ -103,7 +108,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public CommentDto updateComment(UUID commentId, UUID userId, CommentUpdateRequest commentUpdateRequest) {
         Comment comment = commentRepository.findWithUserAndReview(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
 
@@ -116,7 +120,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public void physicalDelete(UUID commentId, UUID userId) {
         Comment comment = commentRepository.findWithUser(commentId).orElseThrow(() -> new CommentNotFound(ErrorCode.COMMENT_NOT_FOUND));
 
