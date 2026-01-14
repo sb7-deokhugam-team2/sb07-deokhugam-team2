@@ -30,7 +30,7 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<CommentDto> createComment(
-            @Valid @ModelAttribute CommentCreateRequest commentCreateRequest
+            @Valid @RequestBody CommentCreateRequest commentCreateRequest
     ){
         CommentDto commentDto = commentService.createComment(commentCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(commentDto);
@@ -57,7 +57,7 @@ public class CommentController {
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable UUID commentId,
             @RequestHeader(value = "Deokhugam-Request-Id") UUID userId,
-            @Valid @ModelAttribute CommentUpdateRequest commentUpdateRequest
+            @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ){
         CommentDto commentDto = commentService.updateComment(commentId, userId, commentUpdateRequest);
         return ResponseEntity.ok().body(commentDto);

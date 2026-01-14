@@ -51,7 +51,7 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(
             @PathVariable UUID userId,
-            @Valid @ModelAttribute UserUpdateRequest userUpdateRequest
+            @Valid @RequestBody UserUpdateRequest userUpdateRequest
     ) {
         UserDto userDto = userService.updateNickname(userId, userUpdateRequest);
         return ResponseEntity.ok().body(userDto);

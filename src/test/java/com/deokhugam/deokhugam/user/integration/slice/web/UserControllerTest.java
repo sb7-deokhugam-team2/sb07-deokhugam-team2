@@ -102,35 +102,35 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 실패 : 이메일 불일치")
     void login_fail_to_email() throws Exception {
-    // given
+        // given
         UserLoginRequest userLoginRequest = new UserLoginRequest("test@gmail.com", "12345678a!");
         when(userService.login(any(UserLoginRequest.class))).thenThrow(new UserEmailNotExistsException(ErrorCode.USER_EMAIL_NOT_EXISTS));
 
-    // when&then
-    mockMvc.perform(post("/api/users/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(userLoginRequest)))
-            .andDo(print())
-            .andExpect(status().isUnauthorized());
+        // when&then
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userLoginRequest)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
 
-    verify(userService).login(any(UserLoginRequest.class));
+        verify(userService).login(any(UserLoginRequest.class));
     }
 
     @Test
     @DisplayName("로그인 실패 : 비밀번호 불일치")
     void login_fail_to_password() throws Exception {
-    // given
-    UserLoginRequest userLoginRequest = new UserLoginRequest("test@gmail.com", "12345678a!");
-    when(userService.login(any(UserLoginRequest.class))).thenThrow(new UserPasswordException(ErrorCode.USER_PASSWORD_NOT_EQUAL));
+        // given
+        UserLoginRequest userLoginRequest = new UserLoginRequest("test@gmail.com", "12345678a!");
+        when(userService.login(any(UserLoginRequest.class))).thenThrow(new UserPasswordException(ErrorCode.USER_PASSWORD_NOT_EQUAL));
 
-    // when&then
-    mockMvc.perform(post("/api/users/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(userLoginRequest)))
-            .andDo(print())
-            .andExpect(status().isUnauthorized());
+        // when&then
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userLoginRequest)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
 
-    verify(userService).login(any(UserLoginRequest.class));
+        verify(userService).login(any(UserLoginRequest.class));
     }
 
     @Test
@@ -175,10 +175,12 @@ public class UserControllerTest {
         UserDto userDto = UserDto.from(user);
         when(userService.updateNickname(any(UUID.class), any(UserUpdateRequest.class)))
                 .thenReturn(userDto);
+        UserUpdateRequest userUpdateRequest = new UserUpdateRequest("newName");
 
         //when&then
         mockMvc.perform(patch("/api/users/{userId}", userId)
-                        .param("nickname", "newName")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(userUpdateRequest))
                 )
                 .andDo(print())
                 .andExpect(status().isOk());
