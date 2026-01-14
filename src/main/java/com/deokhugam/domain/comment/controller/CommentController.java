@@ -7,6 +7,7 @@ import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.dto.response.CursorPageResponseCommentDto;
 import com.deokhugam.domain.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,8 @@ public class CommentController {
     public ResponseEntity<CommentDto> createComment(
             @ModelAttribute CommentCreateRequest commentCreateRequest
     ){
-        return null;
+        CommentDto commentDto = commentService.createComment(commentCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentDto);
     }
 
     @GetMapping("/{commentId}")
