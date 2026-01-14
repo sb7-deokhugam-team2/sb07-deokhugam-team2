@@ -9,9 +9,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -67,7 +65,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     }
 
     @Override
-    public Slice<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
+    public Page<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
         int size = pageable.getPageSize();
         Instant after = parseAfter(condition.after());
 
@@ -122,8 +120,40 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             bookDtos.remove(size); // 하나 더 가져온 건 잘라내기
         }
 
+        // 2) totalCount 쿼리 (Page를 위해 필요)
+        //    - Querydsl JPA는 FROM (subquery) 같은 걸 못해서,
+        //      groupBy/having 적용된 book.id 목록을 가져와 size()로 총 개수 계산하는 방식
+        // NOTE: 프로토타입에는 있기도해서 카운트쿼리를 넣지만 이게 무한스크롤, 커서기반 페이지네이션에서 필요할지 생각할 필요있음
+        // NOTE: 데이터가 엄청 크면 이 totalCount는 무거울 수 있음(그땐 요구사항 협의/별도 count 전략 필요), 네트워크 + 메모리 + GC 지옥 그래서 fetch().size()로 안쓸려고도 fetchCount()를 deprecated 한것도 있음
+        // TODO: 추후 성능이슈로 인해 native query, blaze-persistence, 별도 집계테이블 혹은 해당 컬럼 book 테이블에 비정규화 고려하서 개선할 것
+        List<UUID> allMatchedIds = queryFactory
+                .select(book.id)
+                .from(book)
+                .leftJoin(review).on(review.book.id.eq(book.id))
+                .where(
+                        keywordPredicate(condition.keyword()),
+                        cursorWherePredicate(condition, after)
+                )
+                .groupBy(
+                        book.id,
+                        book.title,
+                        book.author,
+                        book.description,
+                        book.publisher,
+                        book.publishedDate,
+                        book.isbn,
+                        book.thumbnailUrl,
+                        book.createdAt,
+                        book.updatedAt
+                )
+                .having(
+                        cursorHavingPredicate(condition, after, reviewCount, avgRating)
+                )
+                .fetch();
 
-        return new SliceImpl<>(bookDtos, pageable, hasNext);
+        long total = allMatchedIds.size();
+
+        return new PageImpl<>(bookDtos, pageable, total);
     }
 
     private BooleanExpression keywordPredicate(String keyword) {
@@ -137,7 +167,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     }
 
     private Instant parseAfter(String after) {
-        return hasText(after) ? Instant.parse(after) : null; // after는 UTC timestamptz라 했으니 ISO-8601 가정
+        return hasText(after) ? Instant.parse(after) : null;
     }
 
     private OrderSpecifier<?> primaryOrder(BookSearchCondition condition,
