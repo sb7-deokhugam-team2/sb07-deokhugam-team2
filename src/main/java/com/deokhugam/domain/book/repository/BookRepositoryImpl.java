@@ -110,7 +110,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                 )
                 .orderBy(
                         primaryOrder(condition, reviewCount, avgRating), // 주 정렬
-                        book.createdAt.desc() // 타이브레이커 고정
+                        condition.direction() == SortDirection.ASC ? book.createdAt.asc() : book.createdAt.desc()
                 )
                 .limit(size + 1)
                 .fetch();
@@ -193,13 +193,13 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
         return switch (condition.orderBy()) {
             case TITLE -> isDirectionAsc  // 동점비교가있을수있어서 타이브레이커(서브)로 createdAt 추가하여 비교
-                    ? book.title.gt(condition.cursor()).or(book.title.eq(condition.cursor()).and(book.createdAt.lt(after)))
+                    ? book.title.gt(condition.cursor()).or(book.title.eq(condition.cursor()).and(book.createdAt.gt(after)))
                     : book.title.lt(condition.cursor()).or(book.title.eq(condition.cursor()).and(book.createdAt.lt(after)));
 
             case PUBLISHED_DATE -> {
                 LocalDate cursorDate = LocalDate.parse(condition.cursor()); // "yyyy-MM-dd" 인 Sting을 LocalDate로 형변환
                 yield isDirectionAsc
-                        ? book.publishedDate.gt(cursorDate).or(book.publishedDate.eq(cursorDate).and(book.createdAt.lt(after)))
+                        ? book.publishedDate.gt(cursorDate).or(book.publishedDate.eq(cursorDate).and(book.createdAt.gt(after)))
                         : book.publishedDate.lt(cursorDate).or(book.publishedDate.eq(cursorDate).and(book.createdAt.lt(after)));
             }
 
@@ -223,13 +223,13 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             case REVIEW_COUNT -> {
                 long cursorCount = Long.parseLong(condition.cursor());
                 yield isDirectionAsc
-                        ? reviewCount.gt(cursorCount).or(reviewCount.eq(cursorCount).and(book.createdAt.lt(after)))
+                        ? reviewCount.gt(cursorCount).or(reviewCount.eq(cursorCount).and(book.createdAt.gt(after)))
                         : reviewCount.lt(cursorCount).or(reviewCount.eq(cursorCount).and(book.createdAt.lt(after)));
             }
             case RATING -> {
                 double cursorRating = Double.parseDouble(condition.cursor());
                 yield isDirectionAsc
-                        ? avgRating.gt(cursorRating).or(avgRating.eq(cursorRating).and(book.createdAt.lt(after)))
+                        ? avgRating.gt(cursorRating).or(avgRating.eq(cursorRating).and(book.createdAt.gt(after)))
                         : avgRating.lt(cursorRating).or(avgRating.eq(cursorRating).and(book.createdAt.lt(after)));
             }
             case TITLE, PUBLISHED_DATE -> null;

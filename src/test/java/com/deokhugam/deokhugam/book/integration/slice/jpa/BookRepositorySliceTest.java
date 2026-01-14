@@ -289,7 +289,7 @@ public class BookRepositorySliceTest {
         }
 
         @Test
-        @DisplayName("[Success] 도서 목록 조회 - title이 같으면 createdAt DESC로 정렬된다 (타이브레이커)")
+        @DisplayName("[Success] 도서 목록 조회 - title이 같으면 기본설정 createdAt DESC로 정렬된다 (타이브레이커)")
         void findBooks_ordersByCreatedAt_whenTitleSame() throws InterruptedException {
 
             // given
@@ -329,7 +329,7 @@ public class BookRepositorySliceTest {
         }
 
         @Test
-        @DisplayName("[Success] 도서 목록 조회 - keyword 검색 시 rating DESC 정렬이 적용된다")
+        @DisplayName("[Success] 도서 목록 조회 - keyword 검색 시 rating 같으면 기본 DESC로 정렬이 적용된다")
         void findBooks_ordersByRatingDesc() {
 
             // given

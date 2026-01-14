@@ -139,7 +139,7 @@ public class BookControllerSliceTest {
             );
             when(bookService.searchBooks(any(BookSearchCondition.class))).thenReturn(response);
 
-            // when / then
+            // when & then
             mockMvc.perform(get(ENDPOINT)
                             .queryParam("keyword", "Java")
                             .queryParam("orderBy", "TITLE")
@@ -170,6 +170,7 @@ public class BookControllerSliceTest {
             // given
             String invalidAfter = "NOT_A_DATE_TIME";
 
+            // when & then
             mockMvc.perform(get(ENDPOINT)
                             .queryParam("orderBy", "TITLE")
                             .queryParam("direction", "DESC")
@@ -186,10 +187,14 @@ public class BookControllerSliceTest {
         @Test
         @DisplayName("[200] limit이 0 이하이면 기본값(50)으로 보정되어 서비스에 전달된다")
         void searchBooks_invalid_limit_should_default_to_50() throws Exception {
+
+            // given
             when(bookService.searchBooks(any())).thenReturn(
                     new CursorPageResponseBookDto(List.of(), null, null, 0, 0L, false)
             );
 
+
+            // when & then
             mockMvc.perform(get(ENDPOINT)
                             .queryParam("limit", "0")
                             .accept(MediaType.APPLICATION_JSON))
