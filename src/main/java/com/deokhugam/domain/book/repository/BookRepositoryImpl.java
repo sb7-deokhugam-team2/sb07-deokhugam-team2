@@ -117,7 +117,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
         boolean hasNext = bookDtos.size() > size; // 다음 페이지 존재 여부
         if (hasNext) {
-            bookDtos.remove(size); // 하나 더 가져온 건 잘라내기
+            bookDtos.remove(size); // hasNext 여부를 위해 하나 더 가져온 건 잘라내기
         }
 
         // 2) totalCount 쿼리 (Page를 위해 필요)
@@ -184,7 +184,6 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     /**
      * book 컬럼 기반 커서(where에 들어감): TITLE / PUBLISHED_DATE
      * createdAt은 타이브레이커(동점 깨기) 겸 after 기준.
-     * createdAt 정렬은 항상 DESC로 고정한다고 가정.
      */
     private BooleanExpression cursorWherePredicate(BookSearchCondition condition, Instant after) {
         if (condition.cursor() == null || after == null) return null; // 초기 첫번째 기본 페이지에는 cursor, after 없기떄문에
