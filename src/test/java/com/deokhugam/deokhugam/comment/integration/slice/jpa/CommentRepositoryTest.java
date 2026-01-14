@@ -5,6 +5,7 @@ import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.comment.dto.request.CommentSearchCondition;
 import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
+import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.repository.ReviewRepository;
@@ -29,7 +30,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import({JpaAuditingConfig.class, QuerydslConfig.class})
+@Import({JpaAuditingConfig.class, QuerydslConfig.class, CommentQueryRepository.class})
 public class CommentRepositoryTest {
 
     @Autowired
@@ -42,6 +43,9 @@ public class CommentRepositoryTest {
     CommentRepository commentRepository;
 
     @Autowired
+    CommentQueryRepository commentQueryRepository;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -50,6 +54,33 @@ public class CommentRepositoryTest {
     @Autowired
     BookRepository bookRepository;
 
+    @Test
+    @DisplayName("DTO 프로젝션 성공")
+    void findCommentDto() {
+        //given
+        User user = User.create("test@gmail", "test", "12345678q!");
+        User savedUser = userRepository.save(user);
+        Book book = Book.create(
+                "title", "content", "12345678",
+                LocalDate.now(), "publisher",
+                "thumbnailUrl", "description");
+        Book savedBook = bookRepository.save(book);
+        Review review = Review.create(5.0, "content", savedBook, savedUser);
+        Review savedReview = reviewRepository.save(review);
+        Comment comment = Comment.create("content", savedUser, savedReview);
+        Comment savedComment = commentRepository.save(comment);
+        em.flush();
+        em.clear();
+
+        //when
+        CommentDto commentDto = commentQueryRepository.findCommentDto(savedComment.getId()).orElseThrow();
+
+        //then
+        assertThat(commentDto.getContent()).isEqualTo(comment.getContent());
+        assertThat(commentDto.getUserNickname()).isEqualTo(user.getNickname());
+        assertThat(commentDto.getReviewId()).isEqualTo(savedReview.getId());
+        assertThat(commentDto.getUserId()).isEqualTo(savedUser.getId());
+    }
 
     @Nested
     @DisplayName("FetchJoin 메서드")
@@ -114,35 +145,6 @@ public class CommentRepositoryTest {
         }
     }
 
-
-
-    @Test
-    @DisplayName("DTO 프로젝션 성공")
-    void findCommentDto() {
-        //given
-        User user = User.create("test@gmail", "test", "12345678q!");
-        User savedUser = userRepository.save(user);
-        Book book = Book.create(
-                "title", "content", "12345678",
-                LocalDate.now(), "publisher",
-                "thumbnailUrl", "description");
-        Book savedBook = bookRepository.save(book);
-        Review review = Review.create(5.0, "content", savedBook, savedUser);
-        Review savedReview = reviewRepository.save(review);
-        Comment comment = Comment.create("content", savedUser, savedReview);
-        Comment savedComment = commentRepository.save(comment);
-        em.flush();
-        em.clear();
-
-        //when
-        CommentDto commentDto = commentRepository.findCommentDto(savedComment.getId()).orElseThrow();
-
-        //then
-        assertThat(commentDto.getContent()).isEqualTo(comment.getContent());
-        assertThat(commentDto.getUserNickname()).isEqualTo(user.getNickname());
-        assertThat(commentDto.getReviewId()).isEqualTo(savedReview.getId());
-        assertThat(commentDto.getUserId()).isEqualTo(savedUser.getId());
-    }
 
     @Nested
     @DisplayName("댓글 목록 커서 페이지네이션")

@@ -6,6 +6,7 @@ import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
 import com.deokhugam.domain.comment.exception.CommentNotFound;
 import com.deokhugam.domain.comment.exception.CommentUnauthorizedException;
+import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
 import com.deokhugam.domain.comment.service.CommentServiceImpl;
 import com.deokhugam.domain.review.entity.Review;
@@ -34,6 +35,8 @@ public class CommentServiceImplTest {
 
     @Mock
     CommentRepository commentRepository;
+    @Mock
+    CommentQueryRepository commentQueryRepository;
 
     @InjectMocks
     CommentServiceImpl commentService;
@@ -71,27 +74,27 @@ public class CommentServiceImplTest {
         Review review = Review.create(5.0, "content", book, user);
         Comment comment = Comment.create("content", user, review);
         CommentDto from = CommentDto.from(comment);
-        when(commentRepository.findCommentDto(any(UUID.class)))
+        when(commentQueryRepository.findCommentDto(any(UUID.class)))
                 .thenReturn(Optional.of(from));
 
         //when
         commentService.findComment(UUID.randomUUID());
 
         //then
-        verify(commentRepository).findCommentDto(any(UUID.class));
+        verify(commentQueryRepository).findCommentDto(any(UUID.class));
     }
 
     @Test
     @DisplayName("댓글 조회 실패 - 댓글 없음")
     void findComment_not_found(){
         //given
-        when(commentRepository.findCommentDto(any(UUID.class)))
+        when(commentQueryRepository.findCommentDto(any(UUID.class)))
                 .thenReturn(Optional.empty());
 
         //when&then
         assertThatThrownBy(()->commentService.findComment(UUID.randomUUID()))
                 .isInstanceOf(CommentNotFound.class);
-        verify(commentRepository).findCommentDto(any(UUID.class));
+        verify(commentQueryRepository).findCommentDto(any(UUID.class));
     }
 
     @Test
