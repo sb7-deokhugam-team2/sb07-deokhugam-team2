@@ -21,4 +21,4 @@ jobs:
           java-version: '17'
 
       - name: Test + JaCoCo report
-        run: ./gradlew clean test jacocoTestReport
+        run: ./gradlew test jacocoTestReport --info
