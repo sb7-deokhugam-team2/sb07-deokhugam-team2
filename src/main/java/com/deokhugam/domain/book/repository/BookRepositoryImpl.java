@@ -67,7 +67,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     @Override
     public Page<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
         int size = pageable.getPageSize();
-        Instant after = parseAfter(condition.after());
+        Instant after = condition.after();
 
         NumberExpression<Long> reviewCount = review.id.countDistinct().coalesce(0L);
         NumberExpression<Double> avgRating = review.rating.avg().coalesce(0.0);
@@ -166,9 +166,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
         return null;
     }
 
-    private Instant parseAfter(String after) {
-        return hasText(after) ? Instant.parse(after) : null;
-    }
+
 
     private OrderSpecifier<?> primaryOrder(BookSearchCondition condition,
                                            NumberExpression<Long> reviewCount,

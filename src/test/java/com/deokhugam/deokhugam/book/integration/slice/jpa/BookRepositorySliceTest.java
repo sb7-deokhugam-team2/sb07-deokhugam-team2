@@ -422,7 +422,7 @@ public class BookRepositorySliceTest {
 
             // nextCursor/nextAfter 생성 (정렬 기준과 tie-breaker(createdAt) 규칙에 맞춰야 함)
             String nextCursor = lastOfFirstPage.title();               // TITLE 정렬이므로 title이 커서
-            String nextAfter = lastOfFirstPage.createdAt().toString(); // 레포에서 parseAfter(String) 하니까 String으로 전달
+            Instant nextAfter = lastOfFirstPage.createdAt(); // 레포에서 parseAfter(String) 하니까 String으로 전달
 
             // when (2번째 페이지)
             BookSearchCondition secondCondition =
