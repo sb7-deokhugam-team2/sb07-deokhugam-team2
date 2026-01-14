@@ -1,14 +1,10 @@
 package com.deokhugam.domain.comment.repository;
 
 import com.deokhugam.domain.comment.dto.request.CommentSearchCondition;
-import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
@@ -16,9 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.deokhugam.domain.comment.entity.QComment.*;
-import static com.deokhugam.domain.review.entity.QReview.*;
-import static com.deokhugam.domain.user.entity.QUser.*;
+import static com.deokhugam.domain.comment.entity.QComment.comment;
+import static com.deokhugam.domain.review.entity.QReview.review;
+import static com.deokhugam.domain.user.entity.QUser.user;
 
 @RequiredArgsConstructor
 public class CommentCustomRepositoryImpl implements CommentCustomRepository {
@@ -43,14 +39,14 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
     }
 
     private OrderSpecifier<?>[] direction(String direction) {
-        if(direction.equals("ASC")){
-            return new OrderSpecifier[]{ comment.createdAt.asc() };
+        if (direction.equals("ASC")) {
+            return new OrderSpecifier[]{comment.createdAt.asc()};
         }
-        return new OrderSpecifier[]{ comment.createdAt.desc() };
+        return new OrderSpecifier[]{comment.createdAt.desc()};
     }
 
     private BooleanExpression cursorCondition(String cursor, String direction) {
-        if(cursor == null){
+        if (cursor == null) {
             return null;
         }
         Instant cursorInstant = Instant.parse(cursor);
@@ -59,7 +55,7 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
     }
 
     private BooleanExpression afterCondition(Instant after, String direction) {
-        if(after == null){
+        if (after == null) {
             return null;
         }
         if (direction.equals("ASC")) return comment.createdAt.gt(after);
@@ -67,23 +63,33 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
     }
 
     @Override
-    public Optional<CommentDto> findCommentDto(UUID commentId) {
-        CommentDto commentDto = queryFactory
-                .select(Projections.constructor(
-                        CommentDto.class,
-                        comment.id,
-                        comment.review.id,
-                        comment.user.id,
-                        comment.user.nickname,
-                        comment.content,
-                        comment.createdAt,
-                        comment.updatedAt
-                ))
-                .from(comment)
+    public Optional<Comment> findWithUser(UUID commentId) {
+        Comment result = queryFactory
+                .selectFrom(comment)
+                .join(comment.user, user).fetchJoin()
                 .where(comment.id.eq(commentId))
-                .join(comment.review, review)
-                .join(comment.user, user)
                 .fetchOne();
-        return Optional.ofNullable(commentDto);
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<Comment> findWithUserAndReview(UUID commentId) {
+        Comment result = queryFactory
+                .selectFrom(comment)
+                .join(comment.user, user).fetchJoin()
+                .join(comment.review, review).fetchJoin()
+                .where(comment.id.eq(commentId))
+                .fetchOne();
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public long getCountByReviewId(UUID reviewId) {
+        Long count = queryFactory
+                .select(comment.count())
+                .from(comment)
+                .where(comment.review.id.eq(reviewId))
+                .fetchOne();
+        return count != null ? count : 0L;
     }
 }
