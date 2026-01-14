@@ -8,7 +8,6 @@ import com.deokhugam.domain.comment.entity.Comment;
 import com.deokhugam.domain.comment.exception.CommentNotFound;
 import com.deokhugam.domain.comment.service.CommentService;
 import com.deokhugam.domain.review.entity.Review;
-import com.deokhugam.domain.user.dto.response.UserDto;
 import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.global.exception.GlobalExceptionHandler;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,8 +26,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -97,11 +96,13 @@ public class CommentControllerTest {
         when(commentService.updateComment(any(UUID.class), any(UUID.class), any(CommentUpdateRequest.class)))
                 .thenReturn(from);
         UUID commentId = UUID.randomUUID();
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("newContent");
 
         //when&then
         mockMvc.perform(patch("/api/comments/{commentId}", commentId)
-                        .header("Deokhugam-Request-Id",UUID.randomUUID())
-                        .param("content", "newContent"))
+                        .header("Deokhugam-Request-Id", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commentUpdateRequest)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userNickname").value(user.getNickname()));
@@ -115,11 +116,64 @@ public class CommentControllerTest {
 
         //when&then
         mockMvc.perform(patch("/api/comments/{commentId}", UUID.randomUUID())
-                        .header("Deokhugam-Request-Id",UUID.randomUUID()))
-//                        .param("content", "newContent"))
+                        .header("Deokhugam-Request-Id", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(commentService, never()).updateComment(any(UUID.class), any(UUID.class), any(CommentUpdateRequest.class));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - header값이 넘어오지 않음")
+    void updateComment_no_user_id() throws Exception {
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("newContent");
+        //when&then
+        mockMvc.perform(patch("/api/comments/{commentId}", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commentUpdateRequest)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(commentService, never()).updateComment(any(UUID.class), any(UUID.class), any(CommentUpdateRequest.class));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - contentType 누락")
+    void updateComment_no_content_type() throws Exception {
+        CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("newContent");
+        //when&then
+        mockMvc.perform(patch("/api/comments/{commentId}", UUID.randomUUID())
+                        .header("Deokhugam-Request-Id", UUID.randomUUID())
+                        .content(objectMapper.writeValueAsString(commentUpdateRequest)))
+                .andDo(print())
+                .andExpect(status().isUnsupportedMediaType());
+
+        verify(commentService, never()).updateComment(any(UUID.class), any(UUID.class), any(CommentUpdateRequest.class));
+    }
+
+    @Test
+    @DisplayName("댓글 논리 삭제 성공")
+    void logicalDelete() throws Exception {
+        //when&then
+        mockMvc.perform(delete("/api/comments/{commentId}", UUID.randomUUID())
+                        .header("Deokhugam-Request-Id", UUID.randomUUID()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(commentService).logicalDelete(any(UUID.class), any(UUID.class));
+    }
+
+    @Test
+    @DisplayName("댓글 물리 삭제 성공")
+    void physicalDelete() throws Exception {
+        //when&then
+        mockMvc.perform(delete("/api/comments/{commentId}/hard", UUID.randomUUID())
+                        .header("Deokhugam-Request-Id", UUID.randomUUID()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(commentService).physicalDelete(any(UUID.class), any(UUID.class));
     }
 }

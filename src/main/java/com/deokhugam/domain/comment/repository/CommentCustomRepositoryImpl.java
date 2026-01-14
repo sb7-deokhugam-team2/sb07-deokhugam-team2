@@ -67,7 +67,6 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
         Comment result = queryFactory
                 .selectFrom(comment)
                 .join(comment.user, user).fetchJoin()
-
                 .where(comment.id.eq(commentId))
                 .fetchOne();
         return Optional.ofNullable(result);
