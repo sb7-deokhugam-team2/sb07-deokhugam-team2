@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
@@ -36,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentQueryRepository commentQueryRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public CursorPageResponseCommentDto findContents(CommentSearchCondition commentSearchCondition) {
         List<CommentDto> contents = commentRepository.searchComments(commentSearchCondition)
                 .stream()
