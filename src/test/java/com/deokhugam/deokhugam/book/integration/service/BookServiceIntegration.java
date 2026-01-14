@@ -36,7 +36,7 @@ public class BookServiceIntegration {
     EntityManager em;
 
     @Nested
-    class searchBooks {
+    class SearchBooks {
 
         @Test
         @DisplayName("[Positive] 도서 목록 조회 - 첫페이지 조회시 cursor기반 응답값 nextCursor, nextAfter 제공")

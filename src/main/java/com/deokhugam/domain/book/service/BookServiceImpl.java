@@ -54,7 +54,7 @@ public class BookServiceImpl implements BookService {
                 nextCursor,
                 nextAfter,
                 content.size(),
-                null, // TODO: 해당 쿼리의 count를 따로 구해서 넣을것
+                pageBook.getTotalElements(),
                 pageBook.hasNext()
         );
     }

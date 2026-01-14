@@ -79,7 +79,7 @@ public class BookRepositorySliceTest {
 
     @Nested
     @DisplayName("커서기반 도서목록 검색조회 - findBooks")
-    class findBooks {
+    class FindBooks {
 
         @Test
         @DisplayName("[Success] 도서 목록 조회 - 목록20개에 대해 조건 없이 조회시 limit=10 만큼 반환하고, 다음 페이지 존재 여부(hasNext)를 계산한다")
