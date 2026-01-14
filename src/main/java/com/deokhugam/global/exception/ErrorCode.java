@@ -24,6 +24,9 @@ public enum ErrorCode {
     // Popular Book
     // Power User
     // Review
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "리뷰가 이미 존재합니다.","R-001"),
+    REVIEW_INVALID(HttpStatus.BAD_REQUEST,"유효하지 않는 요청 입니다.","R-002"),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND,"리뷰를 찾을 수 없습니다.","R-003"),
     // Popular Review
     // Notification
     // LikedReview
