@@ -15,29 +15,28 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
-
     @Override
     public ReviewDto createReview(ReviewCreateRequest reviewCreateRequest, UUID requestUserId) {
         return null;
     }
 
     @Override
-    public ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID requestReviewId) {
+    public ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID reviewId) {
         return null;
     }
 
     @Override
-    public ReviewDto getReview(UUID userId, UUID reviewId) {
+    public ReviewDto getReview(UUID requestUserId, UUID reviewId) {
         return null;
     }
 
     @Override
-    public void softDelete(UUID reviewId, UUID userId) {
+    public void softDelete(UUID reviewId, UUID requestUserId) {
 
     }
 
     @Override
-    public void hardDelete(UUID reviewId) {
+    public void hardDelete(UUID reviewId, UUID requestUserId) {
 
     }
 
