@@ -20,6 +20,6 @@ public record CursorPageRequest(
     public CursorPageRequest {
         if (orderBy == null) orderBy = ReviewOrderBy.CREATED_AT;
         if (direction == null) direction = SortDirection.DESC;
-        if (limit <= 0) limit = DEFAULT_LIMIT;
+        if (limit == null) limit = DEFAULT_LIMIT;
     }
 }

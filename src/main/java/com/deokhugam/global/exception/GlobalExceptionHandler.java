@@ -3,8 +3,11 @@ package com.deokhugam.global.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(DeokhugamException.class)
     public ResponseEntity<ErrorResponse> handleDeokhugamException(DeokhugamException e) {
         log.error("[DeokhugamException] = {}", e.getMessage());
@@ -49,6 +53,49 @@ public class GlobalExceptionHandler {
                         code.getCode(),
                         code.getMessage(),
                         details,
+                        e.getClass().getSimpleName(),
+                        code.getStatus().value()
+                ));
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("[HttpMessageNotReadableException] = {}", e.getMessage());
+        ErrorCode code = ErrorCode.INVALID_REQUEST;
+        return ResponseEntity.status(code.getStatus())
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        code.getCode(),
+                        code.getMessage(),
+                        Map.of("reason", e.getMessage()),
+                        e.getClass().getSimpleName(),
+                        code.getStatus().value()
+                ));
+    }
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
+        log.error("[HttpMediaTypeNotSupportedException] = {}", e.getMessage());
+        ErrorCode code = ErrorCode.UNSUPPORTED_MEDIA_TYPE;
+        return ResponseEntity.status(code.getStatus())
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        code.getCode(),
+                        code.getMessage(),
+                        Map.of("reason", e.getMessage()),
+                        e.getClass().getSimpleName(),
+                        code.getStatus().value()
+                ));
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException e) {
+        log.error("[MissingRequestHeaderException] = {}", e.getMessage());
+        ErrorCode code = ErrorCode.INVALID_REQUEST;
+        return ResponseEntity.status(code.getStatus())
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        code.getCode(),
+                        code.getMessage(),
+                        Map.of("reason", e.getMessage()),
                         e.getClass().getSimpleName(),
                         code.getStatus().value()
                 ));
@@ -102,6 +149,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         log.error("[Exception] = {}", e.getMessage());
+        log.error("[Exception] = {}", e.getClass().getSimpleName());
         ErrorCode code = ErrorCode.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(
