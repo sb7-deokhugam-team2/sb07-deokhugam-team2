@@ -28,13 +28,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
-public class CommentServiceImpl implements CommentService{
+public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
-    private final CommentQueryRepository commentQueryRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final CommentQueryRepository commentQueryRepository;
 
     @Override
     public CursorPageResponseCommentDto findContents(CommentSearchCondition commentSearchCondition) {
