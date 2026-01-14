@@ -12,9 +12,9 @@ import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,12 +40,12 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     public CursorPageResponseBookDto searchBooks(BookSearchCondition bookSearchCondition) {
         Pageable pageable = PageRequest.of(0, bookSearchCondition.limit());
-        Slice<BookDto> sliceBook = bookRepository.findBooks(bookSearchCondition, pageable);
-        List<BookDto> content = sliceBook.getContent();
+        Page<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition, pageable);
+        List<BookDto> content = pageBook.getContent();
         BookDto last = content.isEmpty() ? null : content.get(content.size() - 1);
         String nextCursor = null;
         Instant nextAfter = null;
-        if (sliceBook.hasNext() && last != null) {
+        if (pageBook.hasNext() && last != null) {
             nextCursor = buildNextCursor(bookSearchCondition, last);
             nextAfter = last.createdAt(); // 레포의 tie-breaker와 맞춤
         }
@@ -55,7 +55,7 @@ public class BookServiceImpl implements BookService {
                 nextAfter,
                 content.size(),
                 null, // TODO: 해당 쿼리의 count를 따로 구해서 넣을것
-                sliceBook.hasNext()
+                pageBook.hasNext()
         );
     }
 
