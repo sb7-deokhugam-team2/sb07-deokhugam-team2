@@ -299,4 +299,67 @@ public class BookServiceUnitTest {
 
     }
 
+    @Nested
+    @DisplayName("도서 논리 삭제")
+    class SoftDelete {
+        @Test
+        @DisplayName("[Behavior][Positive] 도서 논리삭제 - 있는 book Id에 대해서 book.delete() 위힘")
+        void softDelete_should_delegate_delete() {
+            // given
+            UUID uuid = UUID.randomUUID();
+            Book book = mock(Book.class);
+            when(bookRepository.findById(uuid)).thenReturn(Optional.of(book));
+            // when
+            bookService.softDeleteBook(uuid);
+            // then
+            verify(bookRepository, times(1)).findById(uuid);
+            verify(book, times(1)).delete();
+        }
+
+        @Test
+        @DisplayName("[Behavior][Negative] 도서 논리삭제 - 해당 book Id의 book이 없을시 BookNotFoundException 위임 및 book.delete() 위임 안됨")
+        void softDelete_should_throw_BookNotFoundException_when_book_not_found() {
+            // given
+            UUID uuid = UUID.randomUUID();
+            when(bookRepository.findById(uuid)).thenReturn(Optional.empty());
+
+            // when
+            assertThrows(BookNotFoundException.class, () -> bookService.softDeleteBook(uuid));
+
+            // then
+            verify(bookRepository, times(1)).findById(uuid);
+        }
+    }
+
+    @Nested
+    @DisplayName("도서 물리 삭제")
+    class HardDelete {
+        @Test
+        @DisplayName("[behavior][Positive] 도서 물리삭제 - 물리 삭제 bookRepository.deleteById 위임")
+        void hardDelete_should_delegate_delete() {
+            // given
+            UUID uuid = UUID.randomUUID();
+            Book book = mock(Book.class);
+            when(bookRepository.existsById(uuid)).thenReturn(true);
+
+            // when
+            bookService.hardDeleteBook(uuid);
+
+            // then
+            verify(bookRepository, times(1)).existsById(uuid);
+            verify(bookRepository, times(1)).deleteById(uuid);
+        }
+
+        @Test
+        @DisplayName("[Propagation][Negative] 도서 물리삭제 - 해당 book 존재 하지않을시 BookNotFound 예외전파")
+        void hardDelete_should_throws_BookNotFoundException_when_notFound() {
+            // given
+            UUID uuid = UUID.randomUUID();
+            when(bookRepository.existsById(uuid)).thenReturn(false);
+
+            // when & then
+            assertThrows(BookNotFoundException.class, () -> bookService.hardDeleteBook(uuid));
+        }
+    }
+
 }

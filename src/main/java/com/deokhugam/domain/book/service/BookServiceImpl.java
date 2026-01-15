@@ -2,7 +2,6 @@ package com.deokhugam.domain.book.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
-import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
@@ -132,10 +131,16 @@ public class BookServiceImpl implements BookService {
 
         return BookMapper.toDto(savedBook, finalCdnUrl, 0L, 0.0);
     }
+
     @Override
     @Transactional
     public BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail) {
         Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
+
+        if (!existingBook.getIsbn().equals(bookCreateRequest.isbn()) && bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
+            log.warn("책 수정 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
+            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        }
 
         String newKey = null;
         String oldKeyToDelete = null;
@@ -173,18 +178,22 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public void softDeleteBook(UUID bookId) {
-        // TODO: 26. 1. 9. 명확한 구분을 위해 soft, hard로 구분 상의 필요  
+        Book foundBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
+        foundBook.delete();
     }
 
     @Override
     @Transactional
     public void hardDeleteBook(UUID bookId) {
-
+        if (!bookRepository.existsById(bookId)) {
+            throw new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND);
+        }
+        bookRepository.deleteById(bookId);
     }
 
     private void bookCreateFailedRollbackCleanup(String fileKey) {
         if (fileKey == null) return;
-        if(TransactionSynchronizationManager.isSynchronizationActive()){
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCompletion(int status) {
@@ -195,7 +204,7 @@ public class BookServiceImpl implements BookService {
                 }
             });
 
-        }else{
+        } else {
             log.debug("트랜잭션 비활성 상태라 롤백 클린업 등록을 스킵합니다. (Unit Test 환경 예상)");
         }
     }
