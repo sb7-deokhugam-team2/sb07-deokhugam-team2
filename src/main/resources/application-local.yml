@@ -34,17 +34,4 @@ management:
   info:
     env:
       enabled: true
-app:
-  aws:
-    cloud-front:
-      domain: https://d2xt6l6jwa2n3k.cloudfront.net
-    credentials:
-      access-key: 1234
-      secret-key: 1234
-    region:
-      static: ap-northeast-2
-    s3:
-      bucket: deokhugam-test-bucket
 
-#      access-key: ${AWS_ACCESS_KEY}
-#      secret-key: ${AWS_SECRET_KEY}

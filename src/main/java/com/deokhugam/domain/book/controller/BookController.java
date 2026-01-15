@@ -1,5 +1,6 @@
 package com.deokhugam.domain.book.controller;
 
+import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
@@ -20,8 +21,11 @@ public class BookController {
     private final BookService bookService;
 
     @GetMapping
-    public ResponseEntity<CursorPageResponseBookDto> getAllBooks() {  // TODO: 키워드 목록 조회 추후 추가
-        return null;
+    public ResponseEntity<CursorPageResponseBookDto> getAllBooks(
+            BookSearchCondition searchCondition
+    ) {
+        CursorPageResponseBookDto cursorPageResponseBookDto = bookService.searchBooks(searchCondition);
+        return ResponseEntity.ok(cursorPageResponseBookDto);
     }
 
     @GetMapping("/{bookId}")

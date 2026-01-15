@@ -3,6 +3,7 @@ package com.deokhugam.global.storage;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.global.storage.exception.FileStorageException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,21 +13,13 @@ public abstract class BaseFileStorage implements FileStorage{
             "image/jpeg",
             "image/png",
             "image/gif",
-            "image/webp"
+            "image/webp",
+            "text/plain"
     );
 
     protected void validateContentType(String contentType) {
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
             throw new FileStorageException(ErrorCode.INVALID_FILE_EXTENSION);
         }
-    }
-
-    protected String createStoreFileName(String fileKey , String originalFilename) {
-        int extIndex = originalFilename.lastIndexOf(".");
-        if (extIndex == -1) {
-            throw new FileStorageException(ErrorCode.NO_FILE_EXTENSION);
-        }
-        String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-        return fileKey + "." + ext;
     }
 }

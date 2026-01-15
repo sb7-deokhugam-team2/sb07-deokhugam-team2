@@ -1,7 +1,9 @@
 package com.deokhugam.deokhugam.book.unit.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
+import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
+import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
@@ -20,10 +22,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,7 +78,7 @@ public class BookServiceUnitTest {
         return new BookCreateRequest("Test Title", "Author", "Desc",
                 "Publisher", LocalDate.now(), isbn);
     }
-    
+
     @Nested
     @DisplayName("도서 생성")
     class createBook {
@@ -256,21 +261,32 @@ public class BookServiceUnitTest {
 
 
 
-    
+
     @Nested
     @DisplayName("도서 id 단일 조회")
-    class getById {
+    class GetById {
         @Test
         @DisplayName("[Behavior][Positive] 단일 도서 조회 - bookRepository.findBookDetailById() 호출")
         void getById_should_delegate_and_return_result() {
             // given
-            Book book = Book.create("title", "author", "1234567890123", LocalDate.now(), "publisher", null, "description");
-            BookDto bookDto = new BookDto(book.getId(), book.getTitle(), book.getAuthor(), book.getDescription(), book.getPublisher(), book.getPublishedDate(), book.getIsbn(), book.getThumbnailUrl(), 0, 0.0, book.getCreatedAt(), book.getUpdatedAt());
-            when(bookRepository.findBookDetailById(book.getId())).thenReturn(Optional.of(bookDto));
+            UUID bookId = UUID.randomUUID();
+            BookDto bookDto = new BookDto(UUID.randomUUID(),
+                    "title",
+                   "author",
+                    "description",
+                    "publisher",
+                    LocalDate.now(),
+                    "1234567890123",
+                    null,
+                    0,
+                    0.0,
+                    Instant.now(),
+                    Instant.now());
+            when(bookRepository.findBookDetailById(bookId)).thenReturn(Optional.of(bookDto));
             // when
-            BookDto result = bookService.getBookDetail(book.getId());
+            BookDto result = bookService.getBookDetail(bookId);
             // then
-            verify(bookRepository, times(1)).findBookDetailById(book.getId());
+            verify(bookRepository, times(1)).findBookDetailById(bookId);
             assertEquals(bookDto, result);
         }
 
@@ -289,6 +305,37 @@ public class BookServiceUnitTest {
             );
 
             verify(bookRepository, times(1)).findBookDetailById(bookId);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("도서 커서기반 목록 조회")
+    class SearchBooks {
+
+        @Test
+        @DisplayName("[Behavior][Positive] 목록 조회 - bookRepository.findBooks() 위임")
+        void searchBooks_should_delegate_and_return_result() {
+
+            // given
+            BookSearchCondition condition = mock(BookSearchCondition.class);
+            Page<BookDto> page = mock(Page.class);
+            when(condition.limit()).thenReturn(10);
+            when(bookRepository.findBooks(eq(condition), any(Pageable.class))).thenReturn(page);
+            when(page.getContent()).thenReturn(List.of());
+            when(page.hasNext()).thenReturn(false);
+            when(page.getTotalElements()).thenReturn(0L);
+            // when
+            CursorPageResponseBookDto result = bookService.searchBooks(condition);
+
+            // then
+            verify(bookRepository, times(1)).findBooks(eq(condition), any(Pageable.class));
+
+            assertEquals(0L, result.totalElements());
+            assertFalse(result.hasNext());
+            assertNull(result.nextCursor());
+            assertNull(result.nextAfter());
+
         }
 
     }
