@@ -22,6 +22,7 @@ public enum ErrorCode {
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
     BOOK_INVALID_SORT_CRITERIA(HttpStatus.BAD_REQUEST, "정렬기준 요청값이 잘못되었습니다.","B-002"),
+    DUPLICATE_BOOK_ISBN(HttpStatus.BAD_REQUEST, "중복된 도서 ISBN입니다.","B-003"),
     // Popular Book
     // Power User
     // Review
@@ -32,6 +33,15 @@ public enum ErrorCode {
     // Notification
     // LikedReview
 
+    //Storage
+    FAIL_TO_UPLOAD_FILE(HttpStatus.INTERNAL_SERVER_ERROR,"파일 업로드에 실패했습니다.", "S3_000"),
+    EMPTY_FILE_EXCEPTION(HttpStatus.BAD_REQUEST, "파일이 비어있습니다.", "S3_001"),
+    IO_EXCEPTION_ON_UPLOAD(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드 중 입출력 오류가 발생했습니다.", "S3_002"),
+    NO_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "파일 확장자가 없습니다.", "S3_003"),
+    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 확장자입니다.", "S3_004"),
+    PUT_OBJECT_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "S3에 이미지를 저장하는 데 실패했습니다.", "S3_005"),
+    FAIL_TO_GENERATE_URL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 URL 생성에 실패했습니다.", "S3_006"),
+    FAIL_TO_DELETE_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 삭제에 실패했습니다.", "S3_007"),
     // common
     INVALID_REQUEST(HttpStatus.BAD_REQUEST,"요청이 올바르지 않습니다.", "CM-001"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 오류가 발생했습니다.", "CM-002"),
