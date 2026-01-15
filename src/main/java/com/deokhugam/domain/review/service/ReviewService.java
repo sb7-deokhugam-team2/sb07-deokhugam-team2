@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface ReviewService {
 
-    ReviewDto createReview(ReviewCreateRequest reviewCreateRequest, UUID requestUserId);
+    ReviewDto createReview(ReviewCreateRequest reviewCreateRequest);
 
     ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID reviewId);
 
