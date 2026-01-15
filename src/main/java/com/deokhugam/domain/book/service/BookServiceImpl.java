@@ -132,7 +132,6 @@ public class BookServiceImpl implements BookService {
 
         return BookMapper.toDto(savedBook, finalCdnUrl, 0L, 0.0);
     }
-
     @Override
     @Transactional
     public BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail) {
