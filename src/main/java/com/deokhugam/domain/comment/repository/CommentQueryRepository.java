@@ -16,7 +16,6 @@ import static com.deokhugam.domain.user.entity.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CommentQueryRepository {
 
     private final JPAQueryFactory queryFactory;

@@ -15,9 +15,9 @@ import java.util.UUID;
 public interface BookService {
     BookDto getBookDetail(UUID bookId);
 
-    List<CursorPageResponseBookDto> searchBook(BookSearchCondition bookSearchCondition);
+    CursorPageResponseBookDto searchBooks(BookSearchCondition bookSearchCondition);
 
-    List<CursorPageResponsePopularBookDto> searchPopularBook(PopularBookSearchCondition popularBookSearchCondition);
+    CursorPageResponsePopularBookDto searchPopularBooks(PopularBookSearchCondition popularBookSearchCondition);
 
     NaverBookDto getBookByIsbn(String isbn);
 
@@ -30,11 +30,6 @@ public interface BookService {
     void softDeleteBook(UUID bookId);
 
     void hardDeleteBook(UUID bookId);
-
-
-
-
-
 
 
 }
