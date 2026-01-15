@@ -137,11 +137,6 @@ public class BookServiceImpl implements BookService {
     public BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail) {
         Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
 
-        if (!existingBook.getIsbn().equals(bookCreateRequest.isbn()) && bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
-            log.warn("책 수정 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
-            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
-        }
-
         String newKey = null;
         String oldKeyToDelete = null;
 
