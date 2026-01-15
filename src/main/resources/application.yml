@@ -28,8 +28,8 @@ storage:
       cloud-front:
         domain: https://d1ippd9dh5xjdt.cloudfront.net
       credentials:
-        access-key: ${AWS_ACCESS_KEY}
-        secret-key: ${AWS_SECRET_KEY}
+        AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+        AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       region:
         static: ap-northeast-2
       s3:

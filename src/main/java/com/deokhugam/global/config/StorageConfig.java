@@ -20,10 +20,10 @@ public class StorageConfig {
     @Configuration
     @ConditionalOnProperty(name = "storage.type", havingValue = "s3")
     public static class S3ConnectionConfig {
-        @Value("${storage.app.aws.credentials.access-key}")
+        @Value("${storage.app.aws.credentials.AWS_ACCESS_KEY}")
         private String accessKey;
 
-        @Value("${storage.app.aws.credentials.secret-key}")
+        @Value("${storage.app.aws.credentials.AWS_SECRET_KEY}")
         private String secretKey;
 
         @Value("${storage.app.aws.region.static}")
