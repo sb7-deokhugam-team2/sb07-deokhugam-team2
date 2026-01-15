@@ -166,6 +166,17 @@ public class CommentControllerTest {
     }
 
     @Test
+    @DisplayName("댓글 논리 삭제 실패")
+    void logicalDelete_no_header() throws Exception {
+        //when&then
+        mockMvc.perform(delete("/api/comments/{commentId}", UUID.randomUUID()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(commentService, never()).logicalDelete(any(UUID.class), any(UUID.class));
+    }
+
+    @Test
     @DisplayName("댓글 물리 삭제 성공")
     void physicalDelete() throws Exception {
         //when&then
@@ -175,5 +186,16 @@ public class CommentControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(commentService).physicalDelete(any(UUID.class), any(UUID.class));
+    }
+
+    @Test
+    @DisplayName("댓글 물리 삭제 실패")
+    void physicalDelete_no_header() throws Exception {
+        //when&then
+        mockMvc.perform(delete("/api/comments/{commentId}", UUID.randomUUID()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verify(commentService, never()).logicalDelete(any(UUID.class), any(UUID.class));
     }
 }

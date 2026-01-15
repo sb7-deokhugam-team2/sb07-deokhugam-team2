@@ -242,4 +242,56 @@ public class CommentRepositoryTest {
             );
         }
     }
+
+    @Test
+    @DisplayName("리뷰 별 댓글 개수 조회")
+    void getCountByReviewId(){
+        //given
+        User user = User.create("test@gmail", "test", "12345678q!");
+        User savedUser = userRepository.save(user);
+        Book book = Book.create(
+                "title", "content", "12345678",
+                LocalDate.now(), "publisher",
+                "thumbnailUrl", "description");
+        Book savedBook = bookRepository.save(book);
+        Review review = Review.create(5.0, "content", savedBook, savedUser);
+        Review savedReview = reviewRepository.save(review);
+        List<Comment> commentList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Comment comment = Comment.create("content" + i, savedUser, savedReview);
+            commentList.add(comment);
+        }
+        commentRepository.saveAll(commentList);
+        em.flush();
+        em.clear();
+
+        //when
+        long result = commentRepository.getCountByReviewId(savedReview.getId());
+
+        //then
+        assertThat(result).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("리뷰 별 댓글 개수 조회 V2")
+    void getCountByReviewIdV2(){
+        //given
+        User user = User.create("test@gmail", "test", "12345678q!");
+        User savedUser = userRepository.save(user);
+        Book book = Book.create(
+                "title", "content", "12345678",
+                LocalDate.now(), "publisher",
+                "thumbnailUrl", "description");
+        Book savedBook = bookRepository.save(book);
+        Review review = Review.create(5.0, "content", savedBook, savedUser);
+        Review savedReview = reviewRepository.save(review);
+        em.flush();
+        em.clear();
+
+        //when
+        long result = commentRepository.getCountByReviewId(savedReview.getId());
+
+        //then
+        assertThat(result).isEqualTo(0);
+    }
 }
