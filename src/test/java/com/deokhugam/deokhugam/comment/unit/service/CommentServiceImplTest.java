@@ -13,6 +13,7 @@ import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
 import com.deokhugam.domain.comment.service.CommentServiceImpl;
 import com.deokhugam.domain.review.entity.Review;
+import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.exception.UserNotFoundException;
@@ -161,11 +162,11 @@ public class CommentServiceImplTest {
         when(reviewRepository.findById(commentCreateRequest.reviewId())).thenReturn(Optional.empty());
 
         //when&then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+        ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
             commentService.createComment(commentCreateRequest);
         });
 
-        assertThat(exception.getMessage()).isEqualTo("요청한 리뷰 정보를 찾을 수 없습니다.");
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
         verify(commentRepository, never()).save(any());
     }
 
