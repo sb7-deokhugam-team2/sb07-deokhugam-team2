@@ -22,6 +22,6 @@ jobs:
 
       - name: Test + JaCoCo report
         env:
-          access-key: ${{secrets.AWS_ACCESS_KEY}}
-          secret-key: $${{secrets.AWS_SECRET_KEY}}
+          AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}}
+          AWS_SECRET_KEY: $${{secrets.AWS_SECRET_KEY}}
         run: ./gradlew test jacocoTestReport
