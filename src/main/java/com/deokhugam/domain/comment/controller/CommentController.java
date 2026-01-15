@@ -25,7 +25,9 @@ public class CommentController {
     public ResponseEntity<CursorPageResponseCommentDto> getComments(
             @Valid @ModelAttribute CommentSearchCondition commentSearchCondition
     ){
-        return null;
+        CursorPageResponseCommentDto cursorPageResponseCommentDto
+                = commentService.findContents(commentSearchCondition);
+        return ResponseEntity.ok().body(cursorPageResponseCommentDto);
     }
 
     @PostMapping

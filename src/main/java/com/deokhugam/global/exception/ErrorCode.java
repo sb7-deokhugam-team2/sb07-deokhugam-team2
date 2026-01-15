@@ -18,9 +18,10 @@ public enum ErrorCode {
     COMMENT_USER_NULL(HttpStatus.BAD_REQUEST, "유저는 Null일 수 없습니다.", "C-002"),
     COMMENT_REVIEW_NULL(HttpStatus.BAD_REQUEST, "리뷰는 Null일 수 없습니다.", "C-003"),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.", "C-004"),
-    COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.", "C-005"),
+    COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글에 대한 권한이 없습니다.", "C-005"),
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
+    BOOK_INVALID_SORT_CRITERIA(HttpStatus.BAD_REQUEST, "정렬기준 요청값이 잘못되었습니다.","B-002"),
     // Popular Book
     // Power User
     // Review
