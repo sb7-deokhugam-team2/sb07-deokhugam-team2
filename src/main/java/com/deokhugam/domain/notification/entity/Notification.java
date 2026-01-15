@@ -30,4 +30,32 @@ public class Notification extends BaseUpdateEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    private Notification(String content, Review review, User user) {
+        validateUser(user);
+        validateReview(review);
+        this.content = content;
+        this.review = review;
+        this.user = user;
+    }
+
+    private static void validateReview(Review review) {
+        if (review ==null){
+            //Exception
+        }
+    }
+
+    private static void validateUser(User user) {
+        if(user ==null){
+            //Exception
+        }
+    }
+
+    public static Notification create(String content, Review review, User user){
+        return new Notification(content, review, user);
+    }
+
+    public void confirm(){
+        this.confirmed=true;
+    }
 }
