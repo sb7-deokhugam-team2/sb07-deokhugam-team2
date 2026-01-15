@@ -1,5 +1,7 @@
 package com.deokhugam.domain.review.dto.request;
 
+import com.deokhugam.domain.review.enums.ReviewOrderBy;
+import com.deokhugam.domain.review.enums.SortDirection;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -20,6 +22,6 @@ public record CursorPageRequest(
     public CursorPageRequest {
         if (orderBy == null) orderBy = ReviewOrderBy.CREATED_AT;
         if (direction == null) direction = SortDirection.DESC;
-        if (limit == null) limit = DEFAULT_LIMIT;
+        if (limit == null || limit <= 0) limit = DEFAULT_LIMIT;
     }
 }
