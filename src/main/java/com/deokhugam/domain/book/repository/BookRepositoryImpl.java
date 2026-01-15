@@ -157,10 +157,10 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
     private BooleanExpression keywordPredicate(String keyword) {
         if (hasText(keyword)) { // where like %키워드% 역할
-            return book.title.contains(keyword)
-                    .or(book.description.contains(keyword))
-                    .or(book.author.contains(keyword))
-                    .or(book.publisher.contains(keyword));
+            return book.title.containsIgnoreCase(keyword)
+                    .or(book.description.containsIgnoreCase(keyword))
+                    .or(book.author.containsIgnoreCase(keyword))
+                    .or(book.publisher.containsIgnoreCase(keyword));
         }
         return null;
     }
