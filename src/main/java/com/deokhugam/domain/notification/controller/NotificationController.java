@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    @PatchMapping("{/notificationId}")
+    @PatchMapping("/{notificationId}")
     public ResponseEntity<NotificationDto> readNotification(
             @PathVariable UUID notificationId,
             @RequestHeader("Deokhugam-Request-Id") UUID userId,
