@@ -91,6 +91,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                 .from(book)
                 .leftJoin(review).on(review.book.id.eq(book.id))
                 .where(
+                        book.isDeleted.isFalse(),
                         keywordPredicate(condition.keyword()),
                         cursorWherePredicate(condition, after))
                 .groupBy(
@@ -130,6 +131,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                 .from(book)
                 .leftJoin(review).on(review.book.id.eq(book.id))
                 .where(
+                        book.isDeleted.isFalse(),
                         keywordPredicate(condition.keyword()),
                         cursorWherePredicate(condition, after)
                 )
