@@ -3,20 +3,19 @@ package com.deokhugam.domain.book.dto.request;
 import com.deokhugam.domain.book.enums.SortCriteria;
 import com.deokhugam.domain.book.enums.SortDirection;
 
+import java.time.Instant;
+
 public record BookSearchCondition(
         String keyword,
-
-        SortCriteria sortCriteria,
-        SortDirection sortDirection,
-
+        SortCriteria orderBy,
+        SortDirection direction,
         String cursor,
-        String afterCursor,
-
+        Instant after,
         Integer limit
 ) {
-    public BookSearchCondition{
-        if(sortCriteria == null) sortCriteria = SortCriteria.TITLE;
-        if(sortDirection == null) sortDirection = SortDirection.DESC;
-        if(limit <= 0) limit = 50;
+    public BookSearchCondition {
+        if (orderBy == null) orderBy = SortCriteria.TITLE;
+        if (direction == null) direction = SortDirection.DESC;
+        if (limit == null || limit <= 0) limit = 50;
     }
 }

@@ -21,6 +21,7 @@ public enum ErrorCode {
     COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글에 대한 권한이 없습니다.", "C-005"),
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
+    BOOK_INVALID_SORT_CRITERIA(HttpStatus.BAD_REQUEST, "정렬기준 요청값이 잘못되었습니다.","B-002"),
     // Popular Book
     // Power User
     // Review
