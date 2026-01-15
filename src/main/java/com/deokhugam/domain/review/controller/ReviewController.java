@@ -36,10 +36,10 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ReviewDto> create(
-            @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @Valid @RequestBody ReviewCreateRequest reviewCreateRequest
     ) {
-        return null;
+        ReviewDto createdReview = reviewService.createReview(reviewCreateRequest);
+        return ResponseEntity.ok(createdReview);
     }
 
     @GetMapping("/{reviewId}")
