@@ -130,7 +130,7 @@ class ReviewServiceImplTest {
         ));
 
         // when
-        ReviewDto result = reviewService.createReview(validRequest, testUserId);
+        ReviewDto result = reviewService.createReview(validRequest);
 
         // then
         assertThat(result).isNotNull();
@@ -162,7 +162,7 @@ class ReviewServiceImplTest {
                 .thenReturn(Optional.of(testUser));
 
         // when & then
-        assertThatThrownBy(() -> reviewService.createReview(validRequest, testUserId))
+        assertThatThrownBy(() -> reviewService.createReview(validRequest))
                 .isInstanceOf(ReviewAlreadyExistsException.class)
                 .hasMessage(ErrorCode. REVIEW_ALREADY_EXISTS. getMessage());
 
