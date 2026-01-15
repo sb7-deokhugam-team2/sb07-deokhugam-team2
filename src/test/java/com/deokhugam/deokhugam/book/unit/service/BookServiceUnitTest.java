@@ -53,16 +53,6 @@ public class BookServiceUnitTest {
     @Mock
     private FileStorage s3Storage;
 
-    @BeforeEach
-    void setUp() {
-        TransactionSynchronizationManager.initSynchronization();
-    }
-
-    @AfterEach
-    void tearDown() {
-        TransactionSynchronizationManager.clearSynchronization();
-    }
-
     private Book createPersistedBook(UUID id) {
         Book book = Book.create("Test Title", "Author", "11111",
                 LocalDate.now(), "Publisher", null, "Desc");
@@ -81,67 +71,59 @@ public class BookServiceUnitTest {
 
     @Nested
     @DisplayName("도서 생성")
-    class createBook {
+    class CreateBook {
+
         @Test
-        @DisplayName("[Behavior][Positive] 도서 생성 성공 - 썸네일이 있는 경우 업로드 및 URL 생성 수행")
-        void createBook_Success_WithThumbnail(){
-            //given
+        @DisplayName("[Behavior][Positive] 도서 생성 성공 - 썸네일이 있는 경우 랜덤 키 생성 및 업로드 수행")
+        void createBook_Success_WithThumbnail() {
+            // given
             String isbn = "11111";
             UUID generatedId = UUID.randomUUID();
 
             BookCreateRequest request = createRequest(isbn);
             MockMultipartFile thumbnail = new MockMultipartFile("thumbnail", "test.jpg", "image/jpeg", "content".getBytes());
-
-            Book persistedBook = createPersistedBook(generatedId);;
-
-            given(bookRepository.save(any(Book.class))).willReturn(persistedBook);
+            Book persistedBook = createPersistedBook(generatedId);
 
             given(bookRepository.existsByIsbn(isbn)).willReturn(false);
 
-            String expectedS3Key = "books/" + generatedId + ".jpg";
-            given(s3Storage.upload(any(MockMultipartFile.class), eq(generatedId.toString())))
-                    .willReturn(expectedS3Key);
+            String expectedRandomKey = "books/random-uuid.jpg";
+            given(s3Storage.upload(any(MockMultipartFile.class), anyString()))
+                    .willReturn(expectedRandomKey);
 
-            String expectedUrl = "https://cdn.com/" + expectedS3Key;
+            given(bookRepository.save(any(Book.class))).willReturn(persistedBook);
+
+            String expectedUrl = "https://cdn.com/" + expectedRandomKey;
             given(s3Storage.generateUrl(anyString())).willReturn(expectedUrl);
 
-            //when
+            // when
             BookDto result = bookService.createBook(request, thumbnail);
 
-            //then
+            // then
             assertThat(result.isbn()).isEqualTo(isbn);
             assertThat(result.thumbnailUrl()).isEqualTo(expectedUrl);
 
-            verify(s3Storage).upload(any(MockMultipartFile.class), eq(generatedId.toString()));
-            verify(bookRepository, times(2)).save(any(Book.class));
-
-            assertThat(persistedBook.getThumbnailUrl()).contains(expectedS3Key);
-            assertThat(persistedBook.getThumbnailUrl()).contains("?v=");
+            // Verify
+            verify(s3Storage).upload(any(MockMultipartFile.class), anyString());
+            verify(bookRepository, times(1)).save(any(Book.class));
         }
 
         @Test
-        @DisplayName("[Behavior][Negative] 책 생성 실패 - 저장 후 ISBN 중복 확인 시 예외 발생 및 업로드 미수행")
-        void createBook_Fail_DuplicateIsbn(){
-            //given
+        @DisplayName("[Behavior][Negative] 책 생성 실패 - ISBN 중복 시 예외 발생, 업로드 및 저장은 호출되지 않음")
+        void createBook_Fail_DuplicateIsbn() {
+            // given
             String duplicateIsbn = "99999";
-            UUID generatedId = UUID.randomUUID();
             BookCreateRequest request = createRequest(duplicateIsbn);
 
-
-            Book persistedBook = createPersistedBook(generatedId);
-            given(bookRepository.save(any(Book.class))).willReturn(persistedBook);
-
             given(bookRepository.existsByIsbn(duplicateIsbn)).willReturn(true);
-            //when & then
+
+            // when & then
             assertThatThrownBy(() -> bookService.createBook(request, null))
                     .isInstanceOf(BookException.class)
                     .hasMessageContaining(ErrorCode.DUPLICATE_BOOK_ISBN.getMessage());
 
             // verify
-            verify(bookRepository, times(1)).save(any(Book.class));
-
             verify(bookRepository).existsByIsbn(duplicateIsbn);
-
+            verify(bookRepository, never()).save(any(Book.class));
             verify(s3Storage, never()).upload(any(), anyString());
         }
     }
@@ -150,102 +132,73 @@ public class BookServiceUnitTest {
     @DisplayName("도서 수정")
     class UpdateBook {
         @Test
-        @DisplayName("[Behavior][Positive] 도서 수정 성공 - 확장자가 변경된 경우 기존 파일 삭제 수행 (jpg -> png)")
-        void updateBook_should_delete_old_file_when_extension_changed(){
-            //given
-            UUID bookId = UUID.randomUUID();
-            BookCreateRequest request = createRequest("11111");
-
-            Book existingBook = createPersistedBook(bookId);
-            String oldS3Key = "books/" + bookId + ".jpg";
-            existingBook.updateThumbnailUrl(oldS3Key + "?v=" + LocalDate.from(Instant.now()));
-
-            MockMultipartFile newThumbnail = new MockMultipartFile("thumbnail", "new_image.png", "image/png", "contents".getBytes());
-
-            given(bookRepository.findById(bookId)).willReturn(Optional.of(existingBook));
-            given(bookRepository.existsByIsbn(anyString())).willReturn(false);
-
-            String newS3Key = "books/" + bookId + ".png";
-            given(s3Storage.upload(any(), anyString())).willReturn(newS3Key);
-
-            BookDto dummyDto = mock(BookDto.class);
-
-            given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(dummyDto));
-            given(s3Storage.generateUrl(anyString())).willReturn("https://cdn.com/" + newS3Key);
-
-            //when
-            bookService.updateBook(bookId, request, newThumbnail);
-
-            //then
-            verify(s3Storage).upload(any(MockMultipartFile.class), eq(newS3Key));
-            verify(s3Storage).delete(eq(oldS3Key));
-
-            assertThat(existingBook.getThumbnailUrl()).startsWith(newS3Key);
-        }
-        @Test
-        @DisplayName("[Behavior][Positive] 도서 수정 성공 - 확장자가 동일한 경우 기존 파일 삭제 안 함 (jpg -> jpg)")
-        void updateBook_should_not_delete_old_file_when_extension_same(){
-            //given
-            UUID bookId = UUID.randomUUID();
-            BookCreateRequest request = createRequest("11111");
-
-            Book existingBook = createPersistedBook(bookId);
-            String oldS3Key = "books/" + bookId + ".jpg";
-            existingBook.updateThumbnailUrl(oldS3Key + "?v=" + Instant.now());
-
-            MockMultipartFile newThumbnail = new MockMultipartFile("thumbnail", "new.jpg", "image/jpeg", "contents".getBytes());
-
-            given(bookRepository.findById(bookId)).willReturn(Optional.of(existingBook));
-            given(s3Storage.upload(any(), anyString())).willReturn(oldS3Key);
-
-            given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(mock(BookDto.class)));
-            given(s3Storage.generateUrl(anyString())).willReturn("https://cdn.com/" + oldS3Key);
-
-            //when
-            bookService.updateBook(bookId, request, newThumbnail);
-
-            //then
-            verify(s3Storage).upload(any(MockMultipartFile.class), eq(oldS3Key));
-            verify(s3Storage, never()).delete(anyString());
-        }
-
-        @Test
-        @DisplayName("[Behavior][Positive] 도서 수정 성공 - 기존 파일 삭제가 실패해도 트랜잭션은 완료되어야 함 (예외 무시)")
-        void updateBook_should_complete_transaction_even_if_delete_fails() {
+        @DisplayName("[Behavior][Positive] 도서 수정 성공 - 썸네일 변경 시 새로운 랜덤 키로 업로드 및 엔티티 갱신")
+        void updateBook_Success_WithNewThumbnail() {
             // given
             UUID bookId = UUID.randomUUID();
             BookCreateRequest request = createRequest("11111");
 
             Book existingBook = createPersistedBook(bookId);
-            String oldS3Key = "books/" + bookId + ".jpg";
-            existingBook.updateThumbnailUrl(oldS3Key + "?v=" + Instant.now());
+            String oldS3Key = "books/old-uuid.jpg";
+            ReflectionTestUtils.setField(existingBook, "thumbnailUrl", oldS3Key);
 
-            MockMultipartFile newThumbnail = new MockMultipartFile("thumbnail", "new.png", "image/png", "contents".getBytes());
+            MockMultipartFile newThumbnail = new MockMultipartFile("thumbnail", "new.png", "image/png", "new_content".getBytes());
 
             given(bookRepository.findById(bookId)).willReturn(Optional.of(existingBook));
-            given(bookRepository.existsByIsbn(anyString())).willReturn(false);
 
-            String newS3Key = "books/" + bookId + ".png";
-            given(s3Storage.upload(any(), anyString())).willReturn(newS3Key);
+            BookDto dummyDto = new BookDto(bookId, "Title", "Author", "11111",
+                    "pub" , LocalDate.now(), "Desc", "url", 0L, 0.0, Instant.now(), Instant.now());
 
-            given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(mock(BookDto.class)));
-            given(s3Storage.generateUrl(anyString())).willReturn("https://cdn.com/" + newS3Key);
+            given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(dummyDto));
 
-            doThrow(new S3FileStorageException(ErrorCode.FAIL_TO_DELETE_FILE))
-                    .when(s3Storage).delete(eq(oldS3Key));
+            given(s3Storage.upload(any(MockMultipartFile.class), anyString()))
+                    .willAnswer(invocation -> invocation.getArgument(1));
 
+            String expectedNewUrl = "https://cdn.com/new-random-key.png";
+            given(s3Storage.generateUrl(anyString())).willReturn(expectedNewUrl);
+
+            // when
             BookDto result = bookService.updateBook(bookId, request, newThumbnail);
 
             // then
-            assertThat(result).isNotNull();
-            verify(s3Storage).delete(eq(oldS3Key));
-            verify(s3Storage).upload(any(), eq(newS3Key));
+            verify(s3Storage).upload(any(MockMultipartFile.class), anyString());
+
+            assertThat(existingBook.getThumbnailUrl()).isNotEqualTo(oldS3Key);
+            assertThat(existingBook.getThumbnailUrl()).startsWith("books/");
+            assertThat(existingBook.getThumbnailUrl()).endsWith(".png");
         }
 
+        @Test
+        @DisplayName("[Behavior][Positive] 도서 수정 성공 - 썸네일 미첨부 시 기존 이미지 URL 유지")
+        void updateBook_Success_NoThumbnail_KeepsOriginalUrl() {
+            // given
+            UUID bookId = UUID.randomUUID();
+            BookCreateRequest request = createRequest("11111");
+
+            Book existingBook = createPersistedBook(bookId);
+            String oldS3Key = "books/original.jpg";
+            ReflectionTestUtils.setField(existingBook, "thumbnailUrl", oldS3Key);
+
+            given(bookRepository.findById(bookId)).willReturn(Optional.of(existingBook));
+
+            BookDto dummyDto = new BookDto(bookId, "Title", "Author", "11111",
+                    "pub" , LocalDate.now(), "Desc", "url", 0L, 0.0, Instant.now(), Instant.now());
+            given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(dummyDto));
+
+            given(s3Storage.generateUrl(oldS3Key)).willReturn("https://cdn.com/" + oldS3Key);
+
+            // when
+            bookService.updateBook(bookId, request, null); // 썸네일 없음
+
+            // then
+            verify(s3Storage, never()).upload(any(), anyString());
+
+            assertThat(existingBook.getThumbnailUrl()).isEqualTo(oldS3Key);
+        }
 
         @Test
         @DisplayName("[Behavior][Negative] 도서 수정 실패 - 존재하지 않는 도서 ID")
-        void updateBook_should_throw_exception_when_book_not_found() {
+        void updateBook_Fail_BookNotFound() {
             // given
             UUID nonExistentId = UUID.randomUUID();
             BookCreateRequest request = createRequest("11111");

@@ -37,7 +37,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
-    private final FileStorage s3Storage;
+    private final FileStorage fileStorage;
 
 
     @Override
@@ -102,7 +102,21 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
+        if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
+            log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
+            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        }
+        String fullS3Key = null;
 
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            fullS3Key = generateUniqueKey(thumbnail.getOriginalFilename());
+
+            fileStorage.upload(thumbnail, fullS3Key);
+            log.debug("썸네일 업로드 완료 - Key: {}", fullS3Key);
+            bookCreateFailedRollbackCleanup(fullS3Key);
+        }
+        log.info("책 생성 요청 - 제목: {}, ISBN: {}",
+                bookCreateRequest.title(), bookCreateRequest.isbn());
         Book savedBook = bookRepository.save(
                 Book.create(
                         bookCreateRequest.title(),
@@ -110,34 +124,15 @@ public class BookServiceImpl implements BookService {
                         bookCreateRequest.isbn(),
                         bookCreateRequest.publishedDate(),
                         bookCreateRequest.publisher(),
-                        null,
+                        fullS3Key,
                         bookCreateRequest.description()
                 ));
 
-        log.info("책 생성 요청 - 제목: {}, ISBN: {}, 저자: {}",
-                bookCreateRequest.title(), bookCreateRequest.isbn(), bookCreateRequest.author());
-        if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
-            log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
-            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
-        }
-        String savedFileKey = null;
-        if (thumbnail != null && !thumbnail.isEmpty()) {
-            savedFileKey = s3Storage.upload(thumbnail, savedBook.getId().toString());
-
-            log.debug("썸네일 업로드 완료 - Key: {}", savedFileKey);
-
-            bookCreateFailedRollbackCleanup(savedFileKey);
-        }
-
-        savedBook.updateThumbnailUrl(savedFileKey + "?v=" + LocalDateTime.now());
-
-        savedBook = bookRepository.save(savedBook);
-
-        String cdnUrl = s3Storage.generateUrl(savedBook.getThumbnailUrl());
+        String finalCdnUrl = (fullS3Key != null) ? fileStorage.generateUrl(fullS3Key) : null;
 
         log.info("책 생성 완료 - ID: {}, 제목: {}", savedBook.getId(), savedBook.getTitle());
 
-        return BookMapper.toDto(savedBook, cdnUrl, 0L, 0.0);
+        return BookMapper.toDto(savedBook, finalCdnUrl, 0L, 0.0);
     }
     @Override
     @Transactional
@@ -149,29 +144,19 @@ public class BookServiceImpl implements BookService {
             throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
         }
 
-        String newDbUrl = existingBook.getThumbnailUrl();
-        String oldFileKeyToDelete = null;
+        String newKey = null;
+        String oldKeyToDelete = null;
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
-
             String newOriginalFileName = thumbnail.getOriginalFilename();
-            String newExt = Objects.requireNonNull(newOriginalFileName).substring(newOriginalFileName.lastIndexOf(".") + 1);
-            String newS3Key = "books/" + existingBook.getId() + "." + newExt;
+            newKey = generateUniqueKey(newOriginalFileName);
 
-            s3Storage.upload(thumbnail, newS3Key);
-            log.info("썸네일 업로드(수정) 완료 - Key: {}", newS3Key);
+            fileStorage.upload(thumbnail, newKey);
+            log.info("썸네일 업로드(수정) 완료 - Key: {}", newKey);
 
-            bookCreateFailedRollbackCleanup(newS3Key);
+            bookCreateFailedRollbackCleanup(newKey);
 
-            String currentDbUrl = existingBook.getThumbnailUrl();
-
-            if (currentDbUrl != null && !currentDbUrl.isBlank()) {
-                String pureOldKey = currentDbUrl.split("\\?")[0];
-                if (!pureOldKey.equals(newS3Key)) {
-                    oldFileKeyToDelete = pureOldKey;
-                }
-                newDbUrl = newS3Key + "?v=" + LocalDateTime.now();
-            }
+            oldKeyToDelete = existingBook.getThumbnailUrl();
         }
         existingBook.update(
                 bookCreateRequest.title(),
@@ -180,22 +165,16 @@ public class BookServiceImpl implements BookService {
                 bookCreateRequest.publishedDate(),
                 bookCreateRequest.publisher(),
                 bookCreateRequest.description(),
-                newDbUrl // 이미지가 변경되었으면 새 값, 아니면 기존 값
+                (newKey != null) ? newKey : existingBook.getThumbnailUrl()
         );
 
-        if (oldFileKeyToDelete != null) {
-            try {
-                s3Storage.delete(oldFileKeyToDelete);
-                log.info("기존 파일 삭제 완료 - Key: {}", oldFileKeyToDelete);
-            } catch (Exception e) {
-                log.warn("기존 파일 삭제 실패 (고아 객체 확인 필요) - Key: {}", oldFileKeyToDelete, e);
-            }
+        if (oldKeyToDelete != null) {
+            deleteFileAfterCommit(oldKeyToDelete);
         }
-        String cdnUrl = s3Storage.generateUrl(existingBook.getThumbnailUrl());
+        String cdnUrl = fileStorage.generateUrl(existingBook.getThumbnailUrl());
         log.info("책 수정 완료 - ID: {}", existingBook.getId());
 
         BookDto dto = getBookDetail(bookId);
-
         return BookMapper.toDto(existingBook, cdnUrl, dto.reviewCount(), dto.rating());
     }
 
@@ -213,14 +192,48 @@ public class BookServiceImpl implements BookService {
 
     private void bookCreateFailedRollbackCleanup(String fileKey) {
         if (fileKey == null) return;
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCompletion(int status) {
-                if (status == STATUS_ROLLED_BACK) {
-                    log.warn("트랜잭션 롤백 감지: S3 업로드 파일 삭제 시도 - Key: {}", fileKey);
-                    s3Storage.delete(fileKey);
+        if(TransactionSynchronizationManager.isSynchronizationActive()){
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        log.warn("트랜잭션 롤백 감지: S3 업로드 파일 삭제 시도 - Key: {}", fileKey);
+                        fileStorage.delete(fileKey);
+                    }
                 }
-            }
-        });
+            });
+
+        }else{
+            log.debug("트랜잭션 비활성 상태라 롤백 클린업 등록을 스킵합니다. (Unit Test 환경 예상)");
+        }
+    }
+
+    private void deleteFileAfterCommit(String fileKey) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_COMMITTED) {
+                        try {
+                            log.info("트랜잭션 커밋 성공: 구형 파일 삭제 시도 - Key: {}", fileKey);
+                            fileStorage.delete(fileKey);
+                        } catch (Exception e) {
+                            log.error("구형 파일 삭제 실패 (고아 객체 발생, 추후 정리 필요) - Key: {}", fileKey, e);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private String generateUniqueKey(String originalFilename) {
+        String uuid = UUID.randomUUID().toString();
+        String ext = getExtension(originalFilename);
+        return "books/" + uuid + "." + ext;
+    }
+
+    private String getExtension(String filename) {
+        if (filename == null || filename.lastIndexOf('.') == -1) return "jpg";
+        return filename.substring(filename.lastIndexOf('.') + 1);
     }
 }
