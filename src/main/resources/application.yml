@@ -21,12 +21,20 @@ logging:
   level:
     root: info
 
-app:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+storage:
+  type: s3
+  app:
+    aws:
+      cloud-front:
+        domain: https://d1ippd9dh5xjdt.cloudfront.net
+      credentials:
+        AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+        AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       region:
         static: ap-northeast-2
       s3:
         bucket: deokhugam-test-bucket
+#       access-key: ${AWS_ACCESS_KEY}
+#       secret-key: ${AWS_SECRET_KEY}
+  local:
+    upload-path: /Users/dev/uploads

@@ -7,9 +7,14 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponsePopularBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
+import com.deokhugam.domain.book.entity.Book;
+import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
+import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.exception.ErrorCode;
+import com.deokhugam.global.storage.FileStorage;
+import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,10 +22,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -28,6 +37,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
+    private final FileStorage fileStorage;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -91,13 +102,80 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
-        return null;
-    }
+        if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
+            log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
+            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        }
+        String fullS3Key = null;
 
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            fullS3Key = generateUniqueKey(thumbnail.getOriginalFilename());
+
+            fileStorage.upload(thumbnail, fullS3Key);
+            log.debug("썸네일 업로드 완료 - Key: {}", fullS3Key);
+            bookCreateFailedRollbackCleanup(fullS3Key);
+        }
+        log.info("책 생성 요청 - 제목: {}, ISBN: {}",
+                bookCreateRequest.title(), bookCreateRequest.isbn());
+        Book savedBook = bookRepository.save(
+                Book.create(
+                        bookCreateRequest.title(),
+                        bookCreateRequest.author(),
+                        bookCreateRequest.isbn(),
+                        bookCreateRequest.publishedDate(),
+                        bookCreateRequest.publisher(),
+                        fullS3Key,
+                        bookCreateRequest.description()
+                ));
+
+        String finalCdnUrl = (fullS3Key != null) ? fileStorage.generateUrl(fullS3Key) : null;
+
+        log.info("책 생성 완료 - ID: {}, 제목: {}", savedBook.getId(), savedBook.getTitle());
+
+        return BookMapper.toDto(savedBook, finalCdnUrl, 0L, 0.0);
+    }
     @Override
     @Transactional
     public BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
-        return null;
+        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
+
+        if(!existingBook.getIsbn().equals(bookCreateRequest.isbn())&&bookRepository.existsByIsbn(bookCreateRequest.isbn())){
+            log.warn("책 수정 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
+            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        }
+
+        String newKey = null;
+        String oldKeyToDelete = null;
+
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            String newOriginalFileName = thumbnail.getOriginalFilename();
+            newKey = generateUniqueKey(newOriginalFileName);
+
+            fileStorage.upload(thumbnail, newKey);
+            log.info("썸네일 업로드(수정) 완료 - Key: {}", newKey);
+
+            bookCreateFailedRollbackCleanup(newKey);
+
+            oldKeyToDelete = existingBook.getThumbnailUrl();
+        }
+        existingBook.update(
+                bookCreateRequest.title(),
+                bookCreateRequest.author(),
+                bookCreateRequest.isbn(),
+                bookCreateRequest.publishedDate(),
+                bookCreateRequest.publisher(),
+                bookCreateRequest.description(),
+                (newKey != null) ? newKey : existingBook.getThumbnailUrl()
+        );
+
+        if (oldKeyToDelete != null) {
+            deleteFileAfterCommit(oldKeyToDelete);
+        }
+        String cdnUrl = fileStorage.generateUrl(existingBook.getThumbnailUrl());
+        log.info("책 수정 완료 - ID: {}", existingBook.getId());
+
+        BookDto dto = getBookDetail(bookId);
+        return BookMapper.toDto(existingBook, cdnUrl, dto.reviewCount(), dto.rating());
     }
 
     @Override
@@ -110,5 +188,52 @@ public class BookServiceImpl implements BookService {
     @Transactional
     public void hardDeleteBook(UUID bookId) {
 
+    }
+
+    private void bookCreateFailedRollbackCleanup(String fileKey) {
+        if (fileKey == null) return;
+        if(TransactionSynchronizationManager.isSynchronizationActive()){
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        log.warn("트랜잭션 롤백 감지: S3 업로드 파일 삭제 시도 - Key: {}", fileKey);
+                        fileStorage.delete(fileKey);
+                    }
+                }
+            });
+
+        }else{
+            log.debug("트랜잭션 비활성 상태라 롤백 클린업 등록을 스킵합니다. (Unit Test 환경 예상)");
+        }
+    }
+
+    private void deleteFileAfterCommit(String fileKey) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_COMMITTED) {
+                        try {
+                            log.info("트랜잭션 커밋 성공: 구형 파일 삭제 시도 - Key: {}", fileKey);
+                            fileStorage.delete(fileKey);
+                        } catch (Exception e) {
+                            log.error("구형 파일 삭제 실패 (고아 객체 발생, 추후 정리 필요) - Key: {}", fileKey, e);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private String generateUniqueKey(String originalFilename) {
+        String uuid = UUID.randomUUID().toString();
+        String ext = getExtension(originalFilename);
+        return "books/" + uuid + "." + ext;
+    }
+
+    private String getExtension(String filename) {
+        if (filename == null || filename.lastIndexOf('.') == -1) return "jpg";
+        return filename.substring(filename.lastIndexOf('.') + 1);
     }
 }

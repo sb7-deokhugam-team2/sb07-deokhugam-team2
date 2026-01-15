@@ -34,3 +34,4 @@ management:
   info:
     env:
       enabled: true
+
