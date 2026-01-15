@@ -7,5 +7,6 @@ import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
 import java.util.UUID;
 
 public interface ReviewRepositoryCustom {
-    ReviewPageResponseDto search(ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId);
+    ReviewPageResponseDto search(
+            ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId);
 }
