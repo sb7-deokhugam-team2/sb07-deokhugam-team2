@@ -41,7 +41,7 @@ public class S3FileStorage extends BaseFileStorage{
         String contentType = file.getContentType();
         validateContentType(contentType);
 
-        String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
 
         log.info("S3 업로드 시작 - 파일명: {}, 크기: {} bytes, 타입: {}", originalFilename, file.getSize(), contentType);
 

@@ -1,10 +1,12 @@
 package com.deokhugam.domain.book.controller;
 
+import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
+import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +43,11 @@ public class BookController {
 
     @PostMapping()
     public ResponseEntity<BookDto> createBook(
-            @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
+            @RequestPart(value = "bookData") BookCreateRequest createRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
-        return null;
+        BookDto dto = bookService.createBook(createRequest, thumbnail);
+        return ResponseEntity.status(201).body(dto);
     }
 
     @PatchMapping("/{bookId}")

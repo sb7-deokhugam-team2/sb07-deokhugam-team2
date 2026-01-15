@@ -2,6 +2,7 @@ package com.deokhugam.domain.book.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
+import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
@@ -14,7 +15,6 @@ import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.global.storage.FileStorage;
-import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,9 +27,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -136,13 +134,8 @@ public class BookServiceImpl implements BookService {
     }
     @Override
     @Transactional
-    public BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
+    public BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail) {
         Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
-
-        if(!existingBook.getIsbn().equals(bookCreateRequest.isbn())&&bookRepository.existsByIsbn(bookCreateRequest.isbn())){
-            log.warn("책 수정 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
-            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
-        }
 
         String newKey = null;
         String oldKeyToDelete = null;
@@ -159,12 +152,11 @@ public class BookServiceImpl implements BookService {
             oldKeyToDelete = existingBook.getThumbnailUrl();
         }
         existingBook.update(
-                bookCreateRequest.title(),
-                bookCreateRequest.author(),
-                bookCreateRequest.isbn(),
-                bookCreateRequest.publishedDate(),
-                bookCreateRequest.publisher(),
-                bookCreateRequest.description(),
+                bookUpdateRequest.title(),
+                bookUpdateRequest.author(),
+                bookUpdateRequest.publishedDate(),
+                bookUpdateRequest.publisher(),
+                bookUpdateRequest.description(),
                 (newKey != null) ? newKey : existingBook.getThumbnailUrl()
         );
 
