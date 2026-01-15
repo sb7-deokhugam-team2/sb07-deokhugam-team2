@@ -6,6 +6,9 @@ on:
       - main
       - develop
 
+env:
+  AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}}
+  AWS_SECRET_KEY: $${{secrets.AWS_SECRET_KEY}}
 jobs:
   ci:
     name: Run Tests
@@ -22,6 +25,4 @@ jobs:
 
       - name: Test + JaCoCo report
         run: ./gradlew test jacocoTestReport
-    env:
-      AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}}
-      AWS_SECRET_KEY: $${{secrets.AWS_SECRET_KEY}}
+   
