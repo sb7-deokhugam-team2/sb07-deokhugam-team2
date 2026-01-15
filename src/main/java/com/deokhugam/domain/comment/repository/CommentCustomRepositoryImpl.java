@@ -34,7 +34,7 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                         afterCondition(condition.after(), condition.direction())
                 )
                 .orderBy(direction(condition.direction()))
-                .limit(condition.limit())
+                .limit(condition.limit()+1)
                 .fetch();
     }
 
