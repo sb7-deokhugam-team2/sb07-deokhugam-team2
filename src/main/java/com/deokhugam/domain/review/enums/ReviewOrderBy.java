@@ -1,4 +1,4 @@
-package com.deokhugam.domain.review.dto.request;
+package com.deokhugam.domain.review.enums;
 
 public enum ReviewOrderBy {
     CREATED_AT,
