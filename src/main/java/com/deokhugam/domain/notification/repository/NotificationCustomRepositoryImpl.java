@@ -7,20 +7,15 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static com.deokhugam.domain.notification.entity.QNotification.notification;
 import static com.deokhugam.domain.user.entity.QUser.user;
-
-import static com.deokhugam.domain.notification.entity.QNotification.notification;
 import static com.deokhugam.domain.review.entity.QReview.review;
-import static com.deokhugam.domain.user.entity.QUser.user;
 
 @RequiredArgsConstructor
 public class NotificationCustomRepositoryImpl implements NotificationCustomRepository {
@@ -30,7 +25,7 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
 
     @Override
     public List<Notification> searchNotifications(NotificationSearchCondition condition) {
-        return jpaQueryFactory.select(notification)
+        return queryFactory.select(notification)
                 .from(notification)
                 .join(notification.review, review).fetchJoin()
                 .join(notification.user, user).fetchJoin()
