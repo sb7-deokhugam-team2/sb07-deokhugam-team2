@@ -12,10 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,8 +49,37 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CursorPageResponseNotificationDto getNotifications(NotificationSearchCondition condition) {
-        return null;
+        List<NotificationDto> notifications = notificationRepository.searchNotifications(condition)
+                .stream()
+                .map(NotificationDto::from)
+                .collect(Collectors.toList());
+
+        boolean hasNext = notifications.size() > condition.limit();
+        if(notifications.size() > condition.limit()){
+            notifications.remove(notifications.size() - 1);
+        }
+
+        String nextCursor = null;
+        Instant nextAfter = null;
+
+        if(!notifications.isEmpty()){
+            NotificationDto lastItem = notifications.get(notifications.size() - 1);
+            nextCursor = lastItem.getCreatedAt().toString();
+            nextAfter = lastItem.getCreatedAt();
+        }
+
+        long totalElements = notificationRepository.count();
+
+        return CursorPageResponseNotificationDto.from(
+                notifications,
+                nextCursor,
+                nextAfter,
+                notifications.size(),
+                totalElements,
+                hasNext
+        );
     }
 
     @Override
