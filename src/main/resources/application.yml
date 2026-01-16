@@ -40,10 +40,11 @@ storage:
     upload-path: /Users/dev/uploads
 
 api:
- naver:
-  client:
-   ID: ${NAVER_CLIENT_ID}
-   SECRET: ${NAVER_CLIENT_SECRET}
-  url:
-   search: https://openapi.naver.com/v1/search/book_adv
-
+  naver:
+   client:
+    ID: ${NAVER_CLIENT_ID}
+    SECRET: ${NAVER_CLIENT_SECRET}
+   url:
+    search: https://openapi.naver.com/v1/search/book_adv
+  ocr:
+    key: K85484288788957
