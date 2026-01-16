@@ -85,11 +85,11 @@ class ReviewServiceImplTest {
         validRequest = new ReviewCreateRequest(
                 testBookId,
                 testUserId,
-                4.5,
+                4.0,
                 "정말 좋은 책입니다."
         );
         updateRequest = new ReviewUpdateRequest(
-                3.5,
+                3.0,
                 "정말 나쁜 책입니다."
         );
 
@@ -114,7 +114,7 @@ class ReviewServiceImplTest {
         when(mockReview.getUser()).thenReturn(testUser);
         when(mockReview.getBook()).thenReturn(testBook);
         when(mockReview.getId()).thenReturn(testReviewId);
-        when(mockReview.getRating()).thenReturn(4.5);
+        when(mockReview.getRating()).thenReturn(4.0);
         when(mockReview.getContent()).thenReturn("정말 좋은 책입니다.");
         when(mockReview.getLikedCount()).thenReturn(10L);
         when(mockReview.getCreatedAt()).thenReturn(Instant.now());
@@ -130,7 +130,7 @@ class ReviewServiceImplTest {
                 testBookId,
                 "테스트 책 제목",
                 "http://example.com/test-thumbnail",
-                4.5,
+                4.0,
                 "테스트유저",
                 "정말 좋은 책입니다.",
                 10L,
@@ -148,7 +148,7 @@ class ReviewServiceImplTest {
         assertThat(result.id()).isNotNull().isEqualTo(testReviewId);
         assertThat(result.userId()).isEqualTo(testUserId);
         assertThat(result.bookId()).isEqualTo(testBookId);
-        assertThat(result.rating()).isEqualTo(4.5);
+        assertThat(result.rating()).isEqualTo(4.0);
         assertThat(result.content()).isEqualTo("정말 좋은 책입니다.");
         assertThat(result.likedCount()).isEqualTo(10L);
 
@@ -182,50 +182,50 @@ class ReviewServiceImplTest {
     @Test
     @DisplayName("성공: 본인이 작성한 리뷰 수정")
     void updateReview_Success() {
-        // Given
-        Review testReview = Review.create(4.5, "정말 좋은 책입니다.", testBook, testUser);
+        // given
+        Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
         when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview)); // Review 조회 Mock
-        when(reviewMapper.toReviewDto(any(Review.class), eq(0L), eq(false)))
-                .thenReturn(new ReviewDto(
+        when(reviewRepository.findDetail(testReviewId, testUserId))
+                .thenReturn(Optional.of(new ReviewDto(
                         testReviewId,
                         testUserId,
                         testBookId,
                         "테스트 책 제목",
                         "http://example.com/test-thumbnail",
-                        3.5,
-                        "testUser",
+                        3.0,
+                        "테스트유저",
                         "정말 나쁜 책입니다.",
-                        20L,
-                        0L,
-                        false,
-                        Instant.now(),
+                        10L,
+                        2L,
+                        true,
+                        testReview.getCreatedAt(),
                         Instant.now()
-                ));
+                )));
 
-        // When
+        // when
         ReviewDto result = reviewService.updateReview(updateRequest, testUserId, testReviewId);
 
-        // Then
+        // then
         assertNotNull(result);
-        assertEquals(3.5, result.rating(), "평점이 올바르게 수정되어야 함");
+        assertEquals(3.0, result.rating(), "평점이 올바르게 수정되어야 함");
         assertEquals("정말 나쁜 책입니다.", result.content(), "내용이 올바르게 수정되어야 함");
 
         verify(reviewRepository).findById(testReviewId);
-        verify(reviewMapper).toReviewDto(testReview, 0L, false);
+        verify(reviewRepository).findDetail(testReviewId, testUserId);
     }
 
     @Test
     @DisplayName("실패: 다른 사용자가 리뷰 수정 시도")
     void updateReview_OtherUser_Fails() {
 
-        // Given
+        // given
         UUID anotherUserId = UUID.randomUUID();
         when(testUser.getId()).thenReturn(UUID.randomUUID());
-        Review testReview = Review.create(4.5, "정말 좋은 책입니다.", testBook, testUser);
+        Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
 
         when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview)); // Review 조회 Mock
 
-        // When & Then
+        // when & then
         assertThrows(ReviewAccessDeniedException.class, () -> {
             reviewService.updateReview(updateRequest, testUserId, testReviewId);
         });
@@ -237,15 +237,15 @@ class ReviewServiceImplTest {
     @Test
     @DisplayName("실패: 논리 삭제된 리뷰는 수정 불가")
     void updateReview_DeletedReview_Fails() {
-        // Given
-        Review testReview = Review.create(4.5, "정말 좋은 책입니다.", testBook, testUser);
+        // given
+        Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
         // 리뷰를 논리 삭제 상태로 전환
         testReview.delete();
 
         when(reviewRepository.findById(testReviewId))
                 .thenReturn(Optional.of(testReview));
 
-        // When & Then
+        // when & then
         assertThrows(ReviewNotFoundException.class, () -> {
             reviewService.updateReview(updateRequest, testUserId, testReviewId);
         });
