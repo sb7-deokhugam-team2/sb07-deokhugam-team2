@@ -12,6 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/notifications")
 public class NotificationController {
 
     @PatchMapping("/{notificationId}")
