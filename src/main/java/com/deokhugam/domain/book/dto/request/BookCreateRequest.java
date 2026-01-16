@@ -10,6 +10,4 @@ public record BookCreateRequest(
         LocalDate publishedDate,
         String isbn
 ) {
-    public BookCreateRequest {
-    }
 }
