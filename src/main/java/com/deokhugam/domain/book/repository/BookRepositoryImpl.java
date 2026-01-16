@@ -91,8 +91,10 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                 .from(book)
                 .leftJoin(review).on(review.book.id.eq(book.id))
                 .where(
+                        book.isDeleted.isFalse(),
                         keywordPredicate(condition.keyword()),
-                        cursorWherePredicate(condition, after))
+                        cursorWherePredicate(condition, after)
+                )
                 .groupBy(
                         book.id,
                         book.title,
@@ -121,7 +123,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
         }
 
         // totalCount 쿼리, Querydsl JPA는 FROM (subquery) 같은 걸 못해서,
-        //      groupBy/having 적용된 book.id 목록을 가져와 size()로 총 개수 계산하는 방식
+        // groupBy/having 적용된 book.id 목록을 가져와 size()로 총 개수 계산하는 방식
         // NOTE: 프로토타입에는 있기도해서 카운트쿼리를 넣지만 이게 무한스크롤, 커서기반 페이지네이션에서 필요할지 생각할 필요있음
         // NOTE: 데이터가 엄청 크면 이 totalCount는 무거울 수 있음(그땐 요구사항 협의/별도 count 전략 필요), 네트워크 + 메모리 + GC 지옥 그래서 fetch().size()로 안쓸려고도 fetchCount()를 deprecated 한것도 있음
         // TODO: 추후 성능이슈로 인해 native query, blaze-persistence, 별도 집계테이블 혹은 해당 컬럼 book 테이블에 비정규화 고려하서 개선할 것
@@ -130,8 +132,8 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                 .from(book)
                 .leftJoin(review).on(review.book.id.eq(book.id))
                 .where(
-                        keywordPredicate(condition.keyword()),
-                        cursorWherePredicate(condition, after)
+                        book.isDeleted.isFalse(),
+                        keywordPredicate(condition.keyword())
                 )
                 .groupBy(
                         book.id,
@@ -158,7 +160,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     private BooleanExpression keywordPredicate(String keyword) {
         if (hasText(keyword)) { // where like %키워드% 역할
             return book.title.containsIgnoreCase(keyword)
-                    .or(book.description.containsIgnoreCase(keyword))
+                    .or(book.isbn.containsIgnoreCase(keyword))
                     .or(book.author.containsIgnoreCase(keyword))
                     .or(book.publisher.containsIgnoreCase(keyword));
         }
