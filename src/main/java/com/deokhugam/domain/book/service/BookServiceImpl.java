@@ -144,6 +144,10 @@ public class BookServiceImpl implements BookService {
         String newKey = null;
         String oldKeyToDelete = null;
 
+        if (existingBook.isDeleted()){
+            throw new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND);
+        }
+
         if (thumbnail != null && !thumbnail.isEmpty()) {
             String newOriginalFileName = thumbnail.getOriginalFilename();
             newKey = generateUniqueKey(newOriginalFileName);
