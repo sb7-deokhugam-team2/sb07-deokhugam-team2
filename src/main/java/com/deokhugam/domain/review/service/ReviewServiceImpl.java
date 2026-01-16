@@ -13,6 +13,7 @@ import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.enums.ReviewOrderBy;
 import com.deokhugam.domain.review.exception.ReviewAlreadyExistsException;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
+import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.mapper.ReviewMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
@@ -68,18 +69,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ReviewDto getReview(UUID reviewId) {
-        // 삭제된 리뷰는 조회에서 제외
-        Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("리뷰가 없습니다."));
-
-        // TODO: 로직 추가
-        long commentCount = commentRepository.getCountByReviewId(reviewId);
-        // boolean LikedByMe = LikedReviewRepository.existsByReviewId(reviewId);
-
-        boolean likedByMe = false;
-
-        return reviewMapper.toReviewDto(review, commentCount, likedByMe);
+    public ReviewDto getReview(UUID requestUserId, UUID reviewId) {
+        return reviewRepository.findDetail(reviewId, requestUserId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
     @Override
@@ -112,7 +104,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewOrderBy orderBy = pageRequest.orderBy() == null
                 ? ReviewOrderBy.CREATED_AT : pageRequest.orderBy();
 
-        if (pageRequest.orderBy() == ReviewOrderBy.RATING && pageRequest.after() == null) {
+        if (orderBy == ReviewOrderBy.RATING && pageRequest.after() == null) {
             throw new ReviewInvalidException(ErrorCode.REVIEW_AFTER_REQUIRED);
         }
 
@@ -122,7 +114,7 @@ public class ReviewServiceImpl implements ReviewService {
             } else {
                 Instant.parse(cursor);
             }
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             throw new ReviewInvalidException(ErrorCode.REVIEW_INVALID);
         }
     }
