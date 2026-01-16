@@ -47,4 +47,4 @@ api:
    url:
     search: https://openapi.naver.com/v1/search/book_adv
   ocr:
-    key: K85484288788957
+    key: ${OCR_API_KEY}

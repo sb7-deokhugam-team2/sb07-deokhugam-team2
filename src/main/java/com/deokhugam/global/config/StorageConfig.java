@@ -27,6 +27,7 @@ public class StorageConfig {
 
         @Value("${storage.app.aws.region.static}")
         private String region;
+
         @Bean
         public S3Client s3Client() {
             log.info("Storage Type is S3. Initializing S3Client... Region: {}", region);
