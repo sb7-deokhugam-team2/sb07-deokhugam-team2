@@ -1,5 +1,6 @@
 package com.deokhugam.domain.review.dto;
 
+import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 
@@ -51,6 +52,24 @@ public class ReviewListDto {
         this.likedByMe = likedByMe;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public ReviewDto toDto() {
+        return new ReviewDto(
+                id,
+                userId,
+                bookId,
+                bookTitle,
+                bookThumbnailUrl,
+                rating,
+                userNickname,
+                content,
+                likedCount,
+                commentCount,
+                likedByMe,
+                createdAt,
+                updatedAt
+        );
     }
 
 }

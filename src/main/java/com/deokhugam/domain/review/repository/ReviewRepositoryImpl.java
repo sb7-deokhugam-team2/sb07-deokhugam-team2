@@ -4,6 +4,7 @@ import com.deokhugam.domain.book.entity.QBook;
 import com.deokhugam.domain.review.dto.QReviewListDto;
 import com.deokhugam.domain.review.dto.ReviewListDto;
 import com.deokhugam.domain.review.dto.request.CursorPageRequest;
+import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.enums.ReviewOrderBy;
 import com.deokhugam.domain.review.dto.request.ReviewSearchCondition;
 import com.deokhugam.domain.review.enums.SortDirection;
@@ -30,7 +31,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
     private final JPAQueryFactory queryFactory;
-    private final ReviewMapper reviewMapper;
     private static final QReview review = QReview.review;
     private static final QBook book = QBook.book;
     private static final QUser user = QUser.user;
@@ -77,7 +77,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
         // projection 안정화: @QueryProjection 기반 row 조회
         // DTO 필드 순서 바뀌면 컴파일 타임에 깨지기 때문에 사용 시 안전
         List<ReviewListDto> rows = queryFactory
-                .select(toReviewListProjection(requestId))
+                .select(toReviewListProjection())
                 .from(review)
                 .join(review.book, book) // response에 book 내용 필요
                 .join(review.user, user) // response에 user 내용 필요
@@ -94,7 +94,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
 
         // row -> API 응답 dto로 변환
         List<ReviewDto> content = contentRows.stream()
-                .map(reviewMapper::toReviewDto)
+                .map(ReviewListDto::toDto)
                 .toList();
 
         long totalElements = fetchTotalElementOptimized(condition);
@@ -258,7 +258,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
      * 장점으로 constructor는 컴파일 오류를 잡지 못하고 런타임 오류를 잡으나 어노테이션을 활용하면 컴파일 오류로 잡음
      * 단점으로 어노테이션을 쓰기 때문에 QueryDSL에 종속, DTO까지 Q객체로 생성됨
      */
-    private QReviewListDto toReviewListProjection(UUID requestUserId) {
+    private QReviewListDto toReviewListProjection() {
         return new QReviewListDto(
                 review.id,
                 user.id,

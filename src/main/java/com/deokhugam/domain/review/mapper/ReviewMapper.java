@@ -5,7 +5,6 @@ import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.entity.Review;
 import org.springframework.stereotype.Component;
 
-@Component
 public class ReviewMapper {
     public ReviewDto toReviewDto(Review review, long commentCount, boolean likedByMe) {
         return new ReviewDto(
@@ -22,24 +21,6 @@ public class ReviewMapper {
                 likedByMe,
                 review.getCreatedAt(),
                 review.getUpdatedAt()
-        );
-    }
-
-    public ReviewDto toReviewDto(ReviewListDto reviewListDto) {
-        return new ReviewDto(
-                reviewListDto.getId(),
-                reviewListDto.getUserId(),
-                reviewListDto.getBookId(),
-                reviewListDto.getBookTitle(),
-                reviewListDto.getBookThumbnailUrl(),
-                reviewListDto.getRating(),
-                reviewListDto.getUserNickname(),
-                reviewListDto.getContent(),
-                reviewListDto.getLikedCount(),
-                reviewListDto.getCommentCount(),
-                reviewListDto.getLikedByMe(),
-                reviewListDto.getCreatedAt(),
-                reviewListDto.getUpdatedAt()
         );
     }
 }
