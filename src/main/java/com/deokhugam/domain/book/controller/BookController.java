@@ -57,13 +57,15 @@ public class BookController {
     }
 
     @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> deleteBook(@PathVariable String bookId) {
-        return null;
+    public ResponseEntity<Void> deleteBook(@PathVariable UUID bookId) {
+        bookService.softDeleteBook(bookId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/hard/{bookId}")
     public ResponseEntity<Void> physicalDeleteBook(@PathVariable UUID bookId) {
-        return null;
+        bookService.hardDeleteBook(bookId);
+        return ResponseEntity.noContent().build();
     }
 
 
