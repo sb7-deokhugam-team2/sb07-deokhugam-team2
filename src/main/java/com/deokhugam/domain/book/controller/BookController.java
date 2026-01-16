@@ -39,7 +39,7 @@ public class BookController {
 
     @GetMapping("/info")
     public ResponseEntity<NaverBookDto> getBookInfoByIsbn(@RequestParam String isbn) {
-        return null;
+        return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
     }
 
     @PostMapping()

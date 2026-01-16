@@ -1,11 +1,9 @@
-package com.deokhugam.global.storage;
+package com.deokhugam.infrastructure.storage;
 
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.storage.exception.FileStorageException;
+import com.deokhugam.infrastructure.storage.exception.FileStorageException;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public abstract class BaseFileStorage implements FileStorage{
 

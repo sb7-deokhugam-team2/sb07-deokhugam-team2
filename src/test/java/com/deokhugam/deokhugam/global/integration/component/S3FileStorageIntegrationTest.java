@@ -1,6 +1,6 @@
 package com.deokhugam.deokhugam.global.integration.component;
 
-import com.deokhugam.global.storage.FileStorage;
+import com.deokhugam.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

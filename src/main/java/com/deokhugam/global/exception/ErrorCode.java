@@ -23,6 +23,7 @@ public enum ErrorCode {
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 도서를 찾을 수 없습니다.", "B-001"),
     BOOK_INVALID_SORT_CRITERIA(HttpStatus.BAD_REQUEST, "정렬기준 요청값이 잘못되었습니다.","B-002"),
     DUPLICATE_BOOK_ISBN(HttpStatus.BAD_REQUEST, "중복된 도서 ISBN입니다.","B-003"),
+    BOOK_NO_EXISTENT_ISBN(HttpStatus.BAD_REQUEST, "존재하지않는 ISBN입니다.","B-004"),
     // Popular Book
     // Power User
     // Review
@@ -32,6 +33,21 @@ public enum ErrorCode {
     // Popular Review
     // Notification
     // LikedReview
+    // common
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST,"요청이 올바르지 않습니다.", "CM-001"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 오류가 발생했습니다.", "CM-002"),
+    NOT_FOUND(HttpStatus.NOT_FOUND, "리소스를 찾을 수 없습니다.", "CM-003"),
+    INVALID_STATE(HttpStatus.CONFLICT,"요청을 처리할 수 없는 상태입니다.", "CM-004"),
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"요청값이 올바르지 않습니다.", "CM-005"),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE,"지원하지 않는 미디어 타입입니다.", "CM-006"),
+
+    //api
+    BOOK_NOT_FOUND_IN_API(HttpStatus.NOT_FOUND, "API에서 해당 도서를 찾을 수 없습니다.", "api-001"),
+
+    // naver
+    NAVER_API_CONNECTION_ERROR(HttpStatus.BAD_GATEWAY, "네이버 API 연동 중 오류가 발생했습니다.", "NAVER-001"),
+    NAVER_API_RESPONSE_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "네이버 API 응답 처리 중 오류가 발생했습니다.", "NAVER-002"),
+
 
     //Storage
     FAIL_TO_UPLOAD_FILE(HttpStatus.INTERNAL_SERVER_ERROR,"파일 업로드에 실패했습니다.", "S3-001"),
@@ -42,13 +58,16 @@ public enum ErrorCode {
     PUT_OBJECT_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "S3에 이미지를 저장하는 데 실패했습니다.", "S3-006"),
     FAIL_TO_GENERATE_URL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 URL 생성에 실패했습니다.", "S3-007"),
     FAIL_TO_DELETE_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 삭제에 실패했습니다.", "S3-008"),
-    // common
-    INVALID_REQUEST(HttpStatus.BAD_REQUEST,"요청이 올바르지 않습니다.", "CM-001"),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 오류가 발생했습니다.", "CM-002"),
-    NOT_FOUND(HttpStatus.NOT_FOUND, "리소스를 찾을 수 없습니다.", "CM-003"),
-    INVALID_STATE(HttpStatus.CONFLICT,"요청을 처리할 수 없는 상태입니다.", "CM-004"),
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"요청값이 올바르지 않습니다.", "CM-005"),
-    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE,"지원하지 않는 미디어 타입입니다.", "CM-006");
+
+    //ocr
+    OCR_EMPTY_FILE_EXCEPTION(HttpStatus.BAD_REQUEST, "파일이 비어있습니다.", "OCR-001"),
+    OCR_ISBN_EXTRACT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OCR 응답이 비어있거나 결과가 없습니다.", "OCR-002"),
+    OCR_API_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "OCR API 서버 내부 오류 발생", "OCR-003"),
+    OCR_FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "OCR 이미지 파일 처리 실패", "OCR-004"),
+    OCR_API_CONNECTION_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "OCR API 연동 실패", "OCR-005")
+    ;
+
+
 
     private final String message;
     private final HttpStatus status;

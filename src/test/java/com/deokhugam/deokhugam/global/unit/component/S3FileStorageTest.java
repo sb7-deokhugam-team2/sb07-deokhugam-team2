@@ -1,8 +1,7 @@
 package com.deokhugam.deokhugam.global.unit.component;
 
-import com.deokhugam.global.storage.S3FileStorage;
-import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
-import com.deokhugam.global.exception.ErrorCode;
+import com.deokhugam.infrastructure.storage.S3FileStorage;
+import com.deokhugam.infrastructure.storage.exception.S3.S3FileStorageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
