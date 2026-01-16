@@ -3,9 +3,9 @@ package com.deokhugam.domain.review.controller;
 import com.deokhugam.domain.review.dto.request.*;
 import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
-import com.deokhugam.domain.review.enums.ReviewOrderBy;
-import com.deokhugam.domain.review.enums.SortDirection;
+import com.deokhugam.domain.review.exception.ReviewNotEqualException;
 import com.deokhugam.domain.review.service.ReviewService;
+import com.deokhugam.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +26,8 @@ public class ReviewController {
             @Valid CursorPageRequest pageRequest,
             @RequestParam(name = "requestUserId") UUID requestUserId
     ) {
-        // TODO: Custom예외 적용 필요
         if (!requestId.equals(requestUserId)) {
-            throw new IllegalArgumentException("요청자의 ID가 다릅니다.");
+            throw new ReviewNotEqualException(ErrorCode.REVIEW_ID_NOT_EQUAL);
         }
 
         return ResponseEntity.ok(reviewService.searchReviews(condition, pageRequest, requestId));
@@ -44,10 +43,9 @@ public class ReviewController {
 
     @GetMapping("/{reviewId}")
     public ResponseEntity<ReviewDto> get(
-            @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @PathVariable UUID reviewId
     ) {
-        return null;
+        return ResponseEntity.ok(reviewService.getReview(reviewId));
 
     }
 
