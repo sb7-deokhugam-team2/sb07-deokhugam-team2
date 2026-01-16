@@ -5,6 +5,7 @@ import com.deokhugam.domain.notification.dto.request.NotificationUpdateRequest;
 import com.deokhugam.domain.notification.dto.response.CursorPageResponseNotificationDto;
 import com.deokhugam.domain.notification.dto.response.NotificationDto;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public interface NotificationService {
@@ -15,5 +16,5 @@ public interface NotificationService {
 
     CursorPageResponseNotificationDto getNotifications(NotificationSearchCondition condition);
 
-    void deleteNotifications();
+    void deleteNotifications(Instant time);
 }
