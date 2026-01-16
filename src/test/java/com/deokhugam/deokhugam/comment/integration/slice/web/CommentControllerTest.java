@@ -252,7 +252,7 @@ public class CommentControllerTest {
 
         //when&then
         mockMvc.perform(patch("/api/comments/{commentId}", commentId)
-                        .header("Deokhugam-Request-Id", UUID.randomUUID())
+                        .header("Deokhugam-Request-User-Id", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(commentUpdateRequest)))
                 .andDo(print())
@@ -297,7 +297,7 @@ public class CommentControllerTest {
         CommentUpdateRequest commentUpdateRequest = new CommentUpdateRequest("newContent");
         //when&then
         mockMvc.perform(patch("/api/comments/{commentId}", UUID.randomUUID())
-                        .header("Deokhugam-Request-Id", UUID.randomUUID())
+                        .header("Deokhugam-Request-User-Id", UUID.randomUUID())
                         .content(objectMapper.writeValueAsString(commentUpdateRequest)))
                 .andDo(print())
                 .andExpect(status().isUnsupportedMediaType());
@@ -310,7 +310,7 @@ public class CommentControllerTest {
     void logicalDelete() throws Exception {
         //when&then
         mockMvc.perform(delete("/api/comments/{commentId}", UUID.randomUUID())
-                        .header("Deokhugam-Request-Id", UUID.randomUUID()))
+                        .header("Deokhugam-Request-User-Id", UUID.randomUUID()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -333,7 +333,7 @@ public class CommentControllerTest {
     void physicalDelete() throws Exception {
         //when&then
         mockMvc.perform(delete("/api/comments/{commentId}/hard", UUID.randomUUID())
-                        .header("Deokhugam-Request-Id", UUID.randomUUID()))
+                        .header("Deokhugam-Request-User-Id", UUID.randomUUID()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 

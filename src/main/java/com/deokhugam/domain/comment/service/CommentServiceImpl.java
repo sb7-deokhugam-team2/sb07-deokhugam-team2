@@ -43,7 +43,7 @@ public class CommentServiceImpl implements CommentService {
         List<CommentDto> contents = commentRepository.searchComments(commentSearchCondition)
                 .stream()
                 .map(CommentDto::from)
-                .collect(Collectors.toList());//20 -> 21 : hasNext=true
+                .collect(Collectors.toList());
 
         boolean hasNext = contents.size() > commentSearchCondition.limit();
         if (contents.size() > commentSearchCondition.limit()) {

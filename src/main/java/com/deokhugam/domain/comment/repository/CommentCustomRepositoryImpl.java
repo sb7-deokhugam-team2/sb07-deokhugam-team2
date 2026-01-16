@@ -30,11 +30,12 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                 .join(comment.user, user).fetchJoin()
                 .where(
                         comment.review.id.eq(condition.reviewId()),
+                        comment.isDeleted.isFalse(),
                         cursorCondition(condition.cursor(), condition.direction()),
                         afterCondition(condition.after(), condition.direction())
                 )
                 .orderBy(direction(condition.direction()))
-                .limit(condition.limit())
+                .limit(condition.limit()+1)
                 .fetch();
     }
 
