@@ -2,6 +2,7 @@ package com.deokhugam.domain.book.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
+import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
@@ -84,14 +85,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public NaverBookDto getBookByIsbn(String isbn) {
 
         return null;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public String extractIsbnFromImage(MultipartFile image) {
         return "";
     }

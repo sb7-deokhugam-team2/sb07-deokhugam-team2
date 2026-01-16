@@ -9,6 +9,7 @@ import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.service.BookService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,7 +57,8 @@ public class BookController {
             @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
-        return null;
+        BookDto dto = bookService.updateBook(bookId, updateRequest, thumbnail);
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{bookId}")
