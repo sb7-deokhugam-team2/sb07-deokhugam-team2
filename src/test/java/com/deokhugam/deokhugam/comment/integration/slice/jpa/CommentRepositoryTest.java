@@ -183,7 +183,7 @@ public class CommentRepositoryTest {
 
 
             //then
-            assertThat(results.size()).isEqualTo(condition.limit());
+            assertThat(results.size()).isEqualTo(condition.limit()+1);
             assertThat(results.get(0).getCreatedAt())
                     .isAfterOrEqualTo(results.get(results.size() - 1).getCreatedAt());
             assertThat(results).extracting(Comment::getCreatedAt).isSortedAccordingTo(Comparator.reverseOrder());
@@ -230,7 +230,7 @@ public class CommentRepositoryTest {
             }
 
             //then
-            assertThat(results.size()).isEqualTo(condition.limit());
+            assertThat(results.size()).isEqualTo(condition.limit()+1);
             assertThat(results.get(0).getCreatedAt())
                     .isAfterOrEqualTo(results.get(results.size() - 1).getCreatedAt());
             assertThat(results).extracting(Comment::getCreatedAt).isSortedAccordingTo(Comparator.reverseOrder());
