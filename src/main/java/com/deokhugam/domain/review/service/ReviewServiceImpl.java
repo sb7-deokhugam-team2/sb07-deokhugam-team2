@@ -40,7 +40,6 @@ public class ReviewServiceImpl implements ReviewService {
     // todo: LikedReviewRepository
 
     @Override
-    @Transactional
     public ReviewDto createReview(ReviewCreateRequest request) {
 
         // Book 엔티티 조회
@@ -65,7 +64,6 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    @Transactional
     public ReviewDto updateReview(ReviewUpdateRequest request, UUID requestUserId, UUID reviewId) {
 
         Review review = reviewRepository.findById(reviewId)
@@ -83,7 +81,10 @@ public class ReviewServiceImpl implements ReviewService {
 
         review.update(request.rating(), request.content());
 
-        return reviewMapper.toReviewDto(review, 0L, false);
+        ReviewDto reviewDetail = reviewRepository.findDetail(reviewId, requestUserId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        return reviewDetail;
 
     }
 
