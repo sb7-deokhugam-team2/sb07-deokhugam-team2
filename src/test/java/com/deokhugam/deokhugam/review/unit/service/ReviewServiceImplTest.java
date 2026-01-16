@@ -152,7 +152,6 @@ class ReviewServiceImplTest {
         assertThat(result.content()).isEqualTo("정말 좋은 책입니다.");
         assertThat(result.likedCount()).isEqualTo(10L);
 
-        // 메서드 호출 검증
         verify(reviewMapper).toReviewDto(mockReview,0L, false);
         verify(reviewRepository).save(any(Review.class));
 
@@ -177,7 +176,6 @@ class ReviewServiceImplTest {
                 .isInstanceOf(ReviewAlreadyExistsException.class)
                 .hasMessage(ErrorCode. REVIEW_ALREADY_EXISTS. getMessage());
 
-        // verify: save는 호출되지 않아야 함
         verify(reviewRepository, never()).save(any(Review.class));
     }
 
@@ -212,7 +210,6 @@ class ReviewServiceImplTest {
         assertEquals(3.5, result.rating(), "평점이 올바르게 수정되어야 함");
         assertEquals("정말 나쁜 책입니다.", result.content(), "내용이 올바르게 수정되어야 함");
 
-        // Verify: Repository와 Mapper의 적절한 동작 확인
         verify(reviewRepository).findById(testReviewId);
         verify(reviewMapper).toReviewDto(testReview, 0L, false);
     }
@@ -233,7 +230,6 @@ class ReviewServiceImplTest {
             reviewService.updateReview(updateRequest, testUserId, testReviewId);
         });
 
-        // Verify: 호출 로직 검증
         verify(reviewRepository, times(1)).findById(testReviewId);
         verifyNoMoreInteractions(reviewRepository); // 추가 호출 없음
     }
@@ -254,8 +250,7 @@ class ReviewServiceImplTest {
             reviewService.updateReview(updateRequest, testUserId, testReviewId);
         });
 
-        // Verify: Repository 동작 확인
-        verify(reviewRepository).findById(testReviewId); // findById만 호출되는지 확인
+        verify(reviewRepository).findById(testReviewId);
         verifyNoMoreInteractions(reviewRepository);
     }
 
