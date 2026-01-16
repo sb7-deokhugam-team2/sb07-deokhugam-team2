@@ -29,6 +29,9 @@ public enum ErrorCode {
     REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "리뷰가 이미 존재합니다.","R-001"),
     REVIEW_INVALID(HttpStatus.BAD_REQUEST,"유효하지 않는 요청 입니다.","R-002"),
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND,"리뷰를 찾을 수 없습니다.","R-003"),
+    REVIEW_ID_NOT_EQUAL(HttpStatus.UNAUTHORIZED, "ID가 일치하지 않습니다.", "R-004"),
+    REVIEW_INVALID_CURSOR(HttpStatus.BAD_REQUEST, "cursor 형식이 올바르지 않습니다", "R-005"),
+    REVIEW_AFTER_REQUIRED(HttpStatus.BAD_REQUEST, "RATING 정렬 시 after값은 필수입니다.", "R-006"),
     // Popular Review
     // Notification
     // LikedReview
