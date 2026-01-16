@@ -1,10 +1,11 @@
 package com.deokhugam.domain.review.repository;
 
 import com.deokhugam.domain.book.entity.QBook;
+import com.deokhugam.domain.comment.entity.QComment;
+import com.deokhugam.domain.likedreview.entity.QLikedReview;
 import com.deokhugam.domain.review.dto.QReviewListDto;
 import com.deokhugam.domain.review.dto.ReviewListDto;
 import com.deokhugam.domain.review.dto.request.CursorPageRequest;
-import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.enums.ReviewOrderBy;
 import com.deokhugam.domain.review.dto.request.ReviewSearchCondition;
 import com.deokhugam.domain.review.enums.SortDirection;
@@ -12,20 +13,23 @@ import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
 import com.deokhugam.domain.review.entity.QReview;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
-import com.deokhugam.domain.review.mapper.ReviewMapper;
 import com.deokhugam.domain.user.entity.QUser;
 import com.deokhugam.global.exception.ErrorCode;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
 
 
 @RequiredArgsConstructor
@@ -34,6 +38,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
     private static final QReview review = QReview.review;
     private static final QBook book = QBook.book;
     private static final QUser user = QUser.user;
+    private static final QLikedReview likedReview = QLikedReview.likedReview;
+    private static final QComment comment = QComment.comment;
 
     @Override
     public ReviewPageResponseDto search(
@@ -73,15 +79,42 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
         // rating값이 같은 row가 많으면 DB 결과 순서가 불안정해져 중복/누락 생길 수 있음
         OrderSpecifier<?>[] orderSpecifiers = buildOrderSpecifiers(orderBy, direction);
 
+        // 좋아요 존재 여부 ( liked가 true인것만)
+        BooleanExpression likedByMe = JPAExpressions
+                .selectOne()
+                .from(likedReview)
+                .where(likedReview.review.id.eq(review.id)
+                        .and(likedReview.user.id.eq(requestId))
+                        .and(likedReview.liked.isTrue())
+                )
+                .exists();
+
         // 목록 조회
         // projection 안정화: @QueryProjection 기반 row 조회
         // DTO 필드 순서 바뀌면 컴파일 타임에 깨지기 때문에 사용 시 안전
         List<ReviewListDto> rows = queryFactory
-                .select(toReviewListProjection())
+                .select(toReviewListProjection(likedByMe))
                 .from(review)
                 .join(review.book, book) // response에 book 내용 필요
                 .join(review.user, user) // response에 user 내용 필요
+                .leftJoin(comment)
+                .on(comment.review.id.eq(review.id)
+                        .and(comment.isDeleted.isFalse())
+                )
                 .where(where) // 필터 + 커서 경계
+                .groupBy(
+                        review.id,
+                        user.id,
+                        book.id,
+                        book.title,
+                        book.thumbnailUrl,
+                        review.rating,
+                        user.nickname,
+                        review.content,
+                        review.likedCount,
+                        review.createdAt,
+                        review.updatedAt
+                )
                 .orderBy(orderSpecifiers) // 정렬 고정
                 .limit(fetchSize) // limit + 1 조회
                 .fetch();
@@ -123,6 +156,51 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 totalElements,
                 hasNext
         );
+    }
+
+
+    @Override
+    public Optional<ReviewDto> findDetail(UUID reviewId, UUID requestUserId) {
+        BooleanExpression likedByMe = JPAExpressions
+                .selectOne()
+                .from(likedReview)
+                .where(likedReview.review.id.eq(reviewId)
+                        .and(likedReview.user.id.eq(requestUserId))
+                        .and(likedReview.liked.isTrue())
+                )
+                .exists();
+
+        Expression<Long> commentCount = JPAExpressions
+                .select(comment.id.count())
+                .from(comment)
+                .where(comment.review.id.eq(reviewId)
+                        .and(comment.isDeleted.isFalse())
+                );
+
+        ReviewDto reviewDto = queryFactory
+                .select(Projections.constructor(
+                        ReviewDto.class,
+                        review.id,
+                        review.user.id,
+                        review.book.id,
+                        review.book.title,
+                        review.book.thumbnailUrl,
+                        review.rating,
+                        review.user.nickname,
+                        review.content,
+                        review.likedCount,
+                        commentCount,
+                        likedByMe,
+                        review.createdAt,
+                        review.updatedAt
+                ))
+                .from(review)
+                .join(review.user, user)
+                .join(review.book, book)
+                .where(review.id.eq(reviewId)
+                        .and(review.isDeleted.isFalse()))
+                .fetchOne();
+        return Optional.ofNullable(reviewDto);
     }
 
     /**
@@ -258,7 +336,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
      * 장점으로 constructor는 컴파일 오류를 잡지 못하고 런타임 오류를 잡으나 어노테이션을 활용하면 컴파일 오류로 잡음
      * 단점으로 어노테이션을 쓰기 때문에 QueryDSL에 종속, DTO까지 Q객체로 생성됨
      */
-    private QReviewListDto toReviewListProjection() {
+    private QReviewListDto toReviewListProjection(BooleanExpression likedByMe) {
         return new QReviewListDto(
                 review.id,
                 user.id,
@@ -269,8 +347,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
                 user.nickname,
                 review.content,
                 review.likedCount,
-                Expressions.constant(0L), // TODO: 관련 로직 추가되면 수정
-                Expressions.constant(false), // TODO: 관련 로직 추가되면 수정
+                comment.id.count(),
+                likedByMe,
                 review.createdAt,
                 review.updatedAt
         );
