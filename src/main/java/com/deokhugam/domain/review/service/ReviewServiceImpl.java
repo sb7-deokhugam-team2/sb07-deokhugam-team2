@@ -11,8 +11,10 @@ import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.enums.ReviewOrderBy;
+import com.deokhugam.domain.review.exception.ReviewAccessDeniedException;
 import com.deokhugam.domain.review.exception.ReviewAlreadyExistsException;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
+import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.mapper.ReviewMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
@@ -36,6 +38,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final CommentRepository commentRepository;
     // todo: LikedReviewRepository
+
     @Override
     @Transactional
     public ReviewDto createReview(ReviewCreateRequest request) {
@@ -62,8 +65,26 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID reviewId) {
-        return null;
+    @Transactional
+    public ReviewDto updateReview(ReviewUpdateRequest request, UUID requestUserId, UUID reviewId) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        // 논리 삭제된 리뷰는 수정 불가
+        if (review.isDeleted()) {
+            throw new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        // 본인이 작성한 리뷰만 수정 가능
+        if(!review.getUser().getId().equals(requestUserId)) {
+            throw new ReviewAccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
+
+        review.update(request.rating(), request.content());
+
+        return reviewMapper.toReviewDto(review, 0L, false);
+
     }
 
     @Override
