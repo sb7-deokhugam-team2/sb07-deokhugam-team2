@@ -1,6 +1,8 @@
 package com.deokhugam.domain.user.entity;
 
 import com.deokhugam.domain.base.BaseDeletableEntity;
+import com.deokhugam.domain.user.exception.UserEmailValidationException;
+import com.deokhugam.domain.user.exception.UserNicknameValidationException;
 import com.deokhugam.domain.user.exception.UserPasswordValidationException;
 import com.deokhugam.global.exception.ErrorCode;
 import jakarta.persistence.Column;
@@ -54,13 +56,13 @@ public class User extends BaseDeletableEntity {
 
     private static void validateNickname(String nickname) {
         if (nickname == null || nickname.length() < 2) {
-            throw new UserPasswordValidationException(ErrorCode.USER_NICKNAME_VALIDATION);
+            throw new UserNicknameValidationException(ErrorCode.USER_NICKNAME_VALIDATION);
         }
     }
 
     private static void validateEmail(String email) {
         if (!email.contains("@")) {
-            throw new UserPasswordValidationException(ErrorCode.USER_EMAIL_VALIDATION);
+            throw new UserEmailValidationException(ErrorCode.USER_EMAIL_VALIDATION);
         }
     }
 }
