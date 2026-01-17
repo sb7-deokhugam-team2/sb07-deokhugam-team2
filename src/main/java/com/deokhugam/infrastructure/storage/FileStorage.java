@@ -1,4 +1,4 @@
-package com.deokhugam.global.storage;
+package com.deokhugam.infrastructure.storage;
 
 import org.springframework.web.multipart.MultipartFile;
 
