@@ -3,10 +3,8 @@ package com.deokhugam.domain.book.service;
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
-import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
-import com.deokhugam.domain.book.dto.response.CursorPageResponsePopularBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookException;
@@ -90,13 +88,6 @@ public class BookServiceImpl implements BookService {
             case RATING -> Double.toString(last.rating());
             case REVIEW_COUNT -> Long.toString(last.reviewCount());
         };
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public CursorPageResponsePopularBookDto searchPopularBooks(PopularBookSearchCondition popularBookSearchCondition) {
-        // TODO: 26. 1. 9. 인기 도서 미구현으로 틀 성생 추후 로직 구현(해당 기능 popularBook 이전 고려 필요)
-        return null;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.deokhugam.domain.book.dto.response;
+package com.deokhugam.domain.popularbook.dto.response;
 
 import com.deokhugam.domain.popularbook.entity.PopularBook;
 
