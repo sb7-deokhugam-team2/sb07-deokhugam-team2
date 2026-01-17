@@ -57,6 +57,13 @@ public class BookServiceImpl implements BookService {
             nextCursor = buildNextCursor(bookSearchCondition, last);
             nextAfter = last.createdAt(); // 레포의 tie-breaker와 맞춤
         }
+        log.debug("도서 목록 조회 완료 - limit={}, resultCount={}, hasNext={}, nextCursor={}, nextAfter={}",
+                pageBook.getSize(),
+                pageBook.getNumberOfElements(),
+                pageBook.hasNext(),
+                nextCursor,
+                nextAfter
+        );
         return new CursorPageResponseBookDto(
                 content,
                 nextCursor,
@@ -181,6 +188,7 @@ public class BookServiceImpl implements BookService {
     public void softDeleteBook(UUID bookId) {
         Book foundBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
         foundBook.delete();
+        log.debug("도서 논리 삭제 완료 - bookId={}", bookId);
     }
 
     @Override
@@ -190,6 +198,7 @@ public class BookServiceImpl implements BookService {
             throw new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND);
         }
         bookRepository.deleteById(bookId);
+        log.debug("도서 물리 삭제 완료 - bookId={}", bookId);
     }
 
     private void bookCreateFailedRollbackCleanup(String fileKey) {
