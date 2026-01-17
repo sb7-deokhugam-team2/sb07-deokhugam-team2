@@ -11,6 +11,8 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @Table(name = "reviews")
@@ -45,6 +47,11 @@ public class Review extends BaseDeletableEntity {
 
     public static Review create (Double rating, String content, Book book, User user) {
         return new Review(rating, content, book, user);
+    }
+
+    public void update(Double rating, String content) {
+        this.rating = rating;
+        this.content = content;
     }
 
     public void incrementLikedCount() {

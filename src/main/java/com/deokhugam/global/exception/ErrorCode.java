@@ -32,6 +32,7 @@ public enum ErrorCode {
     REVIEW_ID_NOT_EQUAL(HttpStatus.UNAUTHORIZED, "ID가 일치하지 않습니다.", "R-004"),
     REVIEW_INVALID_CURSOR(HttpStatus.BAD_REQUEST, "cursor 형식이 올바르지 않습니다", "R-005"),
     REVIEW_AFTER_REQUIRED(HttpStatus.BAD_REQUEST, "RATING 정렬 시 after값은 필수입니다.", "R-006"),
+    REVIEW_ACCESS_DENIED(HttpStatus.FORBIDDEN, "리뷰작성자만 수정할 수 있습니다.","R-007"),
     // Popular Review
     // Notification
     // LikedReview
