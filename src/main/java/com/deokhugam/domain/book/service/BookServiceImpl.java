@@ -2,6 +2,7 @@ package com.deokhugam.domain.book.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
+import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
@@ -12,8 +13,10 @@ import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
+import com.deokhugam.infrastructure.search.book.BookApiManager;
+import com.deokhugam.infrastructure.search.book.dto.BookGlobalApiDto;
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.storage.FileStorage;
+import com.deokhugam.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,6 +38,7 @@ import java.util.UUID;
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final FileStorage fileStorage;
+    private final BookApiManager bookApiManager;
 
 
     @Override
@@ -93,8 +97,9 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(readOnly = true)
     public NaverBookDto getBookByIsbn(String isbn) {
-
-        return null;
+        BookGlobalApiDto globalApiDto = bookApiManager.searchWithFallback(isbn);
+        return new NaverBookDto(globalApiDto.title(), globalApiDto.author(), globalApiDto.description(),
+                globalApiDto.publisher(), globalApiDto.publishedDate(), globalApiDto.isbn(), globalApiDto.thumbnailImage());
     }
 
     @Override
@@ -141,16 +146,14 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
+    public BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail) {
         Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
-
-        if (!existingBook.getIsbn().equals(bookCreateRequest.isbn()) && bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
-            log.warn("책 수정 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
-            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
-        }
-
         String newKey = null;
         String oldKeyToDelete = null;
+
+        if (existingBook.isDeleted()){
+            throw new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND);
+        }
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
             String newOriginalFileName = thumbnail.getOriginalFilename();
@@ -164,12 +167,11 @@ public class BookServiceImpl implements BookService {
             oldKeyToDelete = existingBook.getThumbnailUrl();
         }
         existingBook.update(
-                bookCreateRequest.title(),
-                bookCreateRequest.author(),
-                bookCreateRequest.isbn(),
-                bookCreateRequest.publishedDate(),
-                bookCreateRequest.publisher(),
-                bookCreateRequest.description(),
+                bookUpdateRequest.title(),
+                bookUpdateRequest.author(),
+                bookUpdateRequest.publishedDate(),
+                bookUpdateRequest.publisher(),
+                bookUpdateRequest.description(),
                 (newKey != null) ? newKey : existingBook.getThumbnailUrl()
         );
 
