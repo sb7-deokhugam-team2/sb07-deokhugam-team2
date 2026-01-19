@@ -37,6 +37,12 @@ public class BookController {
         return ResponseEntity.ok(bookDetail);
     }
 
+    @PostMapping("/isbn/ocr")
+    public ResponseEntity<String> getIsbnByImage(
+            @RequestPart(value = "image") MultipartFile barcode) {
+        return ResponseEntity.ok(bookService.extractIsbnFromImage(barcode));
+    }
+
     @GetMapping("/info")
     public ResponseEntity<NaverBookDto> getBookInfoByIsbn(@RequestParam String isbn) {
         return ResponseEntity.ok(bookService.getBookByIsbn(isbn));

@@ -13,6 +13,7 @@ import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
+import com.deokhugam.infrastructure.ocr.OCRApiClient;
 import com.deokhugam.infrastructure.search.book.BookApiManager;
 import com.deokhugam.infrastructure.search.book.dto.BookGlobalApiDto;
 import com.deokhugam.global.exception.ErrorCode;
@@ -39,7 +40,7 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final FileStorage fileStorage;
     private final BookApiManager bookApiManager;
-
+    private final OCRApiClient ocrApiClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -88,7 +89,6 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public NaverBookDto getBookByIsbn(String isbn) {
         BookGlobalApiDto globalApiDto = bookApiManager.searchWithFallback(isbn);
         return new NaverBookDto(globalApiDto.title(), globalApiDto.author(), globalApiDto.description(),
@@ -96,14 +96,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public String extractIsbnFromImage(MultipartFile image) {
-        return "";
+        return ocrApiClient.extractIsbn(image);
     }
 
     @Override
     @Transactional
     public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
+
         if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
             log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
             throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);

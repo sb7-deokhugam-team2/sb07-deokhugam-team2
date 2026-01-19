@@ -34,7 +34,7 @@ public class BookServiceIntegration {
 
     @Autowired
     private BookService bookService;
-
+    
     @Autowired
     EntityManager em;
 
