@@ -17,4 +17,6 @@ public interface NotificationCustomRepository {
     void readAllNotifications(UUID userId);
 
     long deleteOldConfirmedNotifications(Instant time);
+
+    long countByUserId(UUID userId);
 }
