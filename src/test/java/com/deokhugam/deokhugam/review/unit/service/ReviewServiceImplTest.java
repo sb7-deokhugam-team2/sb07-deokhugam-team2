@@ -99,17 +99,13 @@ class ReviewServiceImplTest {
     @DisplayName("성공: 리뷰 생성")
     void createReview_Success() {
         // given
-        // Mock User 반환
         when(userRepository.findById(testUserId))
                 .thenReturn(Optional.of(testUser));
-        // Mock Book 반환
         when(bookRepository.findById(testBookId))
                 .thenReturn(Optional.of(testBook));
-        // 리뷰가 존재하지 않음
         when(reviewRepository.existsReviewByUserIdAndBookId(testUserId, testBookId))
                 .thenReturn(false);
 
-        // Mock Review 초기화 및 값 설정
         Review mockReview = mock(Review.class);
         when(mockReview.getUser()).thenReturn(testUser);
         when(mockReview.getBook()).thenReturn(testBook);
@@ -120,7 +116,6 @@ class ReviewServiceImplTest {
         when(mockReview.getCreatedAt()).thenReturn(Instant.now());
         when(mockReview.getUpdatedAt()).thenReturn(Instant.now());
 
-        // ReviewRepository.save 결과 반환값 설정
         when(reviewRepository.save(any(Review.class))).thenReturn(mockReview);
 
         // Mapper Mock 설정
@@ -161,13 +156,10 @@ class ReviewServiceImplTest {
     @DisplayName("실패: 이미 활성 리뷰가 존재함")
     void createReview_Fail_ReviewAlreadyExists() {
         // given
-        // 이미 리뷰 존재
         when(reviewRepository.existsReviewByUserIdAndBookId(testUserId, testBookId))
                 .thenReturn(true);
-        // Book Mock 반환
         when(bookRepository.findById(testBookId))
                 .thenReturn(Optional.of(testBook));
-        // User Mock 반환
         when(userRepository.findById(testUserId))
                 .thenReturn(Optional.of(testUser));
 
@@ -184,7 +176,7 @@ class ReviewServiceImplTest {
     void updateReview_Success() {
         // given
         Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
-        when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview)); // Review 조회 Mock
+        when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
         when(reviewRepository.findDetail(testReviewId, testUserId))
                 .thenReturn(Optional.of(new ReviewDto(
                         testReviewId,
@@ -217,13 +209,12 @@ class ReviewServiceImplTest {
     @Test
     @DisplayName("실패: 다른 사용자가 리뷰 수정 시도")
     void updateReview_OtherUser_Fails() {
-
         // given
         UUID anotherUserId = UUID.randomUUID();
         when(testUser.getId()).thenReturn(UUID.randomUUID());
         Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
 
-        when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview)); // Review 조회 Mock
+        when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
 
         // when & then
         assertThrows(ReviewAccessDeniedException.class, () -> {
@@ -231,7 +222,7 @@ class ReviewServiceImplTest {
         });
 
         verify(reviewRepository, times(1)).findById(testReviewId);
-        verifyNoMoreInteractions(reviewRepository); // 추가 호출 없음
+        verifyNoMoreInteractions(reviewRepository);
     }
 
     @Test
@@ -239,7 +230,6 @@ class ReviewServiceImplTest {
     void updateReview_DeletedReview_Fails() {
         // given
         Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
-        // 리뷰를 논리 삭제 상태로 전환
         testReview.delete();
 
         when(reviewRepository.findById(testReviewId))
@@ -261,11 +251,9 @@ class ReviewServiceImplTest {
         Review mockReview = mock(Review.class);
         ReflectionTestUtils.setField(mockReview, "id", testReviewId);
 
-        // Mock 동작 간소화
         when(mockReview.getUser()).thenReturn(testUser);
-        when(mockReview.isDeleted()).thenReturn(false); // 초기 삭제 상태
+        when(mockReview.isDeleted()).thenReturn(false);
 
-        // 리포지토리 Mock 설정
         when(reviewRepository.findByIdAndIsDeletedFalse(testReviewId))
                 .thenReturn(Optional.of(mockReview));
 
@@ -285,7 +273,6 @@ class ReviewServiceImplTest {
         Review mockReview = mock(Review.class);
         ReflectionTestUtils.setField(mockReview, "id", testReviewId);
 
-        // Mock 동작 설정
         User anotherUser = mock(User.class);
         when(anotherUser.getId()).thenReturn(UUID.randomUUID());
         when(mockReview.getUser()).thenReturn(anotherUser);
@@ -320,25 +307,19 @@ class ReviewServiceImplTest {
     }
 
     @Test
-    @DisplayName("실패: 이미 논리 삭제된 리뷰에 대한 물리 삭제")
-    void hardDeleteReview_Fail_AlreadyDeleted() {
+    @DisplayName("실패: 존재하지 않는 리뷰 물리 삭제 시도")
+    void hardDeleteReview_Fail_ReviewNotFound() {
         // given
-        Review mockReview = mock(Review.class);
-        ReflectionTestUtils.setField(mockReview, "id", testReviewId);
-
-        // 삭제된 상태 설정
-        when(mockReview.isDeleted()).thenReturn(true);
         when(reviewRepository.findById(testReviewId))
-                .thenReturn(Optional.of(mockReview));
+                .thenReturn(Optional.empty());
 
         // when & then
-        assertDoesNotThrow(() ->
-                reviewService.hardDeleteReview(testReviewId,testUserId)
+        assertThrows(ReviewNotFoundException.class, () ->
+                reviewService.hardDeleteReview(testReviewId, testUserId)
         );
 
-        // 검증
         verify(reviewRepository).findById(testReviewId);
-        verify(reviewRepository, times(1)).delete(mockReview);
+        verify(reviewRepository, never()).delete(any());
     }
 
 }
