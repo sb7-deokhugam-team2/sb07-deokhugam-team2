@@ -56,7 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .collect(Collectors.toList());
 
         boolean hasNext = notifications.size() > condition.limit();
-        if(notifications.size() > condition.limit()){
+        if(hasNext){
             notifications.remove(notifications.size() - 1);
         }
 
@@ -69,7 +69,8 @@ public class NotificationServiceImpl implements NotificationService {
             nextAfter = lastItem.getCreatedAt();
         }
 
-        long totalElements = notificationRepository.count();
+        UUID userId = condition.userId();
+        long totalElements = notificationRepository.countByUserId(userId);
 
         return CursorPageResponseNotificationDto.from(
                 notifications,
