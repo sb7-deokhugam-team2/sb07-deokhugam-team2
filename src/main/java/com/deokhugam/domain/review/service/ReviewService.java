@@ -17,9 +17,9 @@ public interface ReviewService {
 
     ReviewDto getReview(UUID requestUserId, UUID reviewId);
 
-    void softDelete(UUID reviewId, UUID requestUserId);
+    void softDeleteReview(UUID reviewId, UUID requestUserId);
 
-    void hardDelete(UUID reviewId, UUID requestUserId);
+    void hardDeleteReview(UUID reviewId, UUID requestUserId);
 
     ReviewPageResponseDto searchReviews(ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId);
 

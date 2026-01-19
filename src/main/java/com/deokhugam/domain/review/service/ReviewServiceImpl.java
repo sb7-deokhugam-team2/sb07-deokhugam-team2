@@ -96,12 +96,27 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void softDelete(UUID reviewId, UUID requestUserId) {
+    public void softDeleteReview(UUID reviewId, UUID requestUserId) {
+
+        Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (!review.getUser().getId().equals(requestUserId)) {
+            throw new ReviewAccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
+
+        review.delete();
+        reviewRepository.save(review);
 
     }
 
     @Override
-    public void hardDelete(UUID reviewId, UUID requestUserId) {
+    public void hardDeleteReview(UUID reviewId, UUID requestUserId) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        reviewRepository.delete(review);
 
     }
 
