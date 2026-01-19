@@ -1,4 +1,4 @@
-package com.deokhugam.deokhugam.infrastructure.unit.component;
+package com.deokhugam.deokhugam.infrastructure.unit.component.s3;
 
 import com.deokhugam.infrastructure.storage.S3FileStorage;
 import com.deokhugam.infrastructure.storage.exception.S3.S3FileStorageException;

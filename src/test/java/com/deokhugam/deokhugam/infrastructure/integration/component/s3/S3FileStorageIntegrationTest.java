@@ -1,4 +1,4 @@
-package com.deokhugam.deokhugam.infrastructure.integration.component;
+package com.deokhugam.deokhugam.infrastructure.integration.component.s3;
 
 import com.deokhugam.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.DisplayName;
@@ -8,11 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.EnabledIf;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -109,6 +107,35 @@ class S3FileStorageIntegrationTest {
         }
     }
 
+    @Test
+    @DisplayName("S3에 파일을 업로드하고 다운로드했을 때 데이터가 손상 없이 일치해야 한다")
+    void upload_download_consistency_test() throws IOException {
+        // given
+        String uniqueFileName = "integrity-test-" + UUID.randomUUID() + ".txt";
+        String key = "test-folder/" + uniqueFileName;
+        byte[] originalContent = "Hello World Integration Test".getBytes();
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", uniqueFileName, "text/plain", originalContent
+        );
+
+        try {
+            // when
+            fileStorage.upload(file, key);
+
+            // then
+            ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(
+                    GetObjectRequest.builder().bucket(bucketName).key(key).build()
+            );
+            byte[] downloadedContent = objectBytes.asByteArray();
+
+            assertThat(downloadedContent).isEqualTo(originalContent);
+
+        } finally {
+            s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(key).build());
+        }
+    }
+
     private boolean doesObjectExist(String key, String bucketName) {
         try {
             s3Client.headObject(HeadObjectRequest.builder()
@@ -120,6 +147,5 @@ class S3FileStorageIntegrationTest {
             return false;
         }
     }
-
 
 }
