@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -32,7 +32,7 @@ import java.util.UUID;
 
 import static org. assertj.core.api.Assertions.*;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito. ArgumentMatchers. any;
 import static org.mockito.Mockito.*;
 
@@ -73,13 +73,13 @@ class ReviewServiceImplTest {
 
         // Mock User 초기화
         testUser = mock(User.class);
-        // Mock User ID 반환
         when(testUser.getId()).thenReturn(testUserId);
+        when(testUser.getNickname()).thenReturn("Mock User Name");
 
         // Mock Book 초기화
         testBook = mock(Book.class);
-        // Mock Book ID 반환
         when(testBook.getId()).thenReturn(testBookId);
+        when(testBook.getTitle()).thenReturn("Mock Book Title");
 
         // 테스트용 Request 생성
         validRequest = new ReviewCreateRequest(
@@ -252,6 +252,93 @@ class ReviewServiceImplTest {
 
         verify(reviewRepository).findById(testReviewId);
         verifyNoMoreInteractions(reviewRepository);
+    }
+
+    @Test
+    @DisplayName("성공: 리뷰 논리 삭제")
+    void softDeleteReview_Success() {
+        // given
+        Review mockReview = mock(Review.class);
+        ReflectionTestUtils.setField(mockReview, "id", testReviewId);
+
+        // Mock 동작 간소화
+        when(mockReview.getUser()).thenReturn(testUser);
+        when(mockReview.isDeleted()).thenReturn(false); // 초기 삭제 상태
+
+        // 리포지토리 Mock 설정
+        when(reviewRepository.findByIdAndIsDeletedFalse(testReviewId))
+                .thenReturn(Optional.of(mockReview));
+
+        // when
+        reviewService.softDeleteReview(testReviewId, testUserId);
+
+        // then
+        verify(reviewRepository).findByIdAndIsDeletedFalse(testReviewId);
+        verify(mockReview).delete();
+        verify(reviewRepository).save(mockReview);
+    }
+
+    @Test
+    @DisplayName("실패: 리뷰 논리 삭제 - 권한이 없는 사용자")
+    void softDeleteReview_Fail_NoPermission() {
+        // given
+        Review mockReview = mock(Review.class);
+        ReflectionTestUtils.setField(mockReview, "id", testReviewId);
+
+        // Mock 동작 설정
+        User anotherUser = mock(User.class);
+        when(anotherUser.getId()).thenReturn(UUID.randomUUID());
+        when(mockReview.getUser()).thenReturn(anotherUser);
+        when(mockReview.isDeleted()).thenReturn(false);
+
+        when(reviewRepository.findByIdAndIsDeletedFalse(testReviewId))
+                .thenReturn(Optional.of(mockReview));
+
+        // when & then
+        assertThrows(ReviewAccessDeniedException.class, () ->
+                reviewService.softDeleteReview(testReviewId, testUserId)
+        );
+
+        verify(reviewRepository).findByIdAndIsDeletedFalse(testReviewId);
+        verify(mockReview, never()).delete();
+        verify(reviewRepository, never()).save(any(Review.class));
+    }
+
+    @Test
+    @DisplayName("성공: 리뷰 물리 삭제")
+    void hardDeleteReview_Success() {
+        // given
+        Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
+        when(reviewRepository.findById(testReviewId))
+                .thenReturn(Optional.of(testReview));
+        // when
+        reviewService.hardDeleteReview(testReviewId, testUserId);
+
+        // then
+        verify(reviewRepository).findById(testReviewId);
+        verify(reviewRepository).delete(testReview);
+    }
+
+    @Test
+    @DisplayName("실패: 이미 논리 삭제된 리뷰에 대한 물리 삭제")
+    void hardDeleteReview_Fail_AlreadyDeleted() {
+        // given
+        Review mockReview = mock(Review.class);
+        ReflectionTestUtils.setField(mockReview, "id", testReviewId);
+
+        // 삭제된 상태 설정
+        when(mockReview.isDeleted()).thenReturn(true);
+        when(reviewRepository.findById(testReviewId))
+                .thenReturn(Optional.of(mockReview));
+
+        // when & then
+        assertDoesNotThrow(() ->
+                reviewService.hardDeleteReview(testReviewId,testUserId)
+        );
+
+        // 검증
+        verify(reviewRepository).findById(testReviewId);
+        verify(reviewRepository, times(1)).delete(mockReview);
     }
 
 }
