@@ -25,12 +25,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDeokhugamException(DeokhugamException e) {
         log.error("[DeokhugamException] = {}", e.getMessage());
         ErrorCode code = e.getErrorCode();
+        Map<String, Object> details = e.getDetails() != null ? e.getDetails() : Map.of("reason", e.getMessage());
         return ResponseEntity.status(code.getStatus())
                 .body(new ErrorResponse(
                         Instant.now(),
                         code.getCode(),
                         code.getMessage(),
-                        Map.of("reason", e.getMessage()),
+                        details,
                         e.getClass().getSimpleName(),
                         code.getStatus().value()
                 ));
