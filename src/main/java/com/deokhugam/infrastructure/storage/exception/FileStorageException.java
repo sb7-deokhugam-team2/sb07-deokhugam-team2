@@ -1,4 +1,4 @@
-package com.deokhugam.global.storage.exception;
+package com.deokhugam.infrastructure.storage.exception;
 
 import com.deokhugam.global.exception.DeokhugamException;
 import com.deokhugam.global.exception.ErrorCode;

@@ -1,6 +1,7 @@
 package com.deokhugam.domain.book.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
+import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
@@ -25,7 +26,7 @@ public interface BookService {
 
     BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail);
 
-    BookDto updateBook(UUID bookId, BookCreateRequest bookCreateRequest, MultipartFile thumbnail);
+    BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail);
 
     void softDeleteBook(UUID bookId);
 

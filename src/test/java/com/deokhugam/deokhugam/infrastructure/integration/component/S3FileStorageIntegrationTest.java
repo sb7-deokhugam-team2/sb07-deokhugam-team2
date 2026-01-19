@@ -1,6 +1,6 @@
-package com.deokhugam.deokhugam.global.integration.component;
+package com.deokhugam.deokhugam.infrastructure.integration.component;
 
-import com.deokhugam.global.storage.FileStorage;
+import com.deokhugam.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -18,9 +19,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// 실제 스프링 컨텍스트를 다 띄워서 yml 설정(실제 AWS Key)을 읽어옵니다.
 @SpringBootTest
-@Tag("integration") // 전체 테스트 돌릴 때 제외하고 싶다면 태그 사용
+@Tag("integration")
 class S3FileStorageIntegrationTest {
 
     @Autowired
