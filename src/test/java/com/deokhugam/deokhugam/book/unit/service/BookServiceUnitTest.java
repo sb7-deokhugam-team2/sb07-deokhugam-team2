@@ -8,19 +8,22 @@ import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
+import com.deokhugam.domain.book.mapper.BookUrlMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.book.service.BookServiceImpl;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.infrastructure.storage.FileStorage;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,14 +31,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +50,9 @@ public class BookServiceUnitTest {
 
     @Mock
     private FileStorage s3Storage;
+
+    @Mock
+    private BookUrlMapper bookUrlMapper;
 
     private Book createPersistedBook(UUID id) {
         Book book = Book.create("Test Title", "Author", "11111",
@@ -66,7 +70,7 @@ public class BookServiceUnitTest {
                 "Publisher", LocalDate.now(), isbn);
     }
 
-    private BookUpdateRequest updateRequest(){
+    private BookUpdateRequest updateRequest() {
         return new BookUpdateRequest("Test Title", "Author", "Desc",
                 "Publisher", LocalDate.now());
     }
@@ -149,10 +153,9 @@ public class BookServiceUnitTest {
             given(bookRepository.findById(bookId)).willReturn(Optional.of(existingBook));
 
             BookDto dummyDto = new BookDto(bookId, "Title", "Author", "11111",
-                    "pub" , LocalDate.now(), "Desc", "url", 0L, 0.0, Instant.now(), Instant.now());
+                    "pub", LocalDate.now(), "Desc", "url", 0L, 0.0, Instant.now(), Instant.now());
 
             given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(dummyDto));
-
             given(s3Storage.upload(any(MockMultipartFile.class), anyString()))
                     .willAnswer(invocation -> invocation.getArgument(1));
 
@@ -184,7 +187,7 @@ public class BookServiceUnitTest {
             given(bookRepository.findById(bookId)).willReturn(Optional.of(existingBook));
 
             BookDto dummyDto = new BookDto(bookId, "Title", "Author", "11111",
-                    "pub" , LocalDate.now(), "Desc", "url", 0L, 0.0, Instant.now(), Instant.now());
+                    "pub", LocalDate.now(), "Desc", "url", 0L, 0.0, Instant.now(), Instant.now());
             given(bookRepository.findBookDetailById(bookId)).willReturn(Optional.of(dummyDto));
 
             given(s3Storage.generateUrl(oldS3Key)).willReturn("https://cdn.com/" + oldS3Key);
@@ -215,8 +218,6 @@ public class BookServiceUnitTest {
     }
 
 
-
-
     @Nested
     @DisplayName("도서 id 단일 조회")
     class GetById {
@@ -227,7 +228,7 @@ public class BookServiceUnitTest {
             UUID bookId = UUID.randomUUID();
             BookDto bookDto = new BookDto(UUID.randomUUID(),
                     "title",
-                   "author",
+                    "author",
                     "description",
                     "publisher",
                     LocalDate.now(),
@@ -238,6 +239,7 @@ public class BookServiceUnitTest {
                     Instant.now(),
                     Instant.now());
             when(bookRepository.findBookDetailById(bookId)).thenReturn(Optional.of(bookDto));
+            when(bookUrlMapper.withFullThumbnailUrl(any(BookDto.class))).thenReturn(bookDto);
             // when
             BookDto result = bookService.getBookDetail(bookId);
             // then
@@ -280,6 +282,7 @@ public class BookServiceUnitTest {
             when(page.getContent()).thenReturn(List.of());
             when(page.hasNext()).thenReturn(false);
             when(page.getTotalElements()).thenReturn(0L);
+            when(bookUrlMapper.withFullThumbnailUrl(anyList())).thenReturn(List.of());
             // when
             CursorPageResponseBookDto result = bookService.searchBooks(condition);
 

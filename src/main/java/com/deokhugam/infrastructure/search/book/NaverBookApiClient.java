@@ -1,5 +1,6 @@
 package com.deokhugam.infrastructure.search.book;
 
+import com.deokhugam.domain.book.exception.BookISBNNotFoundException;
 import com.deokhugam.infrastructure.search.book.dto.BookGlobalApiDto;
 import com.deokhugam.infrastructure.search.book.enums.ProviderType;
 import com.deokhugam.infrastructure.search.book.dto.NaverApiResponse;
@@ -8,12 +9,10 @@ import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,7 +26,7 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class NaverBookApiClient implements DataApiClient {
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -42,11 +41,22 @@ public class NaverBookApiClient implements DataApiClient {
 
     @Override
     public BookGlobalApiDto getData(String isbn) {
+        long startTime = System.currentTimeMillis();
         log.info("네이버 도서 검색을 시작합니다. 요청 ISBN: {}", isbn);
 
         NaverApiResponse.NaverItem item = fetchBookInfo(isbn);
+        BookGlobalApiDto result = mapToDto(item);
 
-        return mapToDto(item);
+        long duration = System.currentTimeMillis() - startTime;
+
+        log.info("[NaverAPI] 도서 검색 성공. ISBN: {}, Title: '{}', HasImage: {}, Time: {}ms",
+                isbn,
+                result.title(),
+                (result.thumbnailImage() != null && result.thumbnailImage().length > 0),
+                duration
+        );
+
+        return result;
     }
 
     @Override
@@ -55,25 +65,24 @@ public class NaverBookApiClient implements DataApiClient {
     }
 
     private NaverApiResponse.NaverItem fetchBookInfo(String isbn) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(naverUrl)
+        URI uri = UriComponentsBuilder.fromUriString(naverUrl)
                 .queryParam("query", isbn)
                 .queryParam("display", 1)
                 .build()
                 .toUri();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Naver-Client-Id", clientId);
-        headers.set("X-Naver-Client-Secret", clientSecret);
-        HttpEntity<String> request = new HttpEntity<>(headers);
-
         try {
-            ResponseEntity<NaverApiResponse> response = restTemplate.exchange(
-                    uri, HttpMethod.GET, request, NaverApiResponse.class
-            );
+            NaverApiResponse body = restClient.get()
+                    .uri(uri)
+                    .header("X-Naver-Client-Id", clientId)
+                    .header("X-Naver-Client-Secret", clientSecret)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(NaverApiResponse.class);
 
-            NaverApiResponse body = response.getBody();
             if (body == null || body.items() == null || body.items().isEmpty()) {
                 log.warn("네이버 API 검색 결과가 없습니다. ISBN: {}", isbn);
+                throw new BookISBNNotFoundException(ErrorCode.BOOK_NOT_FOUND_IN_API);
             }
 
             return body.items().get(0);
@@ -117,7 +126,10 @@ public class NaverBookApiClient implements DataApiClient {
             return null;
         }
         try {
-            return restTemplate.getForObject(imageUrl, byte[].class);
+            return restClient.get()
+                    .uri(imageUrl)
+                    .retrieve()
+                    .body(byte[].class);
         } catch (Exception e) {
             log.warn("썸네일 이미지 다운로드에 실패했습니다. URL: {}, 에러: {}", imageUrl, e.getMessage());
             return null;

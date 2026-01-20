@@ -11,7 +11,7 @@ public record NaverApiResponse(List<NaverItem> items) {
             String description,
             String publisher,
             String isbn,
-            String image,       // URL 문자열로 받음
+            String image,
             @JsonProperty("pubdate") String pubdate // JSON 키는 소문자 pubdate
     ) {}
 }
