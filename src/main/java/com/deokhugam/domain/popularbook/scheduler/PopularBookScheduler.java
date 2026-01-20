@@ -14,22 +14,22 @@ public class PopularBookScheduler {
 
     @Scheduled(cron = "0 * * * * *") // 매분마다(interver)
     public void runDailyRanking() {
-        popularBookService.recalculate(PeriodType.DAILY);
+        popularBookService.snapshotPopularBooks(PeriodType.DAILY);
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void runWeeklyRanking() {
-        popularBookService.recalculate(PeriodType.WEEKLY);
+        popularBookService.snapshotPopularBooks(PeriodType.WEEKLY);
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void runMonthlyRanking() {
-        popularBookService.recalculate(PeriodType.MONTHLY);
+        popularBookService.snapshotPopularBooks(PeriodType.MONTHLY);
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void runAllRanking() {
-        popularBookService.recalculate(PeriodType.ALL_TIME);
+        popularBookService.snapshotPopularBooks(PeriodType.ALL_TIME);
     }
 
 }
