@@ -2,6 +2,7 @@ package com.deokhugam.domain.notification.service;
 
 import com.deokhugam.domain.comment.dto.response.CommentDto;
 import com.deokhugam.domain.comment.entity.Comment;
+import com.deokhugam.domain.likedreview.entity.LikedReview;
 import com.deokhugam.domain.notification.dto.response.NotificationDto;
 import com.deokhugam.domain.notification.entity.Notification;
 import com.deokhugam.domain.notification.repository.NotificationRepository;
@@ -31,6 +32,15 @@ public class NotificationCreator {
                 "[" + comment.getUser().getNickname() + "]님이 나의 리뷰에 댓글을 달았습니다.\n" + comment.getContent(),
                 comment.getReview(),
                 comment.getReview().getUser()
+        );
+        notificationRepository.save(notification);
+    }
+
+    public void createNotification(LikedReview likedReview) {
+        Notification notification = Notification.create(
+                "[" + likedReview.getUser().getNickname() + "]님이 나의 리뷰를 좋아합니다.",
+                likedReview.getReview(),
+                likedReview.getReview().getUser()
         );
         notificationRepository.save(notification);
     }
