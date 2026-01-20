@@ -13,7 +13,6 @@ import com.deokhugam.domain.review.enums.ReviewOrderBy;
 import com.deokhugam.domain.review.enums.SortDirection;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
-import com.deokhugam.domain.review.mapper.ReviewMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.review.service.ReviewService;
 import com.deokhugam.domain.user.entity.User;
@@ -50,7 +49,7 @@ public class ReviewServiceIntegrationTest {
     
     @Test
     @DisplayName("목록 조회 성공 - 첫 페이지로 next값이 계산된다.")
-    void searchReview_success_firstPage_calculate_nextValue() {
+    void searchReview_success_firstPage_calculate_nextValue() throws InterruptedException {
         // given
         UUID requestUserId = UUID.randomUUID();
 
@@ -70,9 +69,11 @@ public class ReviewServiceIntegrationTest {
         Review review1 = reviewRepository.save(
                 Review.create(5.0, "content1", book, user)
         );
+        Thread.sleep(1000);
         Review review2 = reviewRepository.save(
                 Review.create(4.0, "content2", book, user)
         );
+        Thread.sleep(1000);
         Review review3 = reviewRepository.save(
                 Review.create(3.0, "content3", book, user)
         );
