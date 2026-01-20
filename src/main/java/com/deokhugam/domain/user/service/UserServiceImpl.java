@@ -59,6 +59,10 @@ public class UserServiceImpl implements UserService{
     public UserDto findUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        if(user.isDeleted()){
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
         return UserDto.from(user);
     }
 
