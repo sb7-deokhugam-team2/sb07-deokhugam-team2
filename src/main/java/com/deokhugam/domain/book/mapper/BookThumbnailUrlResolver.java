@@ -17,7 +17,7 @@ public class BookThumbnailUrlResolver {
         return cloudFrontDomain + "/" + key;
     }
 
-    private static String trimTrailingSlash(String s) {
-        return (s != null && s.endsWith("/")) ? s.substring(0, s.length() - 1) : s;
+    private static String trimTrailingSlash(String url) {
+        return (url != null && url.endsWith("/")) ? url.substring(0, url.length() - 1) : url;
     }
 }
