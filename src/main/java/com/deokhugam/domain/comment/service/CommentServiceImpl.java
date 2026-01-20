@@ -10,6 +10,8 @@ import com.deokhugam.domain.comment.exception.CommentNotFound;
 import com.deokhugam.domain.comment.exception.CommentUnauthorizedException;
 import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
+import com.deokhugam.domain.notification.controller.NotificationController;
+import com.deokhugam.domain.notification.service.NotificationCreator;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.repository.ReviewRepository;
@@ -36,6 +38,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
     private final CommentQueryRepository commentQueryRepository;
+    private final NotificationCreator notificationCreator;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,8 +87,8 @@ public class CommentServiceImpl implements CommentService {
                 userId,
                 reviewId
         );
-        commentRepository.save(comment);
-
+        Comment save = commentRepository.save(comment);
+        notificationCreator.createNotification(save);
         return CommentDto.from(comment);
     }
 
