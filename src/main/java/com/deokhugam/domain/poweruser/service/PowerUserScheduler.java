@@ -5,6 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -15,6 +20,8 @@ public class PowerUserScheduler {
     @Scheduled(cron = "0 0 0 * * *")
     public void startRankingCalculate(){
         log.info("[PowerUserScheduler] start calculate user ranking {}", getClass());
-        powerUserService.calculateAndSaveRankings();
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.systemDefault())
+                .truncatedTo(ChronoUnit.DAYS);
+        powerUserService.calculateAndSaveRankings(zonedDateTime);
     }
 }

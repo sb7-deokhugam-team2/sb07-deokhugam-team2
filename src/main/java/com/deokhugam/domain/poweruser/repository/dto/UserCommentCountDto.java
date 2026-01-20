@@ -9,5 +9,5 @@ import java.util.UUID;
 @Getter
 public class UserCommentCountDto {
     private UUID userId;
-    private Long likedCount;
+    private Long commentCount;
 }
