@@ -46,7 +46,7 @@ public class ReviewRepositorySliceTest {
 
     @Test
     @DisplayName("목록 조회 첫 페이지 - limit + 1 조회로 next값가 계산된다")
-    void search_firstPage_Calculate_nextValue() {
+    void search_firstPage_Calculate_nextValue() throws InterruptedException {
         // given
         UUID requestUserId = UUID.randomUUID();
 
@@ -67,7 +67,9 @@ public class ReviewRepositorySliceTest {
         userRepository.save(user);
         bookRepository.save(book);
         reviewRepository.save(review1);
+        Thread.sleep(1000);
         reviewRepository.save(review2);
+        Thread.sleep(1000);
         reviewRepository.save(review3);
 
         ReviewSearchCondition condition = new ReviewSearchCondition(
@@ -106,7 +108,7 @@ public class ReviewRepositorySliceTest {
 
     @Test
     @DisplayName("목록 조회 다음 페이지 - cursor 기반으로 다음 페이지가 이어진다.")
-    void search_nextPage() {
+    void search_nextPage() throws InterruptedException {
         // given
         UUID requestUserId = UUID.randomUUID();
 
@@ -127,7 +129,9 @@ public class ReviewRepositorySliceTest {
         userRepository.save(user);
         bookRepository.save(book);
         reviewRepository.save(review1);
+        Thread.sleep(1000);
         reviewRepository.save(review2);
+        Thread.sleep(1000);
         reviewRepository.save(review3);
 
         ReviewSearchCondition condition = new ReviewSearchCondition(
@@ -248,8 +252,11 @@ public class ReviewRepositorySliceTest {
         userRepository.save(user);
         bookRepository.save(book);
         reviewRepository.save(review1);
+        Thread.sleep(1000);
         reviewRepository.save(review2);
+        Thread.sleep(1000);
         reviewRepository.save(review3);
+        Thread.sleep(1000);
         reviewRepository.save(review4);
 
         ReviewSearchCondition condition = new ReviewSearchCondition(

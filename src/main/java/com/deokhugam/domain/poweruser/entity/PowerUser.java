@@ -37,7 +37,7 @@ public class PowerUser extends BaseEntity {
     private Long commentCount = 0L;
 
     @Column(name = "review_score_sum", nullable = false)
-    private Long reviewScoreSum = 0L;
+    private Double reviewScoreSum = 0.0;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
