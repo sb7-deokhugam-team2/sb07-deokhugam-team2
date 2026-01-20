@@ -1,9 +1,16 @@
 package com.deokhugam.domain.poweruser.repository;
 
-import com.deokhugam.domain.poweruser.repository.dto.ReviewScoreDto;
+import com.deokhugam.domain.poweruser.dto.request.PowerUserSearchCondition;
+import com.deokhugam.domain.poweruser.entity.PowerUser;
+import com.deokhugam.domain.poweruser.entity.QPowerUser;
+import com.deokhugam.domain.poweruser.enums.PowerUserDirection;
 import com.deokhugam.domain.poweruser.repository.dto.UserCommentCountDto;
 import com.deokhugam.domain.poweruser.repository.dto.UserLikeCountDto;
+import com.deokhugam.domain.poweruser.repository.dto.UserReviewScoreDto;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -15,8 +22,8 @@ import java.util.stream.Collectors;
 
 import static com.deokhugam.domain.comment.entity.QComment.comment;
 import static com.deokhugam.domain.likedreview.entity.QLikedReview.likedReview;
+import static com.deokhugam.domain.poweruser.entity.QPowerUser.powerUser;
 import static com.deokhugam.domain.review.entity.QReview.review;
-import static com.deokhugam.domain.user.entity.QUser.user;
 
 @RequiredArgsConstructor
 public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository {
@@ -24,13 +31,48 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public void updatePowerUserRanking(Instant time) {
-        Map<UUID, Long> userLikedCount = getUserLikedCount(time);
-        Map<UUID, Long> userCommentCount = getUserCommentCount(time);
+    public List<PowerUser> searchPowerUsers(PowerUserSearchCondition condition) {
+        QPowerUser subPowerUser = new QPowerUser("sub");
+        return queryFactory
+                .selectFrom(powerUser)
+                .where(
+                        powerUser.calculatedDate.eq(
+                                JPAExpressions.select(subPowerUser.calculatedDate.max())
+                                        .from(subPowerUser)
+                                        .where(subPowerUser.periodType.eq(condition.period()))),
+                        powerUser.periodType.eq(condition.period()),
+                        cursorCondition(condition.cursor(), condition.direction()),
+                        afterCondition(condition.after(), condition.direction())
+                )
+                .orderBy(direction(condition.direction()))
+                .limit(condition.limit()+1)
+                .fetch();
+    }
+    private OrderSpecifier<?>[] direction(PowerUserDirection direction) {
+        if (direction==PowerUserDirection.ASC){
+            return new OrderSpecifier[]{comment.createdAt.asc()};
+        }
+        return new OrderSpecifier[]{comment.createdAt.desc()};
     }
 
-    private Map<UUID, Long> getUserLikedCount(Instant time) {
+    private BooleanExpression cursorCondition(String cursor, PowerUserDirection direction) {
+        if (cursor == null) {
+            return null;
+        }
+        Instant cursorInstant = Instant.parse(cursor);
+        if (direction==PowerUserDirection.ASC) return comment.createdAt.gt(cursorInstant);
+        return comment.createdAt.lt(cursorInstant);
+    }
 
+    private BooleanExpression afterCondition(Instant after, PowerUserDirection direction) {
+        if (after == null) {
+            return null;
+        }
+        if (direction==PowerUserDirection.ASC) return comment.createdAt.gt(after);
+        return comment.createdAt.lt(after);
+    }
+
+    public Map<UUID, Long> getUserLikedCount(Instant time) {
         List<UserLikeCountDto> result = queryFactory
                 .select(Projections.constructor(
                                 UserLikeCountDto.class,
@@ -39,7 +81,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                         )
                 )
                 .from(likedReview)
-                .where(likedReview.createdAt.goe(time))
+                .where(likedReviewcreatedAtGoe(time))
                 .groupBy(likedReview.user.id)
                 .fetch();
 
@@ -58,7 +100,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                         )
                 )
                 .from(comment)
-                .where(comment.createdAt.goe(time))
+                .where(commentCreatedAtGoe(time))
                 .groupBy(comment.user.id)
                 .fetch();
 
@@ -68,20 +110,37 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 (existing, replacement) -> existing));
     }
 
-    public void test3(Instant time) {
-        List<ReviewScoreDto> fetch = queryFactory
+    public Map<UUID, Double> getUserReviewScore(Instant time) {
+        List<UserReviewScoreDto> result = queryFactory
                 .select(Projections.constructor(
-                                ReviewScoreDto.class,
-                                review.id,
+                                UserReviewScoreDto.class,
                                 review.user.id,
-                                comment.count().multiply(0.3)
+                                comment.id.countDistinct().castToNum(Double.class).multiply(0.3)
+                                        .add(likedReview.id.countDistinct().castToNum(Double.class).multiply(0.7))
                         )
                 )
                 .from(review)
                 .leftJoin(comment).on(
-                        comment.review.id.eq(review.id)
+                        comment.review.id.eq(review.id),
+                        commentCreatedAtGoe(time)
                 )
-                .groupBy(review.id)
+                .leftJoin(likedReview).on(
+                        likedReview.review.id.eq(review.id),
+                        likedReviewcreatedAtGoe(time)
+                )
+                .groupBy(review.user.id)
                 .fetch();
+        return result.stream().collect(Collectors.toMap(
+                UserReviewScoreDto::getUserId,
+                UserReviewScoreDto::getScore,
+                (existing, replacement) -> existing));
+    }
+
+    private BooleanExpression commentCreatedAtGoe(Instant time) {
+        return time == null ? null : comment.createdAt.goe(time);
+    }
+
+    private BooleanExpression likedReviewcreatedAtGoe(Instant time) {
+        return time == null ? null : likedReview.createdAt.goe(time);
     }
 }
