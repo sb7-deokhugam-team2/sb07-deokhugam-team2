@@ -7,8 +7,7 @@ import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
-public class ReviewScoreDto {
-    private UUID reviewId;
+public class UserReviewScoreDto {
     private UUID userId;
     private Double score;
 }
