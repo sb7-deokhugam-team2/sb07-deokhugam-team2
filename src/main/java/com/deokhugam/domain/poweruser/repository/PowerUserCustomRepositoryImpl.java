@@ -73,7 +73,8 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 .select(Projections.constructor(
                                 ReviewScoreDto.class,
                                 review.id,
-                                comment.count()
+                                review.user.id,
+                                comment.count().multiply(0.3)
                         )
                 )
                 .from(review)

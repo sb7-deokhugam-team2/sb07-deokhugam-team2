@@ -9,5 +9,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReviewScoreDto {
     private UUID reviewId;
+    private UUID userId;
     private Double score;
 }
