@@ -447,7 +447,7 @@ public class BookControllerSliceTest {
                     updateRequest.description(),
                     updateRequest.publisher(),
                     updateRequest.publishedDate(),
-                    "9788966260959", // ISBN은 변경되지 않음
+                    "9788966260959",
                     "http://s3.url/books/new-cover.jpg",
                     10L, 4.5,
                     Instant.now().minusSeconds(999999),

@@ -1,20 +1,27 @@
 package com.deokhugam.deokhugam.book.integration.service;
 
+import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
+import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.enums.SortCriteria;
 import com.deokhugam.domain.book.enums.SortDirection;
+import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.book.service.BookService;
+import com.deokhugam.global.exception.ErrorCode;
+import com.deokhugam.infrastructure.storage.FileStorage;
 import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -23,10 +30,17 @@ import java.util.UUID;
 
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Transactional
+@Tag("integration")
+@ActiveProfiles("test")
 public class BookServiceIntegration {
 
     @Autowired
@@ -34,7 +48,10 @@ public class BookServiceIntegration {
 
     @Autowired
     private BookService bookService;
-    
+
+    @MockitoBean
+    private FileStorage fileStorage;
+
     @Autowired
     EntityManager em;
 
@@ -140,5 +157,4 @@ public class BookServiceIntegration {
             assertThrows(BookNotFoundException.class, () -> bookService.hardDeleteBook(invalidBookId));
         }
     }
-
 }

@@ -185,9 +185,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<String> handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestPartException(MissingServletRequestPartException e) {
         log.error("필수 파트 누락: {}", e.getRequestPartName());
-        return ResponseEntity.badRequest().body("필수 파라미터가 누락되었습니다: " + e.getRequestPartName());
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(Instant.now(),
+                        errorCode.getCode(),
+                        errorCode.getMessage(),
+                        Map.of(),
+                        e.getRequestPartName(),
+                        errorCode.getStatus().value()
+                ));
     }
     // TODO: 26. 1. 19. 임시 Multipart Error처리 구현 관련 내용 회의 필요
 

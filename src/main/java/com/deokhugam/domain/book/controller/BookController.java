@@ -50,12 +50,18 @@ public class BookController {
     @PostMapping("/isbn/ocr")
     public ResponseEntity<String> getIsbnByImage(
             @RequestPart(value = "image") MultipartFile barcode) {
-        return ResponseEntity.ok(bookService.extractIsbnFromImage(barcode));
+        log.info("ISBN OCR 요청 - FileName: {}, Size: {}", barcode.getOriginalFilename(), barcode.getSize());
+        String isbn = bookService.extractIsbnFromImage(barcode);
+        log.info("ISBN OCR 추출 성공 - ISBN: {}", isbn);
+        return ResponseEntity.ok(isbn);
     }
 
     @GetMapping("/info")
     public ResponseEntity<NaverBookDto> getBookInfoByIsbn(@RequestParam String isbn) {
-        return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
+        log.info("네이버 도서 정보 조회 요청 - ISBN: {}", isbn);
+        NaverBookDto bookInfo = bookService.getBookByIsbn(isbn);
+        log.debug("네이버 도서 정보 조회 완료 - Title: {}", bookInfo.title());
+        return ResponseEntity.ok(bookInfo);
     }
 
     @PostMapping()
@@ -63,7 +69,12 @@ public class BookController {
             @RequestPart(value = "bookData") BookCreateRequest createRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
+        String fileName = (thumbnail != null) ? thumbnail.getOriginalFilename() : "NONE";
+        log.info("도서 생성 요청 - Title: {}, ISBN: {}, Thumbnail: {}", createRequest.title(), createRequest.isbn(), fileName);
+
         BookDto dto = bookService.createBook(createRequest, thumbnail);
+
+        log.info("도서 생성 완료 - Generated ID: {}", dto.id());
         return ResponseEntity.status(201).body(dto);
     }
 
@@ -73,7 +84,12 @@ public class BookController {
             @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
+        String fileName = (thumbnail != null) ? thumbnail.getOriginalFilename() : "NONE";
+        log.info("도서 수정 요청 - ID: {}, Title: {}, ThumbnailChange: {}", bookId, updateRequest.title(), fileName);
+
         BookDto dto = bookService.updateBook(bookId, updateRequest, thumbnail);
+
+        log.info("도서 수정 완료 - ID: {}", dto.id());
         return ResponseEntity.ok(dto);
     }
 
