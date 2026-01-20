@@ -31,7 +31,6 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
                 .join(notification.user, user).fetchJoin()
                 .where(
                         notification.user.id.eq(condition.userId()),
-                        notification.confirmed.isTrue(),
                         cursorCondition(condition.cursor(), condition.direction()),
                         afterCondition(condition.after(), condition.direction())
                 )
@@ -70,7 +69,7 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
                 .select(notification)
                 .from(notification)
                 .join(notification.user, user).fetchJoin()
-                .join(notification.review, notification.review).fetchJoin()
+                .join(notification.review, review).fetchJoin()
                 .where(notification.id.eq(notificationId))
                 .fetchOne();
         return Optional.ofNullable(result);
@@ -98,5 +97,15 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
                 .execute();
         em.clear();
         return count;
+    }
+
+    @Override
+    public long countByUserId(UUID userId) {
+        Long elements = queryFactory
+                .select(notification.count())
+                .from(notification)
+                .where(notification.user.id.eq(userId))
+                .fetchOne();
+        return elements != null ? elements : 0L;
     }
 }

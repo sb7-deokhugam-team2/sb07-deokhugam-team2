@@ -10,7 +10,6 @@ import com.deokhugam.domain.user.exception.UserEmailNotExistsException;
 import com.deokhugam.domain.user.exception.UserNotFoundException;
 import com.deokhugam.domain.user.exception.UserPasswordException;
 import com.deokhugam.domain.user.repository.UserRepository;
-import com.deokhugam.domain.user.service.UserService;
 import com.deokhugam.domain.user.service.UserServiceImpl;
 import com.deokhugam.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
