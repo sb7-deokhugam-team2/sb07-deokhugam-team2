@@ -30,7 +30,7 @@ public class NotificationCreator {
         Notification notification = Notification.create(
                 "[" + comment.getUser().getNickname() + "]님이 나의 리뷰에 댓글을 달았습니다.\n" + comment.getContent(),
                 comment.getReview(),
-                comment.getUser()
+                comment.getReview().getUser()
         );
         notificationRepository.save(notification);
     }
