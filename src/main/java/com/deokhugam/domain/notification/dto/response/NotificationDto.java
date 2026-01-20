@@ -24,7 +24,7 @@ public class NotificationDto {
         if (notification.getReview().getContent().length() > 21) {
             reviewTitle = notification.getReview().getContent().substring(0, 20) + "...";
         } else {
-            reviewTitle = notification.getReview().getContent().substring(0, 20);
+            reviewTitle = notification.getReview().getContent();
         }
         return new NotificationDto(
                 notification.getId(),

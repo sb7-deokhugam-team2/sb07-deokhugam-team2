@@ -9,15 +9,13 @@ import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.exception.UserAlreadyExistsException;
 import com.deokhugam.domain.user.exception.UserEmailNotExistsException;
 import com.deokhugam.domain.user.exception.UserPasswordException;
-import com.deokhugam.domain.user.service.UserServiceImpl;
+import com.deokhugam.domain.user.service.UserService;
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,14 +32,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(GlobalExceptionHandler.class)
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
     @MockitoBean
-    UserServiceImpl userService;
+    UserService userService;
 
     @Test
     @DisplayName("유저 가입 성공")

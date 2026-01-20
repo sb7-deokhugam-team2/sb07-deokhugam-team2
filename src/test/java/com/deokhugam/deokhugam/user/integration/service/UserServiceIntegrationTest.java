@@ -1,4 +1,4 @@
-package com.deokhugam.deokhugam.user.unit.service;
+package com.deokhugam.deokhugam.user.integration.service;
 
 import com.deokhugam.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.domain.user.dto.request.UserRegisterRequest;
@@ -10,41 +10,37 @@ import com.deokhugam.domain.user.exception.UserEmailNotExistsException;
 import com.deokhugam.domain.user.exception.UserNotFoundException;
 import com.deokhugam.domain.user.exception.UserPasswordException;
 import com.deokhugam.domain.user.repository.UserRepository;
-import com.deokhugam.domain.user.service.UserServiceImpl;
+import com.deokhugam.domain.user.service.UserService;
 import com.deokhugam.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-@DisplayName("UserServiceImpl 테스트")
-public class UserServiceImplTest {
+@SpringBootTest
+@DisplayName("UserServiceIntegrationTest")
+@Transactional
+public class UserServiceIntegrationTest {
 
-    @Mock
-    UserRepository userRepository;
-    @InjectMocks
-    UserServiceImpl userService;
+    @Autowired
+    UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("회원가입 성공 테스트")
     void register_success() {
         //given
-        User user = User.create("test@gmail.com", "testName", "12345678a!");
+        User user = User.create("integration@gmail.com", "testName", "12345678a!");
         UserRegisterRequest userRegisterRequest = new UserRegisterRequest(user.getEmail(), user.getNickname(), user.getPassword());
 
-        lenient().when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
-        lenient().when(userRepository.save(any(User.class))).thenReturn(user);
 
         //when
         UserDto userDto = userService.register(userRegisterRequest);
@@ -52,54 +48,48 @@ public class UserServiceImplTest {
         //then
         assertThat(userDto.getEmail()).isEqualTo(user.getEmail());
         assertThat(userDto.getNickname()).isEqualTo(user.getNickname());
-
-        verify(userRepository, times(1)).save(any(User.class));
-
     }
 
     @Test
     @DisplayName("회원가입 실패 테스트 : 이미 존재하는 이메일일 경우 UserAlreadyExistsException 실행")
     void register_fail() {
         // given
-        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(
-                "duplication@test.com", "testName", "12345678a!");
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest("testtest@gmail.com", "testName", "12345678a!");
+        UserRegisterRequest userRegisterRequest2 = new UserRegisterRequest("testtest@gmail.com", "testName", "12345678a!");
+        userService.register(userRegisterRequest);
 
         // when & then
-        when(userRepository.existsByEmail(userRegisterRequest.email())).thenReturn(true);
-
         assertThrows(UserAlreadyExistsException.class, () -> {
-            userService.register(userRegisterRequest);
+            userService.register(userRegisterRequest2);
         });
-
-        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     @DisplayName("로그인 성공 테스트")
     void login_success() {
         //given
-        String email = "test@gamil";
+        String email = "testtest@gamil.com";
         String password = "12345678a!";
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(email, "testName", password);
+        userService.register(userRegisterRequest);
+
+
         UserLoginRequest userLoginRequest = new UserLoginRequest(email, password);
 
-        User user = User.create(email, "nickName", password);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         //when
         UserDto userDto = userService.login(userLoginRequest);
 
         //then
         assertThat(userDto.getEmail()).isEqualTo(email);
-        verify(userRepository, times(1)).findByEmail(email);
     }
 
     @Test
     @DisplayName("로그인 실패 테스트 : 1. 이메일이 틀릴 경우 UserEmailNotExistsException 실행")
     void login_fail_email() {
         // given
-        String email = "test@gmail.com";
-        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "12345678a!");
-
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        String email = "testtest@gamil.com";
+        String password = "12345678a!";
+        UserLoginRequest userLoginRequest = new UserLoginRequest(email, password);
 
         // when & then
         UserEmailNotExistsException exception = assertThrows(UserEmailNotExistsException.class, () -> {
@@ -112,12 +102,12 @@ public class UserServiceImplTest {
     @DisplayName("로그인 실패 테스트 : 2. 비밀번호가 일치하지 않을 경우 UserPasswordException 실행")
     void login_fail_password() {
         // given
-        String email = "test@gamil";
-        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "12345678a!");
+        String email = "testtest@gamil.com";
+        String password = "12345678a!";
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(email, "testName", password);
+        userService.register(userRegisterRequest);
 
-        User user = User.create(email, "nickName", "12345678a!!");
-
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        UserLoginRequest userLoginRequest = new UserLoginRequest(email, "wrong_password1!");
 
         // when & then
         UserPasswordException exception = assertThrows(UserPasswordException.class, () -> {
@@ -130,12 +120,13 @@ public class UserServiceImplTest {
     @Test
     void findUser() {
         //given
-        User user = User.create("test@gmail.com", "testName", "12345678a!");
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.of(user));
+        String email = "testtest@gamil.com";
+        String password = "12345678a!";
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(email, "testName", password);
+        UserDto user = userService.register(userRegisterRequest);
 
         //when
-        UserDto userDto = userService.findUser(UUID.randomUUID());
+        UserDto userDto = userService.findUser(user.getId());
 
         //then
         assertThat(userDto.getEmail()).isEqualTo(user.getEmail());
@@ -146,59 +137,54 @@ public class UserServiceImplTest {
     @DisplayName("논리 삭제 성공")
     void logicalDelete() {
         //given
-        User user = User.create("test@gmail.com", "testName", "12345678a!");
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.of(user));
+        String email = "testtest@gamil.com";
+        String password = "12345678a!";
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(email, "testName", password);
+        UserDto user = userService.register(userRegisterRequest);
 
         //when
-        userService.logicalDelete(UUID.randomUUID());
+        userService.logicalDelete(user.getId());
 
         //then
-        verify(userRepository, times(1)).findById(any(UUID.class));
-        assertThat(user.isDeleted()).isEqualTo(true);
+        assertThatThrownBy(() -> userService.findUser(user.getId()))
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
     @DisplayName("논리 삭제 실패: 유저가 없으면 UserNotFoundException 발생")
     void logicalDelete_not_foud() {
         //given
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.empty());
 
-        //when
+        //when&then
         assertThatThrownBy(() -> userService.logicalDelete(UUID.randomUUID()))
                 .isInstanceOf(UserNotFoundException.class);
-
-        //then
-        verify(userRepository, times(1)).findById(any(UUID.class));
     }
 
     @Test
     @DisplayName("수정 성공")
     void updateNickname() {
         //given
+        String email = "testtest@gamil.com";
+        String password = "12345678a!";
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(email, "testName", password);
+        UserDto user = userService.register(userRegisterRequest);
         UserUpdateRequest userUpdateRequest = new UserUpdateRequest("newName");
-        User user = User.create("test@gmail.com", "testName", "12345678a!");
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.of(user));
 
         //when
-        UserDto userDto = userService.updateNickname(UUID.randomUUID(), userUpdateRequest);
+        UserDto userDto = userService.updateNickname(user.getId(), userUpdateRequest);
 
         //then
         assertThat(userDto.getEmail()).isEqualTo(user.getEmail());
         assertThat(userDto.getNickname()).isEqualTo(userUpdateRequest.nickname());
-        verify(userRepository).findById(any(UUID.class));
     }
 
     @Test
     @DisplayName("수정 실패: 유저가 없으면 UserNotFoundException 발생")
     void updateNickname_not_found() {
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.empty());
+        UserUpdateRequest userUpdateRequest = new UserUpdateRequest("newName");
 
         // When & Then
-        assertThatThrownBy(() -> userService.updateNickname(UUID.randomUUID(), any(UserUpdateRequest.class)))
+        assertThatThrownBy(() -> userService.updateNickname(UUID.randomUUID(), userUpdateRequest))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -206,28 +192,25 @@ public class UserServiceImplTest {
     @DisplayName("물리 삭제 성공")
     void physicalDelete() {
         //given
-        User user = User.create("test@gmail.com", "testName", "12345678a!");
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.of(user));
+        String email = "testtest@gamil.com";
+        String password = "12345678a!";
+        UserRegisterRequest userRegisterRequest = new UserRegisterRequest(email, "testName", password);
+        UserDto user = userService.register(userRegisterRequest);
 
         //when
-        userService.physicalDelete(UUID.randomUUID());
+        userService.physicalDelete(user.getId());
 
         //then
-        verify(userRepository, times(1)).findById(any(UUID.class));
-        verify(userRepository, times(1)).delete(user);
+        assertThatThrownBy(()->userService.findUser(user.getId()))
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
     @DisplayName("물리 삭제 실패: 유저가 없으면 UserNotFoundException 발생")
     void physicalDelete_not_found() {
-        when(userRepository.findById(any(UUID.class)))
-                .thenReturn(Optional.empty());
-
         // When & Then
         assertThatThrownBy(() -> userService.physicalDelete(UUID.randomUUID()))
                 .isInstanceOf(UserNotFoundException.class);
-
-        verify(userRepository, never()).delete(any(User.class));
     }
 }
+

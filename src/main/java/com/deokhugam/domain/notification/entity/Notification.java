@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @Table(name = "notifications")
@@ -57,5 +59,13 @@ public class Notification extends BaseUpdateEntity {
 
     public void confirm(){
         this.confirmed=true;
+    }
+
+    public void unConfirm(){
+        this.confirmed=false;
+    }
+
+    public boolean isOwner(UUID userId){
+        return this.user.getId().equals(userId);
     }
 }
