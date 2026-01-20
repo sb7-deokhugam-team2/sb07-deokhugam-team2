@@ -45,6 +45,6 @@ api:
     ID: ${NAVER_CLIENT_ID}
     SECRET: ${NAVER_CLIENT_SECRET}
    url:
-    search: https://openapi.naver.com/v1/search/book_adv
+    search: https://openapi.naver.com/v1/search/book.json
   ocr:
     key: ${OCR_API_KEY}
