@@ -50,9 +50,9 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
     }
     private OrderSpecifier<?>[] direction(PowerUserDirection direction) {
         if (direction==PowerUserDirection.ASC){
-            return new OrderSpecifier[]{comment.createdAt.asc()};
+            return new OrderSpecifier[]{powerUser.createdAt.asc()};
         }
-        return new OrderSpecifier[]{comment.createdAt.desc()};
+        return new OrderSpecifier[]{powerUser.createdAt.desc()};
     }
 
     private BooleanExpression cursorCondition(String cursor, PowerUserDirection direction) {
@@ -60,16 +60,16 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
             return null;
         }
         Instant cursorInstant = Instant.parse(cursor);
-        if (direction==PowerUserDirection.ASC) return comment.createdAt.gt(cursorInstant);
-        return comment.createdAt.lt(cursorInstant);
+        if (direction==PowerUserDirection.ASC) return powerUser.createdAt.gt(cursorInstant);
+        return powerUser.createdAt.lt(cursorInstant);
     }
 
     private BooleanExpression afterCondition(Instant after, PowerUserDirection direction) {
         if (after == null) {
             return null;
         }
-        if (direction==PowerUserDirection.ASC) return comment.createdAt.gt(after);
-        return comment.createdAt.lt(after);
+        if (direction==PowerUserDirection.ASC) return powerUser.createdAt.gt(after);
+        return powerUser.createdAt.lt(after);
     }
 
     public Map<UUID, Long> getUserLikedCount(Instant time) {
@@ -115,18 +115,18 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 .select(Projections.constructor(
                                 UserReviewScoreDto.class,
                                 review.user.id,
-                                comment.id.countDistinct().castToNum(Double.class).multiply(0.3)
-                                        .add(likedReview.id.countDistinct().castToNum(Double.class).multiply(0.7))
+                                comment.id.countDistinct().castToNum(Double.class).multiply(0.7)
+                                        .add(likedReview.id.countDistinct().castToNum(Double.class).multiply(0.3))
                         )
                 )
                 .from(review)
                 .leftJoin(comment).on(
-                        comment.review.id.eq(review.id),
-                        commentCreatedAtGoe(time)
+                        comment.review.id.eq(review.id).and(
+                        commentCreatedAtGoe(time))
                 )
                 .leftJoin(likedReview).on(
-                        likedReview.review.id.eq(review.id),
-                        likedReviewcreatedAtGoe(time)
+                        likedReview.review.id.eq(review.id).and(
+                        likedReviewcreatedAtGoe(time))
                 )
                 .groupBy(review.user.id)
                 .fetch();
