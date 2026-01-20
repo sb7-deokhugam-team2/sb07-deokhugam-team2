@@ -12,6 +12,7 @@ import com.deokhugam.domain.comment.exception.CommentNotFound;
 import com.deokhugam.domain.comment.exception.CommentUnauthorizedException;
 import com.deokhugam.domain.comment.repository.CommentRepository;
 import com.deokhugam.domain.comment.service.CommentService;
+import com.deokhugam.domain.notification.service.NotificationCreator;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.repository.ReviewRepository;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -33,6 +35,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @Transactional
@@ -51,6 +56,8 @@ public class CommentServiceIntegrationTest {
     EntityManager em;
     @Autowired
     CommentRepository commentRepository;
+    @MockitoBean
+    NotificationCreator notificationCreator;
 
     @Test
     @DisplayName("댓글 목록 조회 성공")
@@ -117,6 +124,8 @@ public class CommentServiceIntegrationTest {
 
         //when
         CommentDto commentDto = commentService.createComment(commentCreateRequest);
+
+        verify(notificationCreator, times(1)).createNotification(any(Comment.class));
 
         //then
         assertThat(commentDto).isNotNull();
