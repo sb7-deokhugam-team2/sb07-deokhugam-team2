@@ -11,8 +11,10 @@ import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.enums.ReviewOrderBy;
+import com.deokhugam.domain.review.exception.ReviewAccessDeniedException;
 import com.deokhugam.domain.review.exception.ReviewAlreadyExistsException;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
+import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.mapper.ReviewMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
@@ -36,8 +38,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final CommentRepository commentRepository;
     // todo: LikedReviewRepository
+
     @Override
-    @Transactional
     public ReviewDto createReview(ReviewCreateRequest request) {
 
         // Book 엔티티 조회
@@ -62,33 +64,59 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID reviewId) {
-        return null;
+    public ReviewDto updateReview(ReviewUpdateRequest request, UUID requestUserId, UUID reviewId) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        // 논리 삭제된 리뷰는 수정 불가
+        if (review.isDeleted()) {
+            throw new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        // 본인이 작성한 리뷰만 수정 가능
+        if(!review.getUser().getId().equals(requestUserId)) {
+            throw new ReviewAccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
+
+        review.update(request.rating(), request.content());
+
+        ReviewDto reviewDetail = reviewRepository.findDetail(reviewId, requestUserId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        return reviewDetail;
+
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ReviewDto getReview(UUID reviewId) {
-        // 삭제된 리뷰는 조회에서 제외
+    public ReviewDto getReview(UUID requestUserId, UUID reviewId) {
+        return reviewRepository.findDetail(reviewId, requestUserId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+    }
+
+    @Override
+    public void softDeleteReview(UUID reviewId, UUID requestUserId) {
+
         Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("리뷰가 없습니다."));
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // TODO: 로직 추가
-        long commentCount = commentRepository.getCountByReviewId(reviewId);
-        // boolean LikedByMe = LikedReviewRepository.existsByReviewId(reviewId);
+        if (!review.getUser().getId().equals(requestUserId)) {
+            throw new ReviewAccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
 
-        boolean likedByMe = false;
-
-        return reviewMapper.toReviewDto(review, commentCount, likedByMe);
-    }
-
-    @Override
-    public void softDelete(UUID reviewId, UUID requestUserId) {
+        review.delete();
+        reviewRepository.save(review);
 
     }
 
     @Override
-    public void hardDelete(UUID reviewId, UUID requestUserId) {
+    public void hardDeleteReview(UUID reviewId, UUID requestUserId) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        reviewRepository.delete(review);
 
     }
 
@@ -112,7 +140,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewOrderBy orderBy = pageRequest.orderBy() == null
                 ? ReviewOrderBy.CREATED_AT : pageRequest.orderBy();
 
-        if (pageRequest.orderBy() == ReviewOrderBy.RATING && pageRequest.after() == null) {
+        if (orderBy == ReviewOrderBy.RATING && pageRequest.after() == null) {
             throw new ReviewInvalidException(ErrorCode.REVIEW_AFTER_REQUIRED);
         }
 
@@ -122,7 +150,7 @@ public class ReviewServiceImpl implements ReviewService {
             } else {
                 Instant.parse(cursor);
             }
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             throw new ReviewInvalidException(ErrorCode.REVIEW_INVALID);
         }
     }

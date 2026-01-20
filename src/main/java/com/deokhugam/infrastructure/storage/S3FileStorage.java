@@ -1,21 +1,18 @@
-package com.deokhugam.global.storage;
+package com.deokhugam.infrastructure.storage;
 
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
+import com.deokhugam.infrastructure.storage.exception.S3.S3FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.io.IOException;
-import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,7 +38,7 @@ public class S3FileStorage extends BaseFileStorage{
         String contentType = file.getContentType();
         validateContentType(contentType);
 
-        String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
 
         log.info("S3 업로드 시작 - 파일명: {}, 크기: {} bytes, 타입: {}", originalFilename, file.getSize(), contentType);
 
