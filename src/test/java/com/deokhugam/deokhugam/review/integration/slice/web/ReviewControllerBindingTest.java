@@ -24,24 +24,22 @@ class ReviewControllerBindingTest {
     ReviewService reviewService;
 
     @Test
-    @DisplayName("requestUserId와 headerId가 다르면 에러가 발생한다")
-    void list_headerUuidInvalid_return_error() throws Exception {
+    @DisplayName("requestUserId와 headerId의 UUID 형식이 잘못되면 400에러가 발생한다")
+    void list_headerUuidInvalid_return_400() throws Exception {
         mockMvc.perform(get("/api/reviews")
                 .header("Deokhugam-Request-User-ID", "invalid-uuid")
                 .param("requestUserId", UUID.randomUUID().toString())
         )
-                // TODO: exception 적용된 후 변경 예정
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("path값이 잘못되면 에러가 발생한다")
-    void get_pathUuidInvalid_return_error() throws Exception {
+    @DisplayName("path값이 잘못되면 400에러가 발생한다")
+    void get_pathUuidInvalid_return_400() throws Exception {
         mockMvc.perform(get("/api/reviews/invalid-uuid")
                 .header("Deokhugam-Request-User-ID", UUID.randomUUID().toString())
         )
-                // TODO: exception 적용된 후 변경 예정
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
 }

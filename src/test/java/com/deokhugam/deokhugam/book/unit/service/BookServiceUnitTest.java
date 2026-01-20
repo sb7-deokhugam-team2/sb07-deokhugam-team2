@@ -2,6 +2,7 @@ package com.deokhugam.deokhugam.book.unit.service;
 
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
+import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.entity.Book;
@@ -10,10 +11,7 @@ import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.book.service.BookServiceImpl;
 import com.deokhugam.global.exception.ErrorCode;
-import com.deokhugam.global.storage.FileStorage;
-import com.deokhugam.global.storage.exception.S3.S3FileStorageException;
-import jakarta.transaction.Transaction;
-import net.bytebuddy.asm.Advice;
+import com.deokhugam.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -67,6 +64,11 @@ public class BookServiceUnitTest {
     private BookCreateRequest createRequest(String isbn) {
         return new BookCreateRequest("Test Title", "Author", "Desc",
                 "Publisher", LocalDate.now(), isbn);
+    }
+
+    private BookUpdateRequest updateRequest(){
+        return new BookUpdateRequest("Test Title", "Author", "Desc",
+                "Publisher", LocalDate.now());
     }
 
     @Nested
@@ -136,7 +138,7 @@ public class BookServiceUnitTest {
         void updateBook_Success_WithNewThumbnail() {
             // given
             UUID bookId = UUID.randomUUID();
-            BookCreateRequest request = createRequest("11111");
+            BookUpdateRequest request = updateRequest();
 
             Book existingBook = createPersistedBook(bookId);
             String oldS3Key = "books/old-uuid.jpg";
@@ -157,7 +159,7 @@ public class BookServiceUnitTest {
             String expectedNewUrl = "https://cdn.com/new-random-key.png";
             given(s3Storage.generateUrl(anyString())).willReturn(expectedNewUrl);
 
-            // when
+            //when
             BookDto result = bookService.updateBook(bookId, request, newThumbnail);
 
             // then
@@ -173,7 +175,7 @@ public class BookServiceUnitTest {
         void updateBook_Success_NoThumbnail_KeepsOriginalUrl() {
             // given
             UUID bookId = UUID.randomUUID();
-            BookCreateRequest request = createRequest("11111");
+            BookUpdateRequest request = updateRequest();
 
             Book existingBook = createPersistedBook(bookId);
             String oldS3Key = "books/original.jpg";
@@ -188,7 +190,7 @@ public class BookServiceUnitTest {
             given(s3Storage.generateUrl(oldS3Key)).willReturn("https://cdn.com/" + oldS3Key);
 
             // when
-            bookService.updateBook(bookId, request, null); // 썸네일 없음
+            bookService.updateBook(bookId, request, null);
 
             // then
             verify(s3Storage, never()).upload(any(), anyString());
@@ -201,7 +203,7 @@ public class BookServiceUnitTest {
         void updateBook_Fail_BookNotFound() {
             // given
             UUID nonExistentId = UUID.randomUUID();
-            BookCreateRequest request = createRequest("11111");
+            BookUpdateRequest request = updateRequest();
 
             given(bookRepository.findById(nonExistentId)).willReturn(Optional.empty());
 

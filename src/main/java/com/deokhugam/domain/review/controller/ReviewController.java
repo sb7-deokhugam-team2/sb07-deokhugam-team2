@@ -22,8 +22,8 @@ public class ReviewController {
     @GetMapping
     public ResponseEntity<ReviewPageResponseDto> getList(
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
-            @Valid ReviewSearchCondition condition,
-            @Valid CursorPageRequest pageRequest,
+            @Valid @ModelAttribute ReviewSearchCondition condition,
+            @Valid @ModelAttribute CursorPageRequest pageRequest,
             @RequestParam(name = "requestUserId") UUID requestUserId
     ) {
         if (!requestId.equals(requestUserId)) {
@@ -43,9 +43,10 @@ public class ReviewController {
 
     @GetMapping("/{reviewId}")
     public ResponseEntity<ReviewDto> get(
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
             @PathVariable UUID reviewId
     ) {
-        return ResponseEntity.ok(reviewService.getReview(reviewId));
+        return ResponseEntity.ok(reviewService.getReview(requestUserId, reviewId));
 
     }
 
