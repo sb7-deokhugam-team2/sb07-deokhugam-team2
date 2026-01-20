@@ -185,8 +185,7 @@ public class BookServiceImpl implements BookService {
         String cdnUrl = fileStorage.generateUrl(existingBook.getThumbnailUrl());
         log.info("책 수정 완료 - ID: {}", existingBook.getId());
 
-//        BookDto dto = getBookDetail(bookId); // TODO: 같은 서비스 메서드 연동해서 사용하면 의존성이 생기고 해당 서비스 메서드 로직 바뀔시 동작 안할수있기때문에 개별로 레포지토리 요청할것(update서비스에서 thumbnail 매핑하는데 단일 레포에서도 해야하기떄문에 이렇게 중복사용시 사이드이팩 생길여부 생김) 또한 사용자 요청을 위한 메서드호출이지 내부 로직을 위한 메서드가 아니라 응용하지말것, 테스트코드에서 이부분 update할떄 의존하는부분 문제로 캐치했었음, by 태언
-        BookDto dto = bookRepository.findBookDetailById(bookId) // TODO: 성연님 부재중이라 기존 테스트코드 그대로 가져가기위해 임시로 수정, 성연님께 피드백후 해당부분 사용 여부 결정하시도록 전달 By 태언
+        BookDto dto = bookRepository.findBookDetailById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
         return BookMapper.toDto(existingBook, cdnUrl, dto.reviewCount(), dto.rating());
     }
