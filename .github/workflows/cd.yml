@@ -63,6 +63,9 @@ jobs:
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+          # [문제 해결] 최신 ECS 속성 때문에 에러가 발생하므로 jq로 해당 키 삭제
+          jq 'del(.enableFaultInjection)' task-definition.json > task-definition-temp.json
+          mv task-definition-temp.json task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
