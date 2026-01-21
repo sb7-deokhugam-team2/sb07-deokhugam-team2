@@ -13,4 +13,6 @@ public interface ReviewRepositoryCustom {
             ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId);
 
     Optional<ReviewDto> findDetail(UUID reviewId, UUID requestUserId);
+
+    void addLikedCount(UUID reviewId, long delta);
 }

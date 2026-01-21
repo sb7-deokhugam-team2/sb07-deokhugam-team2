@@ -203,6 +203,15 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom{
         return Optional.ofNullable(reviewDto);
     }
 
+    @Override
+    public void addLikedCount(UUID reviewId, long delta) {
+        queryFactory.update(review)
+                .set(review.likedCount, review.likedCount.add(delta))
+                .where(review.id.eq(reviewId)
+                        .and(review.isDeleted.isFalse()))
+                .execute();
+    }
+
     /**
      * 기본 WHERE 조건(필터)
      * - soft delete 리뷰는 기본 제외(isDeleted=false)
