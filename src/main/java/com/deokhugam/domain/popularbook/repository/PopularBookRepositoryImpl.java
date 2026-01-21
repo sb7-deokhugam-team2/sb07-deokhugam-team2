@@ -1,18 +1,23 @@
 package com.deokhugam.domain.popularbook.repository;
 
 import com.deokhugam.domain.base.PeriodType;
-import com.deokhugam.domain.book.dto.response.PopularBookDto;
+import com.deokhugam.domain.popularbook.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookAggregationDto;
+import com.deokhugam.domain.popularbook.dto.response.PopularBookDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import static com.deokhugam.domain.book.entity.QBook.book;
 import static com.deokhugam.domain.popularbook.entity.QPopularBook.popularBook;
@@ -63,7 +68,9 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
     }
 
     @Override
-    public List<PopularBookDto> findTopPopularBooks(PeriodType periodType, int limit, Instant windowStart) {
+    public Page<PopularBookDto> findTopPopularBooks(PopularBookSearchCondition condition, Instant windowStart, Pageable pageable) {
+        int size = pageable.getPageSize();
+        PeriodType periodType = condition.period();
         JPQLQuery<Instant> latestCalculatedDateSubquery =
                 JPAExpressions
                         .select(popularBook.calculatedDate.max())
@@ -72,7 +79,7 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
                                 popularBook.periodType.eq(periodType), // 기간타입이 같고
                                 popularBook.calculatedDate.goe(windowStart) // 윈도우시작보다 큰(원하는 범위의 최신 행들만)값인 경우
                         );
-        return queryFactory
+        List<PopularBookDto> popularBookDtoList = queryFactory
                 .select(Projections.constructor(
                                 PopularBookDto.class,
                                 popularBook.id,
@@ -95,8 +102,26 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
                         popularBook.calculatedDate.eq(latestCalculatedDateSubquery)
                 )
                 .orderBy(popularBook.rank.asc())
-                .limit(limit)
+                .limit(size + 1)
                 .fetch();
+
+        boolean hasNext = popularBookDtoList.size() > size;
+        if (hasNext) {
+            popularBookDtoList.remove(size); // hasNext를 위해 하나더 가져온 부분 제거
+        }
+
+        Long total = Optional.ofNullable(
+                queryFactory
+                        .select(popularBook.count().coalesce(0L)) // 없을때 fetchOne으로 null이 오는걸 방지하기위한 0
+                        .from(popularBook)
+                        .where(
+                                popularBook.periodType.eq(periodType),
+                                popularBook.calculatedDate.eq(latestCalculatedDateSubquery)
+                        )
+                        .fetchOne()
+        ).orElse(0L); // 반환타입과 PageImpl 타입을 맞추기위해 Optional 사용
+
+        return new PageImpl<>(popularBookDtoList, pageable, total);
     }
 
     private static Instant calculateFrom(Instant now, PeriodType periodType) {

@@ -75,7 +75,7 @@ public class BookServiceImpl implements BookService {
                 content,
                 nextCursor,
                 nextAfter,
-                content.size(),
+                pageBook.getSize(),
                 pageBook.getTotalElements(),
                 pageBook.hasNext()
         );
