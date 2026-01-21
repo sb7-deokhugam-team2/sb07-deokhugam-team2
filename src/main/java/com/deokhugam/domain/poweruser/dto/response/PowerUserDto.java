@@ -20,7 +20,7 @@ public class PowerUserDto {
     private Double score;
     private Long likeCount;
     private Long commentCount;
-    private Long reviewScoreSum;
+    private Double reviewScoreSum;
 
     public static PowerUserDto from(PowerUser powerUser) {
         return new PowerUserDto(

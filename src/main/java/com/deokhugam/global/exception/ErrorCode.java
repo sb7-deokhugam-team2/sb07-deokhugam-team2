@@ -26,6 +26,7 @@ public enum ErrorCode {
     BOOK_NO_EXISTENT_ISBN(HttpStatus.BAD_REQUEST, "존재하지않는 ISBN입니다.","B-004"),
     // Popular Book
     // Power User
+    POWER_USER_NOT_SUPPORTED_EXCEPTION(HttpStatus.BAD_REQUEST, "지원하지 않는 타입입니다.", "PU-001"),
     // Review
     REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "리뷰가 이미 존재합니다.","R-001"),
     REVIEW_INVALID(HttpStatus.BAD_REQUEST,"유효하지 않는 요청 입니다.","R-002"),

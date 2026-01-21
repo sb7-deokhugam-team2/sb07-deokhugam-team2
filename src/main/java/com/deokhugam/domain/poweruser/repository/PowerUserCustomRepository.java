@@ -24,4 +24,6 @@ public interface PowerUserCustomRepository {
     Map<UUID, Double> getUserReviewScore(Instant time);
 
     List<PowerUser> searchPowerUsers(PowerUserSearchCondition condition);
+
+    Long countByPeriodTypeAndCalculatedDate(PeriodType periodType);
 }

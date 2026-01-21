@@ -50,7 +50,7 @@ public class PowerUser extends BaseEntity {
                       Double score,
                       Long likedCount,
                       Long commentCount,
-                      Long reviewScoreSum,
+                      Double reviewScoreSum,
                       User user) {
         this.periodType = periodType;
         this.calculatedDate = calculatedDate;
@@ -68,7 +68,7 @@ public class PowerUser extends BaseEntity {
                                    Double score,
                                    Long likedCount,
                                    Long commentCount,
-                                   Long reviewScoreSum,
+                                   Double reviewScoreSum,
                                    User user) {
         return new PowerUser(periodType,
                 calculatedDate,

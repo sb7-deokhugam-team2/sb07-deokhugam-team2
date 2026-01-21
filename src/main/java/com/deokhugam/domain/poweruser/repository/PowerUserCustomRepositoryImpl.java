@@ -1,5 +1,6 @@
 package com.deokhugam.domain.poweruser.repository;
 
+import com.deokhugam.domain.base.PeriodType;
 import com.deokhugam.domain.poweruser.dto.request.PowerUserSearchCondition;
 import com.deokhugam.domain.poweruser.entity.PowerUser;
 import com.deokhugam.domain.poweruser.entity.QPowerUser;
@@ -72,6 +73,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
         return powerUser.createdAt.lt(after);
     }
 
+    @Override
     public Map<UUID, Long> getUserLikedCount(Instant time) {
         List<UserLikeCountDto> result = queryFactory
                 .select(Projections.constructor(
@@ -81,7 +83,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                         )
                 )
                 .from(likedReview)
-                .where(likedReviewcreatedAtGoe(time))
+                .where(likedReviewCreatedAtGoe(time))
                 .groupBy(likedReview.user.id)
                 .fetch();
 
@@ -91,6 +93,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 (existing, replacement) -> existing));
     }
 
+    @Override
     public Map<UUID, Long> getUserCommentCount(Instant time) {
         List<UserCommentCountDto> result = queryFactory
                 .select(Projections.constructor(
@@ -110,6 +113,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 (existing, replacement) -> existing));
     }
 
+    @Override
     public Map<UUID, Double> getUserReviewScore(Instant time) {
         List<UserReviewScoreDto> result = queryFactory
                 .select(Projections.constructor(
@@ -126,7 +130,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 )
                 .leftJoin(likedReview).on(
                         likedReview.review.id.eq(review.id).and(
-                        likedReviewcreatedAtGoe(time))
+                        likedReviewCreatedAtGoe(time))
                 )
                 .groupBy(review.user.id)
                 .fetch();
@@ -140,7 +144,24 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
         return time == null ? null : comment.createdAt.goe(time);
     }
 
-    private BooleanExpression likedReviewcreatedAtGoe(Instant time) {
+    private BooleanExpression likedReviewCreatedAtGoe(Instant time) {
         return time == null ? null : likedReview.createdAt.goe(time);
+    }
+
+    @Override
+    public Long countByPeriodTypeAndCalculatedDate(PeriodType periodType) {
+        QPowerUser subPowerUser = new QPowerUser("sub");
+        Long result = queryFactory
+                .select(powerUser.count())
+                .from(powerUser)
+                .where(
+                        powerUser.calculatedDate.eq(
+                                JPAExpressions.select(subPowerUser.calculatedDate.max())
+                                        .from(subPowerUser)
+                                        .where(subPowerUser.periodType.eq(periodType))),
+                        powerUser.periodType.eq(periodType)
+                )
+                .fetchOne();
+        return result != null ? result : 0L;
     }
 }

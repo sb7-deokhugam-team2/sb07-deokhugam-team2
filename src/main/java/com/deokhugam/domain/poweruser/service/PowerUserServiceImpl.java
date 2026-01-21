@@ -1,15 +1,15 @@
 package com.deokhugam.domain.poweruser.service;
 
 import com.deokhugam.domain.base.PeriodType;
-import com.deokhugam.domain.comment.dto.response.CommentDto;
-import com.deokhugam.domain.comment.dto.response.CursorPageResponseCommentDto;
+import com.deokhugam.domain.poweruser.dto.PowerUserRanking;
 import com.deokhugam.domain.poweruser.dto.request.PowerUserSearchCondition;
 import com.deokhugam.domain.poweruser.dto.response.CursorPageResponsePowerUserDto;
 import com.deokhugam.domain.poweruser.dto.response.PowerUserDto;
 import com.deokhugam.domain.poweruser.entity.PowerUser;
-import com.deokhugam.domain.poweruser.dto.PowerUserRanking;
+import com.deokhugam.domain.poweruser.exception.PowerUserNotSupportedPeriodTypeException;
 import com.deokhugam.domain.poweruser.repository.PowerUserRepository;
 import com.deokhugam.domain.user.repository.UserRepository;
+import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class PowerUserServiceImpl implements PowerUserService{
+public class PowerUserServiceImpl implements PowerUserService {
 
     private final PowerUserRepository powerUserRepository;
     private final UserRepository userRepository;
@@ -44,13 +44,13 @@ public class PowerUserServiceImpl implements PowerUserService{
         String nextCursor = null;
         Instant nextAfter = null;
 
-        if(!contents.isEmpty()){
+        if (!contents.isEmpty()) {
             PowerUserDto lastItem = contents.get(contents.size() - 1);
             nextCursor = lastItem.getCreatedAt().toString();
             nextAfter = lastItem.getCreatedAt();
         }
 
-        long totalElements = powerUserRepository.count();
+        Long totalElements = powerUserRepository.countByPeriodTypeAndCalculatedDate(condition.period());
 
         return CursorPageResponsePowerUserDto.from(
                 contents,
@@ -71,7 +71,7 @@ public class PowerUserServiceImpl implements PowerUserService{
             case MONTHLY -> validTime = time.minusMonths(1).toInstant();
             case ALL_TIME -> {
             }
-            default -> throw new IllegalArgumentException("지원하지 않는 기간 타입입니다.");
+            default -> throw new PowerUserNotSupportedPeriodTypeException(ErrorCode.POWER_USER_NOT_SUPPORTED_EXCEPTION);
         }
 
         Map<UUID, Long> userLikedCount = powerUserRepository.getUserLikedCount(validTime);
@@ -106,7 +106,7 @@ public class PowerUserServiceImpl implements PowerUserService{
                     powerUserRanking.getTotalScore(),
                     powerUserRanking.getLikedCount(),
                     powerUserRanking.getCommentCount(),
-                    powerUserRanking.getReviewScoreSum().longValue(),
+                    powerUserRanking.getReviewScoreSum(),
                     userRepository.getReferenceById(powerUserRanking.getUserId())
             );
             powerUsers.add(powerUser);
