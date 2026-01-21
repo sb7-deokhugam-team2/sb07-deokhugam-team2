@@ -29,7 +29,7 @@ storage:
   app:
     aws:
       cloud-front:
-        domain: https://d1ippd9dh5xjdt.cloudfront.net
+        domain: https://dw59cfmhle0tz.cloudfront.net
       credentials:
         AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
         AWS_SECRET_KEY: ${AWS_SECRET_KEY}
@@ -37,7 +37,7 @@ storage:
         static: ap-northeast-2
       s3:
         bucket: deokhugam-v1-deploy-bucket
-#       access-key: ${AWS_ACCESS_KEY}
+  #       access-key: ${AWS_ACCESS_KEY}
 #       secret-key: ${AWS_SECRET_KEY}
   local:
     upload-path: /Users/dev/uploads
