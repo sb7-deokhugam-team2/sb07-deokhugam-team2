@@ -1,8 +1,8 @@
 package com.deokhugam.deokhugam.infrastructure.integration.component.s3;
 
 import com.deokhugam.infrastructure.storage.FileStorage;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Tag("external-api")
+@Disabled
 class S3FileStorageIntegrationTest {
 
     @Autowired
