@@ -8,6 +8,8 @@ import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.repository.UserRepository;
 import com.deokhugam.global.config.JpaAuditingConfig;
 import com.deokhugam.global.config.QuerydslConfig;
+import jakarta.persistence.EntityManager;
+import org.iq80.leveldb.DB;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,9 @@ public class ReviewRepositoryTest {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private EntityManager em;
+
     @Test
     @DisplayName("성공: 삭제되지 않는  리뷰만 조회 가능")
     void findByIdAndIsDeletedFalse_Success() {
@@ -51,6 +56,9 @@ public class ReviewRepositoryTest {
         userRepository.save(user);
         bookRepository.save(book);
         Review savedReview = reviewRepository.save(review);
+
+        em.flush();
+        em.clear();
 
         // when
         Optional<Review> result = reviewRepository.findByIdAndIsDeletedFalse(savedReview.getId());
@@ -85,6 +93,9 @@ public class ReviewRepositoryTest {
         savedReview.delete();
         reviewRepository.save(savedReview);
 
+        em.flush();
+        em.clear();
+
         // when
         Optional<Review> result = reviewRepository.findByIdAndIsDeletedFalse(savedReview.getId());
 
@@ -112,6 +123,9 @@ public class ReviewRepositoryTest {
 
         Review review = Review.create(4.0, "리뷰 내용", book, user);
         reviewRepository.save(review);
+
+        em.flush();
+        em.clear();
 
         // when
         boolean exists = reviewRepository.existsReviewByUserIdAndBookId(user.getId(), book.getId());
