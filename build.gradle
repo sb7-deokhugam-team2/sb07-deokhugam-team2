@@ -59,18 +59,8 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform{
-        excludeTags 'external-api' //기본 테스트 시 'external-api' 태그는 실행하지 않음
-    }
+    useJUnitPlatform()
     finalizedBy jacocoTestReport
-}
-
-tasks.register('externalTest', Test) {
-    group = 'verification'
-    description = '실제 외부 API를 호출하는 통합 테스트를 실행합니다.'
-    useJUnitPlatform {
-        includeTags 'external-api'
-    }
 }
 // ./gradlew externalTest 명령어를 통해 실행 가능합니다
 
