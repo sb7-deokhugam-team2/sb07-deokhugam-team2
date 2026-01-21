@@ -1,8 +1,11 @@
 package com.deokhugam.domain.notification.entity;
 
 import com.deokhugam.domain.base.BaseUpdateEntity;
+import com.deokhugam.domain.notification.exception.NotificationReviewNullException;
+import com.deokhugam.domain.notification.exception.NotificationUserNullException;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.user.entity.User;
+import com.deokhugam.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -43,13 +46,13 @@ public class Notification extends BaseUpdateEntity {
 
     private static void validateReview(Review review) {
         if (review ==null){
-            //Exception
+            throw new NotificationReviewNullException(ErrorCode.NOTIFICATION_REVIEW_NULL_EXCEPTION);
         }
     }
 
     private static void validateUser(User user) {
         if(user ==null){
-            //Exception
+            throw new NotificationUserNullException(ErrorCode.NOTIFICATION_USER_NULL_EXCEPTION);
         }
     }
 
