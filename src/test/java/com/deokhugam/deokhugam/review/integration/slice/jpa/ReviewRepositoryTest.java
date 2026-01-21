@@ -9,7 +9,6 @@ import com.deokhugam.domain.user.repository.UserRepository;
 import com.deokhugam.global.config.JpaAuditingConfig;
 import com.deokhugam.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
-import org.iq80.leveldb.DB;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
