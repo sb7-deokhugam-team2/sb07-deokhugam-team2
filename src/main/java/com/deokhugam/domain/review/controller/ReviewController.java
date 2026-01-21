@@ -8,6 +8,7 @@ import com.deokhugam.domain.review.service.ReviewService;
 import com.deokhugam.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class ReviewController {
             @Valid @RequestBody ReviewCreateRequest reviewCreateRequest
     ) {
         ReviewDto createdReview = reviewService.createReview(reviewCreateRequest);
-        return ResponseEntity.ok(createdReview);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
     }
 
     @GetMapping("/{reviewId}")
@@ -55,7 +56,8 @@ public class ReviewController {
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @PathVariable UUID reviewId
     ) {
-        return null;
+        reviewService.softDeleteReview(reviewId, requestId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{reviewId}")
@@ -64,7 +66,8 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @Valid @RequestBody ReviewUpdateRequest reviewUpdateRequest
     ) {
-        return null;
+        ReviewDto updatedReview = reviewService.updateReview(reviewUpdateRequest, reviewId, requestId);
+        return ResponseEntity.ok(updatedReview);
     }
 
     @DeleteMapping("/{reviewId}/hard")
@@ -72,6 +75,7 @@ public class ReviewController {
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @PathVariable UUID reviewId
     ) {
-        return null;
+        reviewService.hardDeleteReview(reviewId, requestId);
+        return ResponseEntity.noContent().build();
     }
 }
