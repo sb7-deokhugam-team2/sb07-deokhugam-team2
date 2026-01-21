@@ -1,0 +1,44 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    # ECS 환경변수에서 주입받음
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver # ★ 여기가 변경됨
+    # 2. HikariCP 커넥션 풀 튜닝
+    hikari:
+      maximum-pool-size: 10      # 동시 접속자 수 고려 (RDS 스펙에 따라 조절, 보통 10~20 시작)
+      minimum-idle: 5            # 유휴 상태일 때 최소 유지할 커넥션
+      connection-timeout: 30000  # 커넥션 맺을 때 기다리는 시간 (30초)
+      max-lifetime: 1800000      # 커넥션 생존 시간 (30분, RDS wait_timeout보다 짧아야 함)
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false          # ★ 운영에선 필수! 트랜잭션 끝나면 커넥션 바로 반납
+    hibernate:
+      ddl-auto: validate         # 스키마가 코드와 일치하는지 검사만 함 (안전)
+      show_sql: false            # 쿼리 로그 끔
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100 # N+1 문제 완화 (한 번에 100개씩 로딩)
+
+#server:
+#  shutdown: graceful
+
+logging:
+  level:
+    root: info # 너무 자세한 로그는 끔
+    com.deokhugam: info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health, prometheus' # 필요한 것만 노출
+  endpoint:
+    health:
+      show-details: when_authorized # 아무나 상세 정보를 못 보게 설정
