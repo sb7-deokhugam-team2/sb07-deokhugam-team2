@@ -38,7 +38,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: 'health, prometheus' # 필요한 것만 노출
+        include: health, prometheus, metrics # 필요한 것만 노출
   endpoint:
     health:
       show-details: when_authorized # 아무나 상세 정보를 못 보게 설정
+  metrics:
+    export:
+      cloudwatch:
+        namespace: deokhugam-monitoring # CloudWatch에 표시될 이름
+        batch-size: 20
+        enabled: true # 활성화
