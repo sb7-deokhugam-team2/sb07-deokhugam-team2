@@ -2,6 +2,10 @@ spring:
   config:
     activate:
       on-profile: prod
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
 
   datasource:
     # ECS 환경변수에서 주입받음
@@ -50,3 +54,5 @@ management:
         namespace: deokhugam-monitoring # CloudWatch에 표시될 이름
         batch-size: 20
         enabled: true # 활성화
+        step: 1m
+        region: ap-northeast-2
