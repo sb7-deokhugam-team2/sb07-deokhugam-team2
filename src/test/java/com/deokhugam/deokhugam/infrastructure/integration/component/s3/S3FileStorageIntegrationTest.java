@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Tag("integration")
+@Tag("external-api")
 class S3FileStorageIntegrationTest {
 
     @Autowired
