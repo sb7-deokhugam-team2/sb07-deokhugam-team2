@@ -5,7 +5,10 @@ import com.deokhugam.domain.notification.dto.request.NotificationUpdateRequest;
 import com.deokhugam.domain.notification.dto.response.CursorPageResponseNotificationDto;
 import com.deokhugam.domain.notification.dto.response.NotificationDto;
 import com.deokhugam.domain.notification.entity.Notification;
+import com.deokhugam.domain.notification.exception.NotificationNotFoundException;
+import com.deokhugam.domain.notification.exception.NotificationReceiverMismatchException;
 import com.deokhugam.domain.notification.repository.NotificationRepository;
+import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,9 +32,10 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationDto readNotification(UUID notificationId, UUID userId, NotificationUpdateRequest notificationUpdateRequest) {
-        Notification notification = notificationRepository.findWithUserAndReview(notificationId).orElseThrow(() -> new IllegalArgumentException("수정해야 함"));
+        Notification notification = notificationRepository.findWithUserAndReview(notificationId)
+                .orElseThrow(() -> new NotificationNotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND));
         if(!notification.isOwner(userId)){
-            throw new IllegalArgumentException();
+            throw new NotificationReceiverMismatchException(ErrorCode.NOTIFICATION_RECEIVER_MISMATCH_EXCEPTION);
         }
         if (notificationUpdateRequest.confirmed()){
             notification.confirm();

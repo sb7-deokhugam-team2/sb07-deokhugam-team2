@@ -37,6 +37,10 @@ public enum ErrorCode {
     REVIEW_ACCESS_DENIED(HttpStatus.FORBIDDEN, "리뷰작성자만 수정할 수 있습니다.","R-007"),
     // Popular Review
     // Notification
+    NOTIFICATION_REVIEW_NULL_EXCEPTION(HttpStatus.BAD_REQUEST, "리뷰는 Null 일 수 없습니다.", "N-001"),
+    NOTIFICATION_USER_NULL_EXCEPTION(HttpStatus.BAD_REQUEST, "유저는 Null 일 수 없습니다.", "N-002"),
+    NOTIFICATION_RECEIVER_MISMATCH_EXCEPTION(HttpStatus.BAD_REQUEST, "알림 대상자가 아닙니다.", "N-003"),
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림 정보를 찾을 수 없습니다.", "N-004"),
     // LikedReview
     // common
     INVALID_REQUEST(HttpStatus.BAD_REQUEST,"요청이 올바르지 않습니다.", "CM-001"),
