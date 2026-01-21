@@ -145,7 +145,7 @@ class ReviewServiceImplTest {
         assertThat(result.bookId()).isEqualTo(testBookId);
         assertThat(result.rating()).isEqualTo(4.0);
         assertThat(result.content()).isEqualTo("정말 좋은 책입니다.");
-        assertThat(result.likedCount()).isEqualTo(10L);
+        assertThat(result.likeCount()).isEqualTo(10L);
 
         verify(reviewMapper).toReviewDto(mockReview,0L, false);
         verify(reviewRepository).save(any(Review.class));
