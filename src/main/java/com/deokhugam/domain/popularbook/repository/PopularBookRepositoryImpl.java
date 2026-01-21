@@ -1,10 +1,12 @@
 package com.deokhugam.domain.popularbook.repository;
 
 import com.deokhugam.domain.base.PeriodType;
+import com.deokhugam.domain.book.enums.SortDirection;
 import com.deokhugam.domain.popularbook.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookAggregationDto;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookDto;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
@@ -53,6 +55,7 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
                 .from(review)
                 .join(review.book, book) // NOTE: select 필드컬럼으로는 쓰고있지않아 필요없지만, 논리삭제 필터에 사용한 book.isDeleted.isFalse() 체크가히기위해 isDeleted 컬럼 값 사용
                 .where(
+                        review.isDeleted.isFalse(),
                         review.createdAt.lt(now),
                         review.createdAt.goe(from),
                         book.isDeleted.isFalse()
@@ -99,9 +102,13 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
                 .join(popularBook.book, book)
                 .where(
                         popularBook.periodType.eq(periodType),
-                        popularBook.calculatedDate.eq(latestCalculatedDateSubquery)
+                        popularBook.calculatedDate.eq(latestCalculatedDateSubquery),
+                        cursorWherePredicate(condition)
                 )
-                .orderBy(popularBook.rank.asc())
+                .orderBy(
+                        condition.direction() == SortDirection.ASC ? popularBook.rank.asc() : popularBook.rank.desc(),
+                        condition.direction() == SortDirection.ASC ? popularBook.createdAt.asc() : popularBook.createdAt.desc()
+                )
                 .limit(size + 1)
                 .fetch();
 
@@ -124,7 +131,26 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
         return new PageImpl<>(popularBookDtoList, pageable, total);
     }
 
-    private static Instant calculateFrom(Instant now, PeriodType periodType) {
+    private BooleanExpression cursorWherePredicate(PopularBookSearchCondition condition) {
+        String cursor = condition.cursor();
+        Instant after = condition.after();
+        if (condition.cursor() == null || condition.after() == null) return null;
+
+        boolean isDirectionAsc = condition.direction() == SortDirection.ASC;
+
+        return isDirectionAsc ?
+                popularBook.rank.gt(Long.valueOf(cursor))
+                        .or(
+                                popularBook.rank.eq(Long.valueOf(cursor)).and(popularBook.createdAt.gt(after))
+                        )
+                :
+                popularBook.rank.lt(Long.valueOf(cursor))
+                        .or(
+                                popularBook.rank.eq(Long.valueOf(cursor)).and(popularBook.createdAt.lt(after))
+                        );
+    }
+
+    private Instant calculateFrom(Instant now, PeriodType periodType) {
         return switch (periodType) {
             case DAILY -> now.minus(1, ChronoUnit.DAYS);
             case WEEKLY -> now.minus(7, ChronoUnit.DAYS);
