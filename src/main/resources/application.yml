@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: deokhugam-v1
   profiles:
     active: local
   jpa:
@@ -15,6 +17,8 @@ spring:
           time_zone: UTC
           batch_size: 50
     open-in-view: false
+
+  #파일 업로드 제한
   servlet:
     multipart:
       max-file-size: 10MB
@@ -37,8 +41,6 @@ storage:
         static: ap-northeast-2
       s3:
         bucket: deokhugam-v1-deploy-bucket
-  #       access-key: ${AWS_ACCESS_KEY}
-#       secret-key: ${AWS_SECRET_KEY}
   local:
     upload-path: /Users/dev/uploads
 
@@ -51,3 +53,15 @@ api:
     search: https://openapi.naver.com/v1/search/book.json
   ocr:
     key: ${OCR_API_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
