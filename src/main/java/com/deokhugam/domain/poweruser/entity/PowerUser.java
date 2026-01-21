@@ -43,4 +43,40 @@ public class PowerUser extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    private PowerUser(PeriodType periodType,
+                      Instant calculatedDate,
+                      Long rank,
+                      Double score,
+                      Long likedCount,
+                      Long commentCount,
+                      Double reviewScoreSum,
+                      User user) {
+        this.periodType = periodType;
+        this.calculatedDate = calculatedDate;
+        this.rank = rank;
+        this.score = score;
+        this.likedCount = likedCount;
+        this.commentCount = commentCount;
+        this.reviewScoreSum = reviewScoreSum;
+        this.user = user;
+    }
+
+    public static PowerUser create(PeriodType periodType,
+                                   Instant calculatedDate,
+                                   Long rank,
+                                   Double score,
+                                   Long likedCount,
+                                   Long commentCount,
+                                   Double reviewScoreSum,
+                                   User user) {
+        return new PowerUser(periodType,
+                calculatedDate,
+                rank,
+                score,
+                likedCount,
+                commentCount,
+                reviewScoreSum,
+                user);
+    }
 }
