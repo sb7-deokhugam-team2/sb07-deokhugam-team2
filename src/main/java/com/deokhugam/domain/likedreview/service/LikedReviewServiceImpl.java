@@ -38,10 +38,10 @@ public class LikedReviewServiceImpl implements LikedReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        Optional<LikedReview> opt = likedReviewRepository.findByReviewIdAndUserId(reviewId, userId);
+        Optional<LikedReview> existingLike = likedReviewRepository.findByReviewIdAndUserId(reviewId, userId);
 
-        if (opt.isPresent()) {
-            return toggleExisting(opt.get(), reviewId, userId);
+        if (existingLike.isPresent()) {
+            return toggleExisting(existingLike.get(), reviewId, userId);
         }
 
         try {
@@ -61,16 +61,16 @@ public class LikedReviewServiceImpl implements LikedReviewService {
         boolean before = likedReview.isLiked();
         boolean after = likedReview.toggle();
 
-        long delta = 0;
+        long likedCountDelta = 0;
         if (!before && after) {
-            delta = delta + 1;
+            likedCountDelta = likedCountDelta + 1;
         }
         else if (before && !after) {
-            delta = delta - 1;
+            likedCountDelta = likedCountDelta - 1;
         }
 
-        if (delta != 0) {
-            reviewRepository.addLikedCount(reviewId,delta);
+        if (likedCountDelta != 0) {
+            reviewRepository.addLikedCount(reviewId,likedCountDelta);
         }
 
         return new LikedReviewDto(reviewId,userId,after);
