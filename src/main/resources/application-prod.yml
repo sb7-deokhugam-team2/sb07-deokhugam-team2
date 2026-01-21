@@ -37,8 +37,6 @@ logging:
   level:
     root: info # 너무 자세한 로그는 끔
     com.deokhugam: info
-    io.micrometer.cloudwatch: DEBUG
-    software.amazon.awssdk: DEBUG
 
 management:
   endpoints:
