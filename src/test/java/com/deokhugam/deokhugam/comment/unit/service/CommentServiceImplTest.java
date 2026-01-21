@@ -12,6 +12,7 @@ import com.deokhugam.domain.comment.exception.CommentUnauthorizedException;
 import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
 import com.deokhugam.domain.comment.service.CommentServiceImpl;
+import com.deokhugam.domain.notification.service.NotificationCreator;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.repository.ReviewRepository;
@@ -54,6 +55,8 @@ public class CommentServiceImplTest {
     ReviewRepository reviewRepository;
     @Mock
     CommentQueryRepository commentQueryRepository;
+    @Mock
+    NotificationCreator notificationCreator;
 
     @InjectMocks
     CommentServiceImpl commentService;
@@ -111,18 +114,20 @@ public class CommentServiceImplTest {
         User user = User.create("test@gmail.com", "test123", "12345678a!");
         Book book = Book.create("title", "author", "800", LocalDate.now(), "publisher", "", "description");
         Review review = Review.create(5.0, "content", book, user);
-        UUID userId = UUID.randomUUID();
-        UUID reviewId = UUID.randomUUID();
-        CommentCreateRequest commentCreateRequest = new CommentCreateRequest(reviewId, userId, "와!");
+        CommentCreateRequest commentCreateRequest = new CommentCreateRequest(UUID.randomUUID(), UUID.randomUUID(), "와!");
 
         when(userRepository.findById(commentCreateRequest.userId())).thenReturn(Optional.of(user));
         when(reviewRepository.findById(commentCreateRequest.reviewId())).thenReturn(Optional.of(review));
+
+        Comment comment = Comment.create(commentCreateRequest.content(), user, review);
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
 
         //when
         CommentDto commentDto = commentService.createComment(commentCreateRequest);
 
         //then
         assertThat(commentDto).isNotNull();
+        verify(notificationCreator, times(1)).createNotification(any(Comment.class));
     }
 
     @Test

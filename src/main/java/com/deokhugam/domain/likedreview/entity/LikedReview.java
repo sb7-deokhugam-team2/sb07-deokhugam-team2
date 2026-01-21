@@ -27,4 +27,26 @@ public class LikedReview extends BaseUpdateEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    private LikedReview(Review review, User user) {
+        this.review = review;
+        this.user = user;
+    }
+
+    public static LikedReview create(Review review, User user) {
+        return new LikedReview(review, user);
+    }
+
+    public boolean toggle() {
+        this.liked = !this.liked;
+        return this.liked;
+    }
+
+    public void like() {
+        this.liked = true;
+    }
+
+    public void unlike() {
+        this.liked = false;
+    }
 }
