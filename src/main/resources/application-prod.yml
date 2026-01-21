@@ -20,7 +20,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false          # ★ 운영에선 필수! 트랜잭션 끝나면 커넥션 바로 반납
     hibernate:
-      ddl-auto: validate         # 스키마가 코드와 일치하는지 검사만 함 (안전)
+      ddl-auto: update         # 스키마가 코드와 일치하는지 검사만 함 (안전)
       show_sql: false            # 쿼리 로그 끔
     properties:
       hibernate:
