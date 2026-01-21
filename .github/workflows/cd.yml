@@ -3,7 +3,7 @@ name: Deploy to Amazon ECS
 on:
   push:
     branches:
-      - feature/book-refactor-sungyeon  # 브랜치 이름 확인 (master면 master로 수정)
+      - feature/common-deploy-v1  # 브랜치 이름 확인 (master면 master로 수정)
 
 env:
   AWS_REGION: ap-northeast-2
