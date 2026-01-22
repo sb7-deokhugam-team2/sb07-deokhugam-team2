@@ -1,5 +1,6 @@
 package com.deokhugam.domain.review.controller;
 
+import com.deokhugam.domain.review.controller.docs.ReviewControllerDocs;
 import com.deokhugam.domain.review.dto.request.*;
 import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
-public class ReviewController {
+public class ReviewController implements ReviewControllerDocs {
     private final ReviewService reviewService;
 
     @GetMapping
