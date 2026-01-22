@@ -39,13 +39,14 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
     @Override
     public List<PowerUser> searchPowerUsers(PowerUserSearchCondition condition) {
 
-        Instant startOfDay = getLatestInstant(condition.period());
-
         return queryFactory
                 .selectFrom(powerUser)
                 .join(powerUser.user, user).fetchJoin()
                 .where(
-                        calculateDateGoe(startOfDay),
+                        powerUser.calculatedDate.eq(
+                                JPAExpressions.select(powerUser.calculatedDate.max())
+                                        .from(powerUser)
+                                        .where(powerUser.periodType.eq(condition.period()))),
                         powerUser.periodType.eq(condition.period()),
                         cursorCondition(condition.cursor(), condition.direction()),
                         afterCondition(condition.after(), condition.direction())
@@ -53,11 +54,6 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 .orderBy(direction(condition.direction()))
                 .limit(condition.limit()+1)
                 .fetch();
-    }
-
-    private BooleanExpression calculateDateGoe(Instant startOfDay) {
-        if (startOfDay==null)return null;
-        return powerUser.calculatedDate.goe(startOfDay);
     }
 
     private OrderSpecifier<?>[] direction(PowerUserDirection direction) {
@@ -164,30 +160,17 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
 
     @Override
     public Long countByPeriodTypeAndCalculatedDate(PeriodType periodType) {
-        Instant latestInstant = getLatestInstant(periodType);
-        if (latestInstant == null) {
-            return 0L;
-        }
-
         Long result = queryFactory
                 .select(powerUser.count())
                 .from(powerUser)
                 .where(
-                        calculateDateGoe(latestInstant),
+                        powerUser.calculatedDate.eq(
+                                JPAExpressions.select(powerUser.calculatedDate.max())
+                                        .from(powerUser)
+                                        .where(powerUser.periodType.eq(periodType))),
                         powerUser.periodType.eq(periodType)
                 )
                 .fetchOne();
         return result != null ? result : 0L;
-    }
-
-    private Instant getLatestInstant(PeriodType periodType) {
-        Instant latestInstant = queryFactory
-                .select(powerUser.calculatedDate.max())
-                .from(powerUser)
-                .where(powerUser.periodType.eq(periodType))
-                .fetchOne();
-        if (latestInstant == null) return null;
-        ZonedDateTime startOfDay = latestInstant.atZone(ZoneId.systemDefault()).truncatedTo(ChronoUnit.DAYS);
-        return startOfDay.toInstant();
     }
 }
