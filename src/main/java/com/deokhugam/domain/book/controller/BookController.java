@@ -1,65 +1,117 @@
 package com.deokhugam.domain.book.controller;
 
+import com.deokhugam.domain.book.controller.docs.BookControllerDocs;
+import com.deokhugam.domain.book.dto.request.BookCreateRequest;
+import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.service.BookService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/books")
 @RequiredArgsConstructor
-public class BookController {
+public class BookController implements BookControllerDocs {
 
     private final BookService bookService;
 
     @GetMapping
-    public ResponseEntity<CursorPageResponseBookDto> getAllBooks() {  // TODO: 키워드 목록 조회 추후 추가
-        return null;
+    @Override
+    public ResponseEntity<CursorPageResponseBookDto> getAllBooks(
+            BookSearchCondition searchCondition
+    ) {
+        log.debug("도서 목록 조회 요청 - bookId={}, keyword={}, orderBy={}, direction={}, limit={}, cursor={}, after={}",
+                searchCondition.keyword(),
+                searchCondition.orderBy(),
+                searchCondition.direction(),
+                searchCondition.limit(),
+                searchCondition.cursor(),
+                searchCondition.after());
+        CursorPageResponseBookDto cursorPageResponseBookDto = bookService.searchBooks(searchCondition);
+        return ResponseEntity.ok(cursorPageResponseBookDto);
     }
 
     @GetMapping("/{bookId}")
+    @Override
     public ResponseEntity<BookDto> getBookById(@PathVariable UUID bookId) {
+        log.debug("도서 단일 조회 요청 - bookId={}", bookId);
         BookDto bookDetail = bookService.getBookDetail(bookId);
         return ResponseEntity.ok(bookDetail);
     }
 
+    @PostMapping("/isbn/ocr")
+    @Override
+    public ResponseEntity<String> getIsbnByImage(
+            @RequestPart(value = "image") MultipartFile barcode) {
+        log.info("ISBN OCR 요청 - FileName: {}, Size: {}", barcode.getOriginalFilename(), barcode.getSize());
+        String isbn = bookService.extractIsbnFromImage(barcode);
+        log.info("ISBN OCR 추출 성공 - ISBN: {}", isbn);
+        return ResponseEntity.ok(isbn);
+    }
+
     @GetMapping("/info")
+    @Override
     public ResponseEntity<NaverBookDto> getBookInfoByIsbn(@RequestParam String isbn) {
-        return null;
+        log.info("네이버 도서 정보 조회 요청 - ISBN: {}", isbn);
+        NaverBookDto bookInfo = bookService.getBookByIsbn(isbn);
+        log.debug("네이버 도서 정보 조회 완료 - Title: {}", bookInfo.title());
+        return ResponseEntity.ok(bookInfo);
     }
 
     @PostMapping()
+    @Override
     public ResponseEntity<BookDto> createBook(
-            @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
+            @RequestPart(value = "bookData") BookCreateRequest createRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
-        return null;
+        String fileName = (thumbnail != null) ? thumbnail.getOriginalFilename() : "NONE";
+        log.info("도서 생성 요청 - Title: {}, ISBN: {}, Thumbnail: {}", createRequest.title(), createRequest.isbn(), fileName);
+
+        BookDto dto = bookService.createBook(createRequest, thumbnail);
+
+        log.info("도서 생성 완료 - Generated ID: {}", dto.id());
+        return ResponseEntity.status(201).body(dto);
     }
 
     @PatchMapping("/{bookId}")
+    @Override
     public ResponseEntity<BookDto> updateBook(
             @PathVariable UUID bookId,
             @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
-        return null;
+        String fileName = (thumbnail != null) ? thumbnail.getOriginalFilename() : "NONE";
+        log.info("도서 수정 요청 - ID: {}, Title: {}, ThumbnailChange: {}", bookId, updateRequest.title(), fileName);
+
+        BookDto dto = bookService.updateBook(bookId, updateRequest, thumbnail);
+
+        log.info("도서 수정 완료 - ID: {}", dto.id());
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> deleteBook(@PathVariable String bookId) {
-        return null;
+    @Override
+    public ResponseEntity<Void> deleteBook(@PathVariable UUID bookId) {
+        log.debug("도서 논리 삭제 요청 - bookId={}", bookId);
+        bookService.softDeleteBook(bookId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/hard/{bookId}")
-    public ResponseEntity<Void> physicalDeleteBook(@PathVariable UUID bookId) {
-        return null;
+    @Override
+    public ResponseEntity<Void> hardDeleteBook(@PathVariable UUID bookId) {
+        log.debug("도서 물리 삭제 요청 - bookId={}", bookId);
+        bookService.hardDeleteBook(bookId);
+        return ResponseEntity.noContent().build();
     }
 
 

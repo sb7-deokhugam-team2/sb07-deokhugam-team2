@@ -1,5 +1,6 @@
 package com.deokhugam.domain.user.controller;
 
+import com.deokhugam.domain.user.controller.docs.UserControllerDocs;
 import com.deokhugam.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.domain.user.dto.request.UserUpdateRequest;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
-public class UserController {
+public class UserController implements UserControllerDocs {
 
     private final UserService userService;
 

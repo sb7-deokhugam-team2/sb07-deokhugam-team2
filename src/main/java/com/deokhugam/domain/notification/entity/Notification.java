@@ -1,14 +1,19 @@
 package com.deokhugam.domain.notification.entity;
 
 import com.deokhugam.domain.base.BaseUpdateEntity;
+import com.deokhugam.domain.notification.exception.NotificationReviewNullException;
+import com.deokhugam.domain.notification.exception.NotificationUserNullException;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.user.entity.User;
+import com.deokhugam.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -30,4 +35,40 @@ public class Notification extends BaseUpdateEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    private Notification(String content, Review review, User user) {
+        validateUser(user);
+        validateReview(review);
+        this.content = content;
+        this.review = review;
+        this.user = user;
+    }
+
+    private static void validateReview(Review review) {
+        if (review ==null){
+            throw new NotificationReviewNullException(ErrorCode.NOTIFICATION_REVIEW_NULL_EXCEPTION);
+        }
+    }
+
+    private static void validateUser(User user) {
+        if(user ==null){
+            throw new NotificationUserNullException(ErrorCode.NOTIFICATION_USER_NULL_EXCEPTION);
+        }
+    }
+
+    public static Notification create(String content, Review review, User user){
+        return new Notification(content, review, user);
+    }
+
+    public void confirm(){
+        this.confirmed=true;
+    }
+
+    public void unConfirm(){
+        this.confirmed=false;
+    }
+
+    public boolean isOwner(UUID userId){
+        return this.user.getId().equals(userId);
+    }
 }

@@ -9,8 +9,11 @@ spring:
         default_batch_fetch_size: 50
         type:
           preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
+        order_inserts: true
+        order_updates: true
         jdbc:
           time_zone: UTC
+          batch_size: 50
     open-in-view: false
   servlet:
     multipart:
@@ -21,12 +24,30 @@ logging:
   level:
     root: info
 
-app:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+storage:
+  type: s3
+  app:
+    aws:
+      cloud-front:
+        domain: https://d1ippd9dh5xjdt.cloudfront.net
+      credentials:
+        AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+        AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       region:
         static: ap-northeast-2
       s3:
-        bucket: deokhugam-test-bucket
+        bucket: deokhugam-v1-deploy-bucket
+#       access-key: ${AWS_ACCESS_KEY}
+#       secret-key: ${AWS_SECRET_KEY}
+  local:
+    upload-path: /Users/dev/uploads
+
+api:
+  naver:
+   client:
+    ID: ${NAVER_CLIENT_ID}
+    SECRET: ${NAVER_CLIENT_SECRET}
+   url:
+    search: https://openapi.naver.com/v1/search/book.json
+  ocr:
+    key: ${OCR_API_KEY}

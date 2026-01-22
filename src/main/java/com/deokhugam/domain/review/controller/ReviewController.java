@@ -1,65 +1,54 @@
 package com.deokhugam.domain.review.controller;
 
+import com.deokhugam.domain.review.controller.docs.ReviewControllerDocs;
 import com.deokhugam.domain.review.dto.request.*;
 import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
+import com.deokhugam.domain.review.exception.ReviewNotEqualException;
 import com.deokhugam.domain.review.service.ReviewService;
+import com.deokhugam.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
-import java.time.Instant;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
-public class ReviewController {
+public class ReviewController implements ReviewControllerDocs {
     private final ReviewService reviewService;
 
     @GetMapping
     public ResponseEntity<ReviewPageResponseDto> getList(
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
-            @RequestParam(required = false) UUID userId,
-            @RequestParam(required = false) UUID bookId,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "createdAt") String orderBy,
-            @RequestParam(defaultValue = "DESC") String direction,
-            @RequestParam(required = false) String cursor,
-            @RequestParam(required = false) Instant after,
-            @RequestParam(defaultValue = "50") Integer limit,
+            @Valid @ModelAttribute ReviewSearchCondition condition,
+            @Valid @ModelAttribute CursorPageRequest pageRequest,
             @RequestParam(name = "requestUserId") UUID requestUserId
     ) {
-        // TODO: Custom예외 적용 필요
         if (!requestId.equals(requestUserId)) {
-            throw new IllegalArgumentException("요청자의 ID가 다릅니다.");
+            throw new ReviewNotEqualException(ErrorCode.REVIEW_ID_NOT_EQUAL);
         }
-        ReviewOrderBy parsedOrderBy = ReviewOrderBy.from(orderBy);
-        SortDirection parsedDirection = SortDirection.valueOf(direction);
-
-        ReviewSearchCondition condition = new ReviewSearchCondition(userId, bookId, keyword);
-        CursorPageRequest pageRequest = new CursorPageRequest(
-                parsedOrderBy, parsedDirection, cursor, after, limit);
 
         return ResponseEntity.ok(reviewService.searchReviews(condition, pageRequest, requestId));
     }
 
     @PostMapping
     public ResponseEntity<ReviewDto> create(
-            @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @Valid @RequestBody ReviewCreateRequest reviewCreateRequest
     ) {
-        return null;
+        ReviewDto createdReview = reviewService.createReview(reviewCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
     }
 
     @GetMapping("/{reviewId}")
     public ResponseEntity<ReviewDto> get(
-            @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
             @PathVariable UUID reviewId
     ) {
-        return null;
+        return ResponseEntity.ok(reviewService.getReview(requestUserId, reviewId));
 
     }
 
@@ -68,7 +57,8 @@ public class ReviewController {
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @PathVariable UUID reviewId
     ) {
-        return null;
+        reviewService.softDeleteReview(reviewId, requestId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{reviewId}")
@@ -77,7 +67,8 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @Valid @RequestBody ReviewUpdateRequest reviewUpdateRequest
     ) {
-        return null;
+        ReviewDto updatedReview = reviewService.updateReview(reviewUpdateRequest, reviewId, requestId);
+        return ResponseEntity.ok(updatedReview);
     }
 
     @DeleteMapping("/{reviewId}/hard")
@@ -85,6 +76,7 @@ public class ReviewController {
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestId,
             @PathVariable UUID reviewId
     ) {
-        return null;
+        reviewService.hardDeleteReview(reviewId, requestId);
+        return ResponseEntity.noContent().build();
     }
 }

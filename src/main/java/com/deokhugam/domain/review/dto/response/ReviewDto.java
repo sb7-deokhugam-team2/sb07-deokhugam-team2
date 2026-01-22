@@ -12,8 +12,8 @@ public record ReviewDto(
         Double rating,
         String userNickname,
         String content,
-        Long likedCount,
-        Integer commentCount,
+        Long likeCount,
+        Long commentCount,
         Boolean likedByMe,
         Instant createdAt,
         Instant updatedAt

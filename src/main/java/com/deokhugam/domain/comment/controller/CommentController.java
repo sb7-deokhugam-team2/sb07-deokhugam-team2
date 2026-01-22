@@ -1,5 +1,6 @@
 package com.deokhugam.domain.comment.controller;
 
+import com.deokhugam.domain.comment.controller.docs.CommentControllerDocs;
 import com.deokhugam.domain.comment.dto.request.CommentCreateRequest;
 import com.deokhugam.domain.comment.dto.request.CommentSearchCondition;
 import com.deokhugam.domain.comment.dto.request.CommentUpdateRequest;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/comments")
 @RequiredArgsConstructor
-public class CommentController {
+public class CommentController implements CommentControllerDocs {
 
     private final CommentService commentService;
 
@@ -25,7 +26,9 @@ public class CommentController {
     public ResponseEntity<CursorPageResponseCommentDto> getComments(
             @Valid @ModelAttribute CommentSearchCondition commentSearchCondition
     ){
-        return null;
+        CursorPageResponseCommentDto cursorPageResponseCommentDto
+                = commentService.findContents(commentSearchCondition);
+        return ResponseEntity.ok().body(cursorPageResponseCommentDto);
     }
 
     @PostMapping
@@ -47,7 +50,7 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> logicalDelete(
             @PathVariable UUID commentId,
-            @RequestHeader(value = "Deokhugam-Request-Id") UUID userId
+            @RequestHeader(value = "Deokhugam-Request-User-Id") UUID userId
     ){
         commentService.logicalDelete(commentId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -56,7 +59,7 @@ public class CommentController {
     @PatchMapping("/{commentId}")
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable UUID commentId,
-            @RequestHeader(value = "Deokhugam-Request-Id") UUID userId,
+            @RequestHeader(value = "Deokhugam-Request-User-Id") UUID userId,
             @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
     ){
         CommentDto commentDto = commentService.updateComment(commentId, userId, commentUpdateRequest);
@@ -66,7 +69,7 @@ public class CommentController {
     @DeleteMapping("/{commentId}/hard")
     public ResponseEntity<Void> physicalDelete(
             @PathVariable UUID commentId,
-            @RequestHeader(value = "Deokhugam-Request-Id") UUID userId
+            @RequestHeader(value = "Deokhugam-Request-User-Id") UUID userId
     ){
         commentService.physicalDelete(commentId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

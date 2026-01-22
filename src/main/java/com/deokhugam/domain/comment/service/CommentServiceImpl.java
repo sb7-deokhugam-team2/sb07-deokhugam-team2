@@ -10,7 +10,10 @@ import com.deokhugam.domain.comment.exception.CommentNotFound;
 import com.deokhugam.domain.comment.exception.CommentUnauthorizedException;
 import com.deokhugam.domain.comment.repository.CommentQueryRepository;
 import com.deokhugam.domain.comment.repository.CommentRepository;
+import com.deokhugam.domain.notification.controller.NotificationController;
+import com.deokhugam.domain.notification.service.NotificationCreator;
 import com.deokhugam.domain.review.entity.Review;
+import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.exception.UserNotFoundException;
@@ -35,6 +38,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
     private final CommentQueryRepository commentQueryRepository;
+    private final NotificationCreator notificationCreator;
 
     @Override
     @Transactional(readOnly = true)
@@ -42,7 +46,7 @@ public class CommentServiceImpl implements CommentService {
         List<CommentDto> contents = commentRepository.searchComments(commentSearchCondition)
                 .stream()
                 .map(CommentDto::from)
-                .collect(Collectors.toList());//20 -> 21 : hasNext=true
+                .collect(Collectors.toList());
 
         boolean hasNext = contents.size() > commentSearchCondition.limit();
         if (contents.size() > commentSearchCondition.limit()) {
@@ -76,15 +80,15 @@ public class CommentServiceImpl implements CommentService {
         User userId = userRepository.findById(commentCreateRequest.userId())
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
         Review reviewId = reviewRepository.findById(commentCreateRequest.reviewId())
-                .orElseThrow(() -> new EntityNotFoundException("요청한 리뷰 정보를 찾을 수 없습니다.")); //TODO: customError작성
+                .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         Comment comment = Comment.create(
                 commentCreateRequest.content(),
                 userId,
                 reviewId
         );
-        commentRepository.save(comment);
-
+        Comment save = commentRepository.save(comment);
+        notificationCreator.createNotification(save);
         return CommentDto.from(comment);
     }
 

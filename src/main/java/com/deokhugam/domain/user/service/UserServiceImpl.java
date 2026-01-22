@@ -47,6 +47,10 @@ public class UserServiceImpl implements UserService{
         User user = userRepository.findByEmail(userLoginRequest.email())
                 .orElseThrow(() -> new UserEmailNotExistsException(ErrorCode.USER_EMAIL_NOT_EXISTS));
 
+        if(user.isDeleted()){
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
+
         if(!user.getPassword().equals(userLoginRequest.password())){
             throw new UserPasswordException(ErrorCode.USER_PASSWORD_NOT_EQUAL);
         }
@@ -59,6 +63,10 @@ public class UserServiceImpl implements UserService{
     public UserDto findUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        if(user.isDeleted()){
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
         return UserDto.from(user);
     }
 

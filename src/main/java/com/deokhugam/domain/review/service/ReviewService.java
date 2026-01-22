@@ -7,21 +7,19 @@ import com.deokhugam.domain.review.dto.request.ReviewUpdateRequest;
 import com.deokhugam.domain.review.dto.response.ReviewDto;
 import com.deokhugam.domain.review.dto.response.ReviewPageResponseDto;
 
-import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.UUID;
 
 public interface ReviewService {
 
-    ReviewDto createReview(ReviewCreateRequest reviewCreateRequest, UUID requestUserId);
+    ReviewDto createReview(ReviewCreateRequest reviewCreateRequest);
 
-    ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID requestReviewId);
+    ReviewDto updateReview(ReviewUpdateRequest reviewUpdateRequest, UUID requestUserId, UUID reviewId);
 
-    ReviewDto getReview(UUID userId, UUID reviewId);
+    ReviewDto getReview(UUID requestUserId, UUID reviewId);
 
-    void softDelete(UUID reviewId,UUID userId);
+    void softDeleteReview(UUID reviewId, UUID requestUserId);
 
-    void hardDelete(UUID reviewId);
+    void hardDeleteReview(UUID reviewId, UUID requestUserId);
 
     ReviewPageResponseDto searchReviews(ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId);
 

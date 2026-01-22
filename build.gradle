@@ -43,6 +43,7 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
+    testImplementation 'io.findify:s3mock_2.13:0.2.6'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Swagger UI
@@ -59,11 +60,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-test {
     finalizedBy jacocoTestReport
 }
+// ./gradlew externalTest 명령어를 통해 실행 가능합니다
 
 jacoco {
     toolVersion = "0.8.8" // 버전 명시

@@ -16,7 +16,6 @@ import static com.deokhugam.domain.user.entity.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CommentQueryRepository {
 
     private final JPAQueryFactory queryFactory;
@@ -34,7 +33,10 @@ public class CommentQueryRepository {
                         comment.updatedAt
                 ))
                 .from(comment)
-                .where(comment.id.eq(commentId))
+                .where(
+                        comment.isDeleted.isFalse(),
+                        comment.id.eq(commentId)
+                )
                 .join(comment.review, review)
                 .join(comment.user, user)
                 .fetchOne();

@@ -6,6 +6,12 @@ on:
       - main
       - develop
 
+env:
+  AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}}
+  AWS_SECRET_KEY: ${{secrets.AWS_SECRET_KEY}}
+  NAVER_CLIENT_ID: ${{secrets.NAVER_CLIENT_ID}}
+  NAVER_CLIENT_SECRET: ${{secrets.NAVER_CLIENT_SECRET}}
+  OCR_API_KEY: ${{secrets.OCR_API_KEY}}
 jobs:
   ci:
     name: Run Tests
@@ -22,3 +28,10 @@ jobs:
 
       - name: Test + JaCoCo report
         run: ./gradlew test jacocoTestReport
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+

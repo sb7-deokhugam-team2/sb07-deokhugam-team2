@@ -50,4 +50,20 @@ public class Book extends BaseDeletableEntity {
         return new Book(title, author, isbn, publishedDate, publisher, thumbnailUrl, description);
     }
 
+    public void update(String title, String author, LocalDate publishedDate,
+                       String publisher, String description, String thumbnailUrl){
+        this.title = title;
+        this.author = author;
+        this.publishedDate = publishedDate;
+        this.publisher = publisher;
+        this.description = description;
+        if (thumbnailUrl != null) {
+            this.thumbnailUrl = thumbnailUrl;
+        }
+    }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
 }

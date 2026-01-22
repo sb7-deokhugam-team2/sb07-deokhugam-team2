@@ -8,8 +8,12 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -25,12 +29,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDeokhugamException(DeokhugamException e) {
         log.error("[DeokhugamException] = {}", e.getMessage());
         ErrorCode code = e.getErrorCode();
+        Map<String, Object> details = e.getDetails() != null ? e.getDetails() : Map.of("reason", e.getMessage());
         return ResponseEntity.status(code.getStatus())
                 .body(new ErrorResponse(
                         Instant.now(),
                         code.getCode(),
                         code.getMessage(),
-                        Map.of("reason", e.getMessage()),
+                        details,
                         e.getClass().getSimpleName(),
                         code.getStatus().value()
                 ));
@@ -89,6 +94,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException e) {
         log.error("[MissingRequestHeaderException] = {}", e.getMessage());
+        ErrorCode code = ErrorCode.INVALID_REQUEST;
+        return ResponseEntity.status(code.getStatus())
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        code.getCode(),
+                        code.getMessage(),
+                        Map.of("reason", e.getMessage()),
+                        e.getClass().getSimpleName(),
+                        code.getStatus().value()
+                ));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMisMatchException(MethodArgumentTypeMismatchException e) {
+        log.error("[MethodArgumentTypeMismatchException] = {}", e.getMessage());
         ErrorCode code = ErrorCode.INVALID_REQUEST;
         return ResponseEntity.status(code.getStatus())
                 .body(new ErrorResponse(
@@ -163,4 +183,37 @@ public class GlobalExceptionHandler {
                         )
                 );
     }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+        log.error("필수 파트 누락: {}", e.getRequestPartName());
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(Instant.now(),
+                        errorCode.getCode(),
+                        errorCode.getMessage(),
+                        Map.of(),
+                        e.getRequestPartName(),
+                        errorCode.getStatus().value()
+                ));
+    }
+    // TODO: 26. 1. 19. 임시 Multipart Error처리 구현 관련 내용 회의 필요
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        log.warn("필수 쿼리 파라미터 누락: {}", e.getParameterName());
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(Instant.now(),
+                        errorCode.getCode(),
+                        errorCode.getMessage(),
+                        Map.of(),
+                        e.getParameterType(),
+                        errorCode.getStatus().value()
+                        ));
+    }
+
+
 }
