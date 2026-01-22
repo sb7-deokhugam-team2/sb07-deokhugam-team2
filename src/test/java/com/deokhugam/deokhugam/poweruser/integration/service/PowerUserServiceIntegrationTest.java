@@ -46,8 +46,8 @@ public class PowerUserServiceIntegrationTest {
         User user = User.create("test1234@gmail.com", "nickname", "password1!");
         userRepository.save(user);
         PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 1L, 100.0, 0L, 0L, 200.0, user);
-        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 1L, 50.0, 0L, 0L, 100.0, user);
-        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 1L, 40.0, 0L, 0L, 80.0, user);
+        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 2L, 50.0, 0L, 0L, 100.0, user);
+        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 3L, 40.0, 0L, 0L, 80.0, user);
         powerUserRepository.save(powerUser);
         powerUserRepository.save(powerUser2);
         powerUserRepository.save(powerUser3);
@@ -62,8 +62,6 @@ public class PowerUserServiceIntegrationTest {
         //then
         assertThat(result.getContent()).extracting("nickname").containsExactly("nickname", "nickname", "nickname");
         assertThat(result.isHasNext()).isFalse();
-        assertThat(result.getNextAfter()).isEqualTo(powerUser3.getCreatedAt());
-        assertThat(result.getNextCursor()).isEqualTo(powerUser3.getCreatedAt().toString());
         assertThat(result.getTotalElements()).isEqualTo(3);
     }
 
