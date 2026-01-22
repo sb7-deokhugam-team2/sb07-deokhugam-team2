@@ -3,6 +3,7 @@ package com.deokhugam.domain.book.repository;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.enums.SortDirection;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -68,7 +69,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     }
 
     @Override
-    public Page<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
+    public CursorResult<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
         int size = pageable.getPageSize();
         Instant after = condition.after();
 
@@ -160,7 +161,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
         long total = allMatchedIds.size();
 
-        return new PageImpl<>(bookDtos, pageable, total);
+        return new CursorResult<>(bookDtos, hasNext, total);
     }
 
     private BooleanExpression keywordPredicate(String keyword) {
