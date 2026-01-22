@@ -22,6 +22,7 @@ import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.repository.UserRepository;
 import com.deokhugam.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -43,41 +45,37 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewDto createReview(ReviewCreateRequest request) {
+        log.info("리뷰 생성 시작 - UserId: {}, BookId: {}", request.userId(), request.bookId());
 
-        // Book 엔티티 조회
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new IllegalArgumentException("Book not found"));
 
-        // User 엔티티 조회
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 도서별 하나의 활성 리뷰만 등록 가능
-        if(reviewRepository.existsReviewByUserIdAndBookId(request.userId(), request.bookId())) {
+        if (reviewRepository.existsReviewByUserIdAndBookId(request.userId(), request.bookId())) {
             throw new ReviewAlreadyExistsException(ErrorCode.REVIEW_ALREADY_EXISTS);
         }
 
-        // Review 객체 생성 후 저장
         Review review = Review.create(request.rating(), request.content(), book, user);
         review = reviewRepository.save(review);
 
+        log.info("리뷰 생성 완료 - UserId: {}, ReviewId: {}", request.userId(), review.getId());
         return reviewMapper.toReviewDto(review, 0L, false);
-
     }
 
     @Override
     public ReviewDto updateReview(ReviewUpdateRequest request, UUID requestUserId, UUID reviewId) {
+        log.info("리뷰 수정 시작 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        // 논리 삭제된 리뷰는 수정 불가
         if (review.isDeleted()) {
             throw new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
         }
 
-        // 본인이 작성한 리뷰만 수정 가능
-        if(!review.getUser().getId().equals(requestUserId)) {
+        if (!review.getUser().getId().equals(requestUserId)) {
             throw new ReviewAccessDeniedException(ErrorCode.REVIEW_ACCESS_DENIED);
         }
 
@@ -86,20 +84,25 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewDto reviewDetail = reviewRepository.findDetail(reviewId, requestUserId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
+        log.info("리뷰 수정 완료 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
         return reviewUrlMapper.withFullThumbnailUrl(reviewDetail);
-
     }
 
     @Override
     @Transactional(readOnly = true)
     public ReviewDto getReview(UUID requestUserId, UUID reviewId) {
+        log.info("리뷰 단건 조회 시작 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
+
         ReviewDto reviewDto = reviewRepository.findDetail(reviewId, requestUserId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+
+        log.info("리뷰 단건 조회 완료 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
         return reviewUrlMapper.withFullThumbnailUrl(reviewDto);
     }
 
     @Override
     public void softDeleteReview(UUID reviewId, UUID requestUserId) {
+        log.info("리뷰 논리 삭제 시작 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
 
         Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
@@ -111,26 +114,31 @@ public class ReviewServiceImpl implements ReviewService {
         review.delete();
         reviewRepository.save(review);
 
+        log.info("리뷰 논리 삭제 완료 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
     }
 
     @Override
     public void hardDeleteReview(UUID reviewId, UUID requestUserId) {
+        log.info("리뷰 물리 삭제 시작 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         reviewRepository.delete(review);
 
+        log.info("리뷰 물리 삭제 완료 - ReviewId: {}, UserId: {}", reviewId, requestUserId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ReviewPageResponseDto searchReviews(ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId) {
-            validateCursor(pageRequest);
-        ReviewPageResponseDto search = reviewRepository.search(condition, pageRequest, requestId);
+        log.info("리뷰 목록 검색 시작 - RequestId: {}", requestId);
 
+        validateCursor(pageRequest);
+        ReviewPageResponseDto search = reviewRepository.search(condition, pageRequest, requestId);
         List<ReviewDto> reviewDtoList = reviewUrlMapper.withFullThumbnailUrl(search.content());
 
+        log.info("리뷰 목록 검색 완료 - RequestId: {}", requestId);
         return new ReviewPageResponseDto(
                 reviewDtoList,
                 search.nextCursor(),
