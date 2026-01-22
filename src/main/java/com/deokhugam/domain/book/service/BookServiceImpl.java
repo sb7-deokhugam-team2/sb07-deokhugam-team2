@@ -3,10 +3,8 @@ package com.deokhugam.domain.book.service;
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
-import com.deokhugam.domain.book.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
-import com.deokhugam.domain.book.dto.response.CursorPageResponsePopularBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookException;
@@ -14,6 +12,7 @@ import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.mapper.BookUrlMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.infrastructure.ocr.OCRApiClient;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.infrastructure.search.book.BookApiManager;
@@ -21,7 +20,6 @@ import com.deokhugam.infrastructure.search.book.dto.BookGlobalApiDto;
 import com.deokhugam.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -57,8 +55,8 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     public CursorPageResponseBookDto searchBooks(BookSearchCondition bookSearchCondition) {
         Pageable pageable = PageRequest.of(0, bookSearchCondition.limit());
-        Page<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition, pageable);
-        List<BookDto> content = bookUrlMapper.withFullThumbnailUrl(pageBook.getContent());
+        CursorResult<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition, pageable);
+        List<BookDto> content = bookUrlMapper.withFullThumbnailUrl(pageBook.content());
         BookDto last = content.isEmpty() ? null : content.get(content.size() - 1);
         String nextCursor = null;
         Instant nextAfter = null;
@@ -67,8 +65,8 @@ public class BookServiceImpl implements BookService {
             nextAfter = last.createdAt(); // 레포의 tie-breaker와 맞춤
         }
         log.debug("도서 목록 조회 완료 - limit={}, resultCount={}, hasNext={}, nextCursor={}, nextAfter={}",
-                pageBook.getSize(),
-                pageBook.getNumberOfElements(),
+                pageBook.content().size(),
+                pageBook.total(),
                 pageBook.hasNext(),
                 nextCursor,
                 nextAfter
@@ -77,8 +75,8 @@ public class BookServiceImpl implements BookService {
                 content,
                 nextCursor,
                 nextAfter,
-                content.size(),
-                pageBook.getTotalElements(),
+                pageBook.content().size(),
+                pageBook.total(),
                 pageBook.hasNext()
         );
     }
@@ -90,13 +88,6 @@ public class BookServiceImpl implements BookService {
             case RATING -> Double.toString(last.rating());
             case REVIEW_COUNT -> Long.toString(last.reviewCount());
         };
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public CursorPageResponsePopularBookDto searchPopularBooks(PopularBookSearchCondition popularBookSearchCondition) {
-        // TODO: 26. 1. 9. 인기 도서 미구현으로 틀 성생 추후 로직 구현(해당 기능 popularBook 이전 고려 필요)
-        return null;
     }
 
     @Override

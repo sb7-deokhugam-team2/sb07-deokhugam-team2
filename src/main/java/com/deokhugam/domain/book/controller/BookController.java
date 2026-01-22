@@ -1,16 +1,15 @@
 package com.deokhugam.domain.book.controller;
 
+import com.deokhugam.domain.book.controller.docs.BookControllerDocs;
 import com.deokhugam.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
-import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.service.BookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,11 +20,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/books")
 @RequiredArgsConstructor
-public class BookController {
+public class BookController implements BookControllerDocs {
 
     private final BookService bookService;
 
     @GetMapping
+    @Override
     public ResponseEntity<CursorPageResponseBookDto> getAllBooks(
             BookSearchCondition searchCondition
     ) {
@@ -41,6 +41,7 @@ public class BookController {
     }
 
     @GetMapping("/{bookId}")
+    @Override
     public ResponseEntity<BookDto> getBookById(@PathVariable UUID bookId) {
         log.debug("도서 단일 조회 요청 - bookId={}", bookId);
         BookDto bookDetail = bookService.getBookDetail(bookId);
@@ -48,6 +49,7 @@ public class BookController {
     }
 
     @PostMapping("/isbn/ocr")
+    @Override
     public ResponseEntity<String> getIsbnByImage(
             @RequestPart(value = "image") MultipartFile barcode) {
         log.info("ISBN OCR 요청 - FileName: {}, Size: {}", barcode.getOriginalFilename(), barcode.getSize());
@@ -57,6 +59,7 @@ public class BookController {
     }
 
     @GetMapping("/info")
+    @Override
     public ResponseEntity<NaverBookDto> getBookInfoByIsbn(@RequestParam String isbn) {
         log.info("네이버 도서 정보 조회 요청 - ISBN: {}", isbn);
         NaverBookDto bookInfo = bookService.getBookByIsbn(isbn);
@@ -65,6 +68,7 @@ public class BookController {
     }
 
     @PostMapping()
+    @Override
     public ResponseEntity<BookDto> createBook(
             @RequestPart(value = "bookData") BookCreateRequest createRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
@@ -79,6 +83,7 @@ public class BookController {
     }
 
     @PatchMapping("/{bookId}")
+    @Override
     public ResponseEntity<BookDto> updateBook(
             @PathVariable UUID bookId,
             @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
@@ -94,6 +99,7 @@ public class BookController {
     }
 
     @DeleteMapping("/{bookId}")
+    @Override
     public ResponseEntity<Void> deleteBook(@PathVariable UUID bookId) {
         log.debug("도서 논리 삭제 요청 - bookId={}", bookId);
         bookService.softDeleteBook(bookId);
@@ -101,6 +107,7 @@ public class BookController {
     }
 
     @DeleteMapping("/hard/{bookId}")
+    @Override
     public ResponseEntity<Void> hardDeleteBook(@PathVariable UUID bookId) {
         log.debug("도서 물리 삭제 요청 - bookId={}", bookId);
         bookService.hardDeleteBook(bookId);
