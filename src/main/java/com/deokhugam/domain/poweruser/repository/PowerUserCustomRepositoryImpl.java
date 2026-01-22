@@ -45,7 +45,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 .selectFrom(powerUser)
                 .join(powerUser.user, user).fetchJoin()
                 .where(
-                        powerUser.calculatedDate.goe(startOfDay),
+                        calculateDateGoe(startOfDay),
                         powerUser.periodType.eq(condition.period()),
                         cursorCondition(condition.cursor(), condition.direction()),
                         afterCondition(condition.after(), condition.direction())
@@ -53,6 +53,11 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 .orderBy(direction(condition.direction()))
                 .limit(condition.limit()+1)
                 .fetch();
+    }
+
+    private BooleanExpression calculateDateGoe(Instant startOfDay) {
+        if (startOfDay==null)return null;
+        return powerUser.calculatedDate.goe(startOfDay);
     }
 
     private OrderSpecifier<?>[] direction(PowerUserDirection direction) {
@@ -168,7 +173,7 @@ public class PowerUserCustomRepositoryImpl implements PowerUserCustomRepository 
                 .select(powerUser.count())
                 .from(powerUser)
                 .where(
-                        powerUser.calculatedDate.goe(latestInstant),
+                        calculateDateGoe(latestInstant),
                         powerUser.periodType.eq(periodType)
                 )
                 .fetchOne();
