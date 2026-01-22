@@ -11,11 +11,11 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: deokhugam-repo
-  ECS_SERVICE: deokhugam-task-service
-  ECS_CLUSTER: deokhugam-cluster-v1
-  ECS_TASK_DEFINITION: deokhugam-task
-  CONTAINER_NAME: deokhugam-container
+  ECR_REPOSITORY: deokhugam-prod-v1-repo
+  ECS_SERVICE: deokhugam-prod-v1-task-service
+  ECS_CLUSTER: deokhugam-prod-v1-cluster
+  ECS_TASK_DEFINITION: deokhugam-prod-v1-task
+  CONTAINER_NAME: deokhugam-prod-v1-container
 
 jobs:
   deploy:
