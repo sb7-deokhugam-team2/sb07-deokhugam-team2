@@ -67,6 +67,7 @@ public class PopularBookServiceImpl implements PopularBookService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CursorPageResponsePopularBookDto searchPopularBooks(PopularBookSearchCondition popularBookSearchCondition) {
 
         Pageable pageable = PageRequest.of(0, popularBookSearchCondition.limit());
