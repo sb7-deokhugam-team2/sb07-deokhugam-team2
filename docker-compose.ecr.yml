@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app-uploader:
+    # [중요] ECS(Fargate)는 리눅스 환경이므로, 맥북(M1/M2) 사용자라면 이 옵션이 필수입니다.
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # .env 파일에서 변수를 가져와서 전체 ECR 주소를 완성합니다.docker-compose -f docker-compose.ecr.yml push
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
