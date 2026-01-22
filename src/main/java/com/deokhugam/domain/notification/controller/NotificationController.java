@@ -1,5 +1,6 @@
 package com.deokhugam.domain.notification.controller;
 
+import com.deokhugam.domain.notification.controller.docs.NotificationControllerDocs;
 import com.deokhugam.domain.notification.dto.request.NotificationSearchCondition;
 import com.deokhugam.domain.notification.dto.request.NotificationUpdateRequest;
 import com.deokhugam.domain.notification.dto.response.CursorPageResponseNotificationDto;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
-public class NotificationController {
+public class NotificationController implements NotificationControllerDocs {
 
     private final NotificationService notificationService;
 
