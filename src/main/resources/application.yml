@@ -1,6 +1,6 @@
 spring:
   application:
-    name: deokhugam-v1
+    name: deokhugam-@version@
   profiles:
     active: ${APP_RUNNING_ENV_TYPE:local}
   # 파일 업로드 제한
