@@ -1,5 +1,6 @@
 package com.deokhugam.domain.comment.controller;
 
+import com.deokhugam.domain.comment.controller.docs.CommentControllerDocs;
 import com.deokhugam.domain.comment.dto.request.CommentCreateRequest;
 import com.deokhugam.domain.comment.dto.request.CommentSearchCondition;
 import com.deokhugam.domain.comment.dto.request.CommentUpdateRequest;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/comments")
 @RequiredArgsConstructor
-public class CommentController {
+public class CommentController implements CommentControllerDocs {
 
     private final CommentService commentService;
 

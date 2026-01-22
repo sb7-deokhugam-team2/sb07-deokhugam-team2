@@ -3,6 +3,7 @@ package com.deokhugam.domain.likedreview.service;
 import com.deokhugam.domain.likedreview.dto.response.LikedReviewDto;
 import com.deokhugam.domain.likedreview.entity.LikedReview;
 import com.deokhugam.domain.likedreview.repository.LikedReviewRepository;
+import com.deokhugam.domain.notification.service.NotificationCreator;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.repository.ReviewRepository;
@@ -25,6 +26,7 @@ public class LikedReviewServiceImpl implements LikedReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final LikedReviewRepository likedReviewRepository;
+    private final NotificationCreator notificationCreator;
 
     @Override
     public LikedReviewDto toggleLike(UUID reviewId, UUID userId) {
@@ -46,7 +48,8 @@ public class LikedReviewServiceImpl implements LikedReviewService {
 
         try {
             LikedReview likedReview  = LikedReview.create(review, user);
-            likedReviewRepository.saveAndFlush(likedReview);
+            LikedReview saved = likedReviewRepository.saveAndFlush(likedReview);
+            notificationCreator.createNotification(saved);
 
             reviewRepository.addLikedCount(reviewId, +1);
             return new LikedReviewDto(reviewId, userId, true);

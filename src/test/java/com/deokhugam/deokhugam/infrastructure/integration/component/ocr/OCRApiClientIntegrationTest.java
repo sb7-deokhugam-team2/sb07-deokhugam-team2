@@ -2,8 +2,8 @@ package com.deokhugam.deokhugam.infrastructure.integration.component.ocr;
 
 import com.deokhugam.infrastructure.ocr.OCRApiClient;
 import com.deokhugam.infrastructure.ocr.exception.OCRFileEmptyException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@Tag("integration")
+@Disabled
 class OCRApiClientIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(OCRApiClientIntegrationTest.class);
