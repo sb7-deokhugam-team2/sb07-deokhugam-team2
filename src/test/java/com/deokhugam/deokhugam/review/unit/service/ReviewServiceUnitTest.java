@@ -11,6 +11,7 @@ import com.deokhugam.domain.review.enums.SortDirection;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.mapper.ReviewMapper;
+import com.deokhugam.domain.review.mapper.ReviewUrlMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.review.service.ReviewServiceImpl;
 import com.deokhugam.domain.user.repository.UserRepository;
@@ -41,6 +42,8 @@ public class ReviewServiceUnitTest {
     private ReviewMapper reviewMapper;
     @Mock
     private CommentRepository commentRepository;
+    @Mock
+    private ReviewUrlMapper reviewUrlMapper;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
@@ -71,6 +74,7 @@ public class ReviewServiceUnitTest {
         );
 
         when(reviewRepository.search(condition, cursorPageRequest, requestId)).thenReturn(expected);
+        when(reviewUrlMapper.withFullThumbnailUrl(expected.content())).thenReturn(expected.content());
 
         // when
         ReviewPageResponseDto result = reviewService.searchReviews(condition, cursorPageRequest, requestId);
@@ -79,6 +83,7 @@ public class ReviewServiceUnitTest {
         assertNotNull(result);
         assertEquals(expected, result);
         verify(reviewRepository, times(1)).search(condition, cursorPageRequest, requestId);
+        verify(reviewUrlMapper, times(1)).withFullThumbnailUrl(expected.content());
         
     }
 
@@ -127,6 +132,7 @@ public class ReviewServiceUnitTest {
         );
 
         when(reviewRepository.findDetail(reviewId, requestId)).thenReturn(Optional.of(expected));
+        when(reviewUrlMapper.withFullThumbnailUrl(expected)).thenReturn(expected);
 
         // when
         ReviewDto result = reviewService.getReview(requestId, reviewId);
@@ -135,6 +141,7 @@ public class ReviewServiceUnitTest {
         assertNotNull(result);
         assertEquals(expected, result);
         verify(reviewRepository, times(1)).findDetail(reviewId, requestId);
+        verify(reviewUrlMapper, times(1)).withFullThumbnailUrl(expected);
 
     }
 
