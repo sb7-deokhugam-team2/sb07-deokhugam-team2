@@ -16,6 +16,7 @@ import com.deokhugam.domain.review.exception.ReviewAlreadyExistsException;
 import com.deokhugam.domain.review.exception.ReviewInvalidException;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.mapper.ReviewMapper;
+import com.deokhugam.domain.review.mapper.ReviewUrlMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
 import com.deokhugam.domain.user.repository.UserRepository;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,7 +39,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final UserRepository userRepository;
     private final ReviewMapper reviewMapper;
     private final CommentRepository commentRepository;
-    // todo: LikedReviewRepository
+    private final ReviewUrlMapper reviewUrlMapper;
 
     @Override
     public ReviewDto createReview(ReviewCreateRequest request) {
@@ -84,15 +86,16 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewDto reviewDetail = reviewRepository.findDetail(reviewId, requestUserId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        return reviewDetail;
+        return reviewUrlMapper.withFullThumbnailUrl(reviewDetail);
 
     }
 
     @Override
     @Transactional(readOnly = true)
     public ReviewDto getReview(UUID requestUserId, UUID reviewId) {
-        return reviewRepository.findDetail(reviewId, requestUserId)
+        ReviewDto reviewDto = reviewRepository.findDetail(reviewId, requestUserId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+        return reviewUrlMapper.withFullThumbnailUrl(reviewDto);
     }
 
     @Override
@@ -124,7 +127,18 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewPageResponseDto searchReviews(ReviewSearchCondition condition, CursorPageRequest pageRequest, UUID requestId) {
             validateCursor(pageRequest);
-            return reviewRepository.search(condition, pageRequest, requestId);
+        ReviewPageResponseDto search = reviewRepository.search(condition, pageRequest, requestId);
+
+        List<ReviewDto> reviewDtoList = reviewUrlMapper.withFullThumbnailUrl(search.content());
+
+        return new ReviewPageResponseDto(
+                reviewDtoList,
+                search.nextCursor(),
+                search.nextAfter(),
+                search.size(),
+                search.totalElements(),
+                search.hasNext()
+        );
     }
 
     private void validateCursor(CursorPageRequest pageRequest) {

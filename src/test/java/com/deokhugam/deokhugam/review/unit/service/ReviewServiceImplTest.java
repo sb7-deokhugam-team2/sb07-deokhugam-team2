@@ -10,6 +10,7 @@ import com.deokhugam.domain.review.exception.ReviewAccessDeniedException;
 import com.deokhugam.domain.review.exception.ReviewAlreadyExistsException;
 import com.deokhugam.domain.review.exception.ReviewNotFoundException;
 import com.deokhugam.domain.review.mapper.ReviewMapper;
+import com.deokhugam.domain.review.mapper.ReviewUrlMapper;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com. deokhugam.domain. review.service.ReviewServiceImpl;
 import com.deokhugam.domain.user. entity.User;
@@ -52,6 +53,9 @@ class ReviewServiceImplTest {
 
     @Mock
     private ReviewMapper reviewMapper;
+
+    @Mock
+    private ReviewUrlMapper reviewUrlMapper;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
@@ -176,23 +180,25 @@ class ReviewServiceImplTest {
     void updateReview_Success() {
         // given
         Review testReview = Review.create(4.0, "정말 좋은 책입니다.", testBook, testUser);
+        ReviewDto detail = new ReviewDto(
+                testReviewId,
+                testUserId,
+                testBookId,
+                "테스트 책 제목",
+                "http://example.com/test-thumbnail",
+                3.0,
+                "테스트유저",
+                "정말 나쁜 책입니다.",
+                10L,
+                2L,
+                true,
+                testReview.getCreatedAt(),
+                Instant.now()
+        );
         when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
         when(reviewRepository.findDetail(testReviewId, testUserId))
-                .thenReturn(Optional.of(new ReviewDto(
-                        testReviewId,
-                        testUserId,
-                        testBookId,
-                        "테스트 책 제목",
-                        "http://example.com/test-thumbnail",
-                        3.0,
-                        "테스트유저",
-                        "정말 나쁜 책입니다.",
-                        10L,
-                        2L,
-                        true,
-                        testReview.getCreatedAt(),
-                        Instant.now()
-                )));
+                .thenReturn(Optional.of(detail));
+        when(reviewUrlMapper.withFullThumbnailUrl(detail)).thenReturn(detail);
 
         // when
         ReviewDto result = reviewService.updateReview(updateRequest, testUserId, testReviewId);
@@ -204,6 +210,7 @@ class ReviewServiceImplTest {
 
         verify(reviewRepository).findById(testReviewId);
         verify(reviewRepository).findDetail(testReviewId, testUserId);
+        verify(reviewUrlMapper).withFullThumbnailUrl(detail);
     }
 
     @Test
