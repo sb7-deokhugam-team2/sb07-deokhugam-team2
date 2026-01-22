@@ -45,7 +45,10 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                         book.updatedAt
                 ))
                 .from(book)
-                .leftJoin(review).on(review.book.id.eq(book.id))
+                .leftJoin(review).on(
+                        review.book.id.eq(book.id),
+                        review.isDeleted.isFalse() // NOTE: where에 두지않는건 inner join으로하게되면 book자체가 안나오기떄문
+                )
                 .where(book.id.eq(bookId))
                 .groupBy(
                         book.id,
@@ -89,7 +92,10 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                         book.updatedAt
                 ))
                 .from(book)
-                .leftJoin(review).on(review.book.id.eq(book.id))
+                .leftJoin(review).on(
+                        review.book.id.eq(book.id),
+                        review.isDeleted.isFalse()
+                )
                 .where(
                         book.isDeleted.isFalse(),
                         keywordPredicate(condition.keyword()),
