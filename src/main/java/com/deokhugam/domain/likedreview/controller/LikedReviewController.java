@@ -1,5 +1,6 @@
 package com.deokhugam.domain.likedreview.controller;
 
+import com.deokhugam.domain.likedreview.controller.docs.LikedReviewControllerDocs;
 import com.deokhugam.domain.likedreview.dto.response.LikedReviewDto;
 import com.deokhugam.domain.likedreview.service.LikedReviewService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-public class LikedReviewController {
+public class LikedReviewController implements LikedReviewControllerDocs {
     private final LikedReviewService likedReviewService;
 
     @PostMapping("/api/reviews/{reviewId}/like")
