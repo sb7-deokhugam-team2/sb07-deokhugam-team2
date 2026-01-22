@@ -3,7 +3,7 @@ name: Deploy to Amazon ECS
 on:
   push:
     branches:
-      - feature/common-deploy-v1  # 브랜치 이름 확인 (master면 master로 수정)
+      - main  # 브랜치 이름 확인 (master면 master로 수정)
 
 # GitHub Actions 토큰 권한 설정 (보안 강화)
 permissions:
