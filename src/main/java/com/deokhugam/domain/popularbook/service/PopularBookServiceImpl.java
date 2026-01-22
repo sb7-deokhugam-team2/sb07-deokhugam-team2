@@ -4,6 +4,7 @@ import com.deokhugam.domain.base.PeriodType;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.popularbook.dto.request.PopularBookSearchCondition;
 import com.deokhugam.domain.popularbook.dto.response.CursorPageResponsePopularBookDto;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookAggregationDto;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookDto;
 import com.deokhugam.domain.popularbook.entity.PopularBook;
@@ -14,7 +15,6 @@ import com.deokhugam.global.exception.DeokhugamException;
 import com.deokhugam.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -71,8 +71,8 @@ public class PopularBookServiceImpl implements PopularBookService {
 
         Pageable pageable = PageRequest.of(0, popularBookSearchCondition.limit());
         Instant windowStart = popularBookQueryWindowCalculator.windowStart(Instant.now());
-        Page<PopularBookDto> pagePopularBook = popularBookRepository.findTopPopularBooks(popularBookSearchCondition, windowStart, pageable);
-        List<PopularBookDto> content = popularBookUrlMapper.withFullThumbnailUrl(pagePopularBook.getContent());
+        CursorResult<PopularBookDto> pagePopularBook = popularBookRepository.findTopPopularBooks(popularBookSearchCondition, windowStart, pageable);
+        List<PopularBookDto> content = popularBookUrlMapper.withFullThumbnailUrl(pagePopularBook.content());
         PopularBookDto lastPopularBook = content.isEmpty() ? null : content.get(content.size() - 1);
 
         String nextCursor = null;
@@ -86,8 +86,8 @@ public class PopularBookServiceImpl implements PopularBookService {
                 content,
                 nextCursor,
                 nextAfter,
-                pagePopularBook.getSize(),
-                pagePopularBook.getTotalElements(),
+                content.size(),
+                pagePopularBook.total(),
                 pagePopularBook.hasNext()
         );
     }

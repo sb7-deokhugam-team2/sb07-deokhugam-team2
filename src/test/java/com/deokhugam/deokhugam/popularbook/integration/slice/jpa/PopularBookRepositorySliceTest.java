@@ -5,6 +5,7 @@ import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.enums.SortDirection;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.popularbook.dto.request.PopularBookSearchCondition;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookAggregationDto;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookDto;
 import com.deokhugam.domain.popularbook.entity.PopularBook;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -201,15 +201,15 @@ public class PopularBookRepositorySliceTest {
             );
 
             // when: windowStart를 oldSnap보다 더 과거로 주면 oldSnap도 후보지만 latestSnap만 선택돼야 함
-            Page<PopularBookDto> page = popularBookRepository.findTopPopularBooks(
+            CursorResult<PopularBookDto> page = popularBookRepository.findTopPopularBooks(
                     condition,
                     now.minus(30, ChronoUnit.MINUTES),
                     PageRequest.of(0, 50)
             );
 
             // then: latestSnap의 데이터(점수 99/98)만 나와야 함
-            assertThat(page.getContent()).hasSize(2);
-            assertThat(page.getContent()).extracting(PopularBookDto::score)
+            assertThat(page.content()).hasSize(2);
+            assertThat(page.content()).extracting(PopularBookDto::score)
                     .containsExactly(99.0, 98.0);
         }
 
@@ -251,16 +251,16 @@ public class PopularBookRepositorySliceTest {
             );
             Instant windowStart1 = Instant.now().minus(10, ChronoUnit.MINUTES);
             Pageable pageable = PageRequest.of(0, 2);
-            Page<PopularBookDto> pagePopularBookDto1 = popularBookRepository.findTopPopularBooks(
+            CursorResult<PopularBookDto> pagePopularBookDto1 = popularBookRepository.findTopPopularBooks(
                     firstCondition,
                     windowStart1,
                     pageable
             );
 
-            assertThat(pagePopularBookDto1.getContent()).hasSize(2);
+            assertThat(pagePopularBookDto1.content()).hasSize(2);
 
             // page1의 마지막 요소를 cursor/after로 사용
-            PopularBookDto lastPopularBookDto = pagePopularBookDto1.getContent().get(pagePopularBookDto1.getNumberOfElements() - 1);
+            PopularBookDto lastPopularBookDto = pagePopularBookDto1.content().get(pagePopularBookDto1.content().size() - 1);
 
             PopularBookSearchCondition next = new PopularBookSearchCondition(
                     PeriodType.DAILY,
@@ -271,15 +271,15 @@ public class PopularBookRepositorySliceTest {
             );
 
             // when
-            Page<PopularBookDto> pagePopularBookDto2 = popularBookRepository.findTopPopularBooks(
+            CursorResult<PopularBookDto> pagePopularBookDto2 = popularBookRepository.findTopPopularBooks(
                     next,
                     Instant.now().minus(10, ChronoUnit.MINUTES),
                     PageRequest.of(0, 2)
             );
 
             // then: 다음 페이지에는 "경계 이후"만 나와야 함(중복 X)
-            assertThat(pagePopularBookDto2.getContent()).extracting(PopularBookDto::id)
-                    .doesNotContainAnyElementsOf(pagePopularBookDto1.getContent().stream().map(PopularBookDto::id).toList());
+            assertThat(pagePopularBookDto2.content()).extracting(PopularBookDto::id)
+                    .doesNotContainAnyElementsOf(pagePopularBookDto1.content().stream().map(PopularBookDto::id).toList());
         }
 
         @Test
@@ -308,14 +308,14 @@ public class PopularBookRepositorySliceTest {
             );
 
             // when
-            Page<PopularBookDto> pagePopularBookDto = popularBookRepository.findTopPopularBooks(
+            CursorResult<PopularBookDto> pagePopularBookDto = popularBookRepository.findTopPopularBooks(
                     condition,
                     Instant.now().minus(10, ChronoUnit.MINUTES),
                     PageRequest.of(0, 10)
             );
 
             // then: rank desc니까 2가 먼저
-            assertThat(pagePopularBookDto.getContent()).extracting(PopularBookDto::rank)
+            assertThat(pagePopularBookDto.content()).extracting(PopularBookDto::rank)
                     .containsExactly(2L, 1L);
         }
     }

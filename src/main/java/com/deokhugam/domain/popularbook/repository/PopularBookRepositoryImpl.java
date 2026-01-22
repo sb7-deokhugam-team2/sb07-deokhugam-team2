@@ -3,6 +3,7 @@ package com.deokhugam.domain.popularbook.repository;
 import com.deokhugam.domain.base.PeriodType;
 import com.deokhugam.domain.book.enums.SortDirection;
 import com.deokhugam.domain.popularbook.dto.request.PopularBookSearchCondition;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookAggregationDto;
 import com.deokhugam.domain.popularbook.dto.response.PopularBookDto;
 import com.querydsl.core.types.Projections;
@@ -12,8 +13,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
@@ -71,7 +70,7 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
     }
 
     @Override
-    public Page<PopularBookDto> findTopPopularBooks(PopularBookSearchCondition condition, Instant windowStart, Pageable pageable) {
+    public CursorResult<PopularBookDto> findTopPopularBooks(PopularBookSearchCondition condition, Instant windowStart, Pageable pageable) {
         int size = pageable.getPageSize();
         PeriodType periodType = condition.period();
         JPQLQuery<Instant> latestCalculatedDateSubquery =
@@ -128,7 +127,7 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
                         .fetchOne()
         ).orElse(0L); // 반환타입과 PageImpl 타입을 맞추기위해 Optional 사용
 
-        return new PageImpl<>(popularBookDtoList, pageable, total);
+        return new CursorResult<>(popularBookDtoList, hasNext, total);
     }
 
     private BooleanExpression cursorWherePredicate(PopularBookSearchCondition condition) {

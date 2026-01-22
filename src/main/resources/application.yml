@@ -9,8 +9,11 @@ spring:
         default_batch_fetch_size: 50
         type:
           preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
+        order_inserts: true
+        order_updates: true
         jdbc:
           time_zone: UTC
+          batch_size: 50
     open-in-view: false
   servlet:
     multipart:

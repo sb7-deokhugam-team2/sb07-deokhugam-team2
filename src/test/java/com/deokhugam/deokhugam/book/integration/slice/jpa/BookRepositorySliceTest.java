@@ -6,6 +6,7 @@ import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.enums.SortCriteria;
 import com.deokhugam.domain.book.enums.SortDirection;
 import com.deokhugam.domain.book.repository.BookRepository;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.domain.review.entity.Review;
 import com.deokhugam.domain.review.repository.ReviewRepository;
 import com.deokhugam.domain.user.entity.User;
@@ -107,11 +108,10 @@ public class BookRepositorySliceTest {
             em.clear();
 
             // when
-            Page<BookDto> pageBooks = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> pageBooks = bookRepository.findBooks(condition, pageable);
 
             // then
-            assertFalse(pageBooks.getContent().isEmpty());
-            assertEquals(limit, pageBooks.getNumberOfElements());
+            assertFalse(pageBooks.content().isEmpty());
             assertTrue(pageBooks.hasNext());
 
         }
@@ -142,15 +142,15 @@ public class BookRepositorySliceTest {
             em.clear();
 
             // when
-            Page<BookDto> pageBooks = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> pageBooks = bookRepository.findBooks(condition, pageable);
 
             // then
-            assertFalse(pageBooks.getContent().isEmpty());
-            assertEquals(savedCount, pageBooks.getNumberOfElements());
+            assertFalse(pageBooks.content().isEmpty());
+            assertEquals(savedCount, pageBooks.total());
             assertFalse(pageBooks.hasNext());
 
             // (선택) 실제 저장 개수와 일치 sanity check
-            assertEquals(savedCount, pageBooks.getContent().size());
+            assertEquals(savedCount, pageBooks.content().size());
         }
 
         @Test
@@ -175,13 +175,13 @@ public class BookRepositorySliceTest {
             Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            Page<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
 
             // then
-            assertEquals(2, result.getNumberOfElements());
+            assertEquals(2, result.total());
             assertFalse(result.hasNext());
 
-            assertTrue(result.getContent().stream().allMatch(dto -> dto.title().contains(keyword)));
+            assertTrue(result.content().stream().allMatch(dto -> dto.title().contains(keyword)));
         }
 
         @Test
@@ -205,13 +205,13 @@ public class BookRepositorySliceTest {
             Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            Page<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
 
             // then
-            assertEquals(2, result.getNumberOfElements());
+            assertEquals(2, result.total());
             assertFalse(result.hasNext());
 
-            assertTrue(result.getContent().stream().allMatch(dto -> dto.author().contains(keyword)));
+            assertTrue(result.content().stream().allMatch(dto -> dto.author().contains(keyword)));
         }
 
         @Test
@@ -239,12 +239,11 @@ public class BookRepositorySliceTest {
             Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            Page<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
 
             // then
-            assertEquals(limit, result.getNumberOfElements());
             assertTrue(result.hasNext());
-            assertTrue(result.getContent().stream().allMatch(dto -> dto.title().contains(keyword)));
+            assertTrue(result.content().stream().allMatch(dto -> dto.title().contains(keyword)));
         }
 
         @Test
@@ -277,10 +276,10 @@ public class BookRepositorySliceTest {
             Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            Page<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
 
             // then
-            List<String> titles = result.getContent()
+            List<String> titles = result.content()
                     .stream()
                     .map(BookDto::title)
                     .toList();
@@ -317,10 +316,10 @@ public class BookRepositorySliceTest {
             Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            Page<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
 
             // then
-            List<Instant> createdAtList = result.getContent()
+            List<Instant> createdAtList = result.content()
                     .stream()
                     .map(BookDto::createdAt)
                     .toList();
@@ -365,9 +364,9 @@ public class BookRepositorySliceTest {
             Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            Page<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
             // then
-            List<Double> ratings = result.getContent()
+            List<Double> ratings = result.content()
                     .stream()
                     .map(BookDto::rating)
                     .toList();
@@ -412,13 +411,12 @@ public class BookRepositorySliceTest {
             BookSearchCondition firstCondition =
                     new BookSearchCondition(keyword, SortCriteria.TITLE, SortDirection.DESC, null, null, limit);
 
-            Page<BookDto> firstPage = bookRepository.findBooks(firstCondition, pageable);
+            CursorResult<BookDto> firstPage = bookRepository.findBooks(firstCondition, pageable);
 
             // then (1번째 페이지 검증)
-            assertEquals(limit, firstPage.getNumberOfElements());
             assertTrue(firstPage.hasNext());
 
-            BookDto lastOfFirstPage = firstPage.getContent().get(firstPage.getNumberOfElements() - 1);
+            BookDto lastOfFirstPage = firstPage.content().get(firstPage.content().size() - 1);
 
             // nextCursor/nextAfter 생성 (정렬 기준과 tie-breaker(createdAt) 규칙에 맞춰야 함)
             String nextCursor = lastOfFirstPage.title();               // TITLE 정렬이므로 title이 커서
@@ -428,19 +426,18 @@ public class BookRepositorySliceTest {
             BookSearchCondition secondCondition =
                     new BookSearchCondition(keyword, SortCriteria.TITLE, SortDirection.DESC, nextCursor, nextAfter, limit);
 
-            Page<BookDto> secondPage = bookRepository.findBooks(secondCondition, pageable);
+            CursorResult<BookDto> secondPage = bookRepository.findBooks(secondCondition, pageable);
 
             // then (2번째 페이지 검증)
-            assertEquals(limit, secondPage.getNumberOfElements());
             assertTrue(secondPage.hasNext()); // total=25면 2페이지(10개) 이후에도 남음(5개)
 
             // 중복 없음
-            List<java.util.UUID> firstIds = firstPage.getContent().stream().map(BookDto::id).toList();
-            List<java.util.UUID> secondIds = secondPage.getContent().stream().map(BookDto::id).toList();
+            List<java.util.UUID> firstIds = firstPage.content().stream().map(BookDto::id).toList();
+            List<java.util.UUID> secondIds = secondPage.content().stream().map(BookDto::id).toList();
             assertTrue(firstIds.stream().noneMatch(secondIds::contains));
 
             // 정렬 유지(2페이지 자체도 title desc)
-            List<BookDto> secondContent = secondPage.getContent();
+            List<BookDto> secondContent = secondPage.content();
             Comparator<BookDto> sortRule =
                     Comparator.comparing(BookDto::title, Comparator.reverseOrder())
                             .thenComparing(BookDto::createdAt, Comparator.reverseOrder());

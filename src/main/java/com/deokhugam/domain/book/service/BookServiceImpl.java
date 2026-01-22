@@ -12,6 +12,7 @@ import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.mapper.BookUrlMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.infrastructure.ocr.OCRApiClient;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.infrastructure.search.book.BookApiManager;
@@ -19,7 +20,6 @@ import com.deokhugam.infrastructure.search.book.dto.BookGlobalApiDto;
 import com.deokhugam.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,8 +55,8 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     public CursorPageResponseBookDto searchBooks(BookSearchCondition bookSearchCondition) {
         Pageable pageable = PageRequest.of(0, bookSearchCondition.limit());
-        Page<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition, pageable);
-        List<BookDto> content = bookUrlMapper.withFullThumbnailUrl(pageBook.getContent());
+        CursorResult<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition, pageable);
+        List<BookDto> content = bookUrlMapper.withFullThumbnailUrl(pageBook.content());
         BookDto last = content.isEmpty() ? null : content.get(content.size() - 1);
         String nextCursor = null;
         Instant nextAfter = null;
@@ -65,8 +65,8 @@ public class BookServiceImpl implements BookService {
             nextAfter = last.createdAt(); // 레포의 tie-breaker와 맞춤
         }
         log.debug("도서 목록 조회 완료 - limit={}, resultCount={}, hasNext={}, nextCursor={}, nextAfter={}",
-                pageBook.getSize(),
-                pageBook.getNumberOfElements(),
+                pageBook.content().size(),
+                pageBook.total(),
                 pageBook.hasNext(),
                 nextCursor,
                 nextAfter
@@ -75,8 +75,8 @@ public class BookServiceImpl implements BookService {
                 content,
                 nextCursor,
                 nextAfter,
-                pageBook.getSize(),
-                pageBook.getTotalElements(),
+                pageBook.content().size(),
+                pageBook.total(),
                 pageBook.hasNext()
         );
     }
