@@ -24,15 +24,16 @@ public class PopularBookBatchConfig {
     private final PopularBookService popularBookService;
 
     @Bean
-    public Job popularBookSnapshotJop(Step popularBookSnapshotStep) {
+    public Job popularBookSnapshotJob(Step popularBookSnapshotStep, PopularBookJobMetricsListener metricsListener) {
         return new JobBuilder("popularBookSnapshotJob", jobRepository)
                 .start(popularBookSnapshotStep)
+                .listener(metricsListener)
                 .build();
     }
 
     @Bean
     public Step popularBookSnapshotStep() {
-        return new StepBuilder("popularBookSnapshotJop", jobRepository)
+        return new StepBuilder("popularBookSnapshotStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     Map<String, Object> jobParameters = chunkContext.getStepContext().getJobParameters();
                     String period = (String) jobParameters.get("periodType");

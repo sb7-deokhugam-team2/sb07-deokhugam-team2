@@ -41,6 +41,7 @@ public class PopularBookScheduler {
     private void runJob(PeriodType periodType) throws Exception {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("periodType", periodType.name())
+                .addLong("runAt", System.currentTimeMillis())
                 .toJobParameters();
 
         jobLauncher.run(popularBookSnapshotJob, jobParameters);
