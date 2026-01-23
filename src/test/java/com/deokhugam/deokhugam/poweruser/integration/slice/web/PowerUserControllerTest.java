@@ -7,6 +7,7 @@ import com.deokhugam.domain.poweruser.dto.response.CursorPageResponsePowerUserDt
 import com.deokhugam.domain.poweruser.dto.response.PowerUserDto;
 import com.deokhugam.domain.poweruser.entity.PowerUser;
 import com.deokhugam.domain.poweruser.enums.PowerUserDirection;
+import com.deokhugam.domain.poweruser.scheduler.PowerUserScheduler;
 import com.deokhugam.domain.poweruser.service.PowerUserService;
 import com.deokhugam.domain.user.entity.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,8 @@ public class PowerUserControllerTest {
     ObjectMapper objectMapper;
     @MockitoBean
     PowerUserService powerUserService;
+    @MockitoBean
+    PowerUserScheduler powerUserScheduler;
 
     @Test
     void getPowerUsers() throws Exception {
