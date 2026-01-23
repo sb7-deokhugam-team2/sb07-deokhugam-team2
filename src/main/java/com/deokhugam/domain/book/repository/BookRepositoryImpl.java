@@ -73,8 +73,8 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     }
 
     @Override
-    public CursorResult<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
-        int size = pageable.getPageSize(); // TODO: Pageable 지운걸로 변경
+    public CursorResult<BookDto> findBooks(BookSearchCondition condition) {
+        int size = condition.limit();
         Instant after = condition.after();
 
         NumberExpression<Long> reviewCount = review.id.countDistinct().coalesce(0L);

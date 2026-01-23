@@ -277,8 +277,7 @@ public class BookServiceUnitTest {
             // given
             BookSearchCondition condition = mock(BookSearchCondition.class);
             CursorResult<BookDto> page = mock(CursorResult.class);
-            when(condition.limit()).thenReturn(10);
-            when(bookRepository.findBooks(eq(condition), any(Pageable.class))).thenReturn(page);
+            when(bookRepository.findBooks(eq(condition))).thenReturn(page);
             when(page.content()).thenReturn(List.of());
             when(page.hasNext()).thenReturn(false);
             when(page.total()).thenReturn(0L);
@@ -287,7 +286,7 @@ public class BookServiceUnitTest {
             CursorPageResponseBookDto result = bookService.searchBooks(condition);
 
             // then
-            verify(bookRepository, times(1)).findBooks(eq(condition), any(Pageable.class));
+            verify(bookRepository, times(1)).findBooks(eq(condition));
 
             assertEquals(0L, result.totalElements());
             assertFalse(result.hasNext());
