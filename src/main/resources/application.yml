@@ -46,6 +46,7 @@ storage:
         static: ap-northeast-2
       s3:
         bucket: deokhugam-prod-v1-bucket
+        log-bucket: deokhugam-prod-v1-log-bucket
   local:
     upload-path: /Users/dev/uploads
 
