@@ -23,7 +23,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -33,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCustom {
@@ -118,7 +116,7 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
     }
 
     @Override
-    public PopularReviewPageResponseDto searchPopularReviews(PopularReviewSearchCondition condition, UUID requestUserId) {
+    public PopularReviewPageResponseDto searchPopularReviews(PopularReviewSearchCondition condition) {
         int limit = (condition == null || condition.limit() == null)
                 ? CursorPageRequest.DEFAULT_LIMIT : condition.limit();
 
@@ -169,16 +167,6 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
             }
         }
 
-        BooleanExpression likedByMe = JPAExpressions
-                .selectOne()
-                .from(likedReview)
-                .where(
-                        likedReview.review.id.eq(review.id),
-                        likedReview.user.id.eq(requestUserId),
-                        likedReview.liked.isTrue()
-                )
-                .exists();
-
         OrderSpecifier<?>[] orderSpecifiers = direction == SortDirection.ASC
                 ? new OrderSpecifier[]{popularReview.rank.asc()}
                 : new OrderSpecifier[]{popularReview.rank.desc()};
@@ -195,7 +183,7 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
                         review.content,
                         review.rating,
                         popularReview.periodType,
-                        popularReview.calculatedDate,
+                        popularReview.createdAt,
                         popularReview.rank,
                         popularReview.score,
                         popularReview.likedCount,
@@ -241,5 +229,4 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
                 hasNext
         );
     }
-
 }
