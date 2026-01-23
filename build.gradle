@@ -82,6 +82,15 @@ jacoco {
     toolVersion = "0.8.8" // 버전 명시
 }
 
+def jacocoExcludes = [
+        // 스프링 배치 제외
+        '**/batch/**',
+        '**/scheduler/**',
+        '**/policy/**',
+
+        // 커스텀 예외 제외
+        '**/exception/**/*.class'
+]
 
 jacocoTestReport {
     dependsOn test // 리포트 생성 전에 test를 반드시 수행해야 한다!
@@ -90,4 +99,9 @@ jacocoTestReport {
         html.required.set(true)
         // 경로 명시 안 할 경우 기본 경로는 build/reports/jacoco 이하 경로
     }
+
+    classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+        fileTree(dir: dir, exclude: jacocoExcludes)
+    }))
+
 }
