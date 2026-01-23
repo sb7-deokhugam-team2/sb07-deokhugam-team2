@@ -1,38 +1,44 @@
-<!--<?xml version="1.0" encoding="UTF-8"?>-->
-<!--<configuration>-->
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_PATH" value="./.logs"/>
 
-<!--    <property name="LOG_PATTERN"-->
-<!--              value="%green(%d{yy-MM-dd HH:mm:ss.SSS}) %cyan([%thread]) %boldYellow(%-5level) %highlight(%logger{36}) - %magenta([requestId=%X{requestId}]) %boldGreen([%X{method}]) %boldGreen([%X{uri}]) %msg%n"/>-->
-<!--    <property name="FILE_LOG_PATTERN"-->
-<!--              value="%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [requestId=%X{requestId}] [%X{method} %X{uri}] %msg%n"/>-->
-<!--    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%green(%d{yyyy-MM-dd HH:mm:ss.SSS}) %cyan([%thread]) %highlight(%-5level) %magenta([%X{requestId:-SYSTEM}]) %boldGreen([%X{method} %X{uri}]) - %msg%n"/>
 
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [requestId=%X{requestId:-SYSTEM}] [%X{method} %X{uri}] - %msg%n"/>
 
-<!--        <encoder>-->
-<!--            <pattern>${LOG_PATTERN}</pattern>-->
-<!--        </encoder>-->
-<!--    </appender>-->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
 
-<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-<!--        <file>.logs/app.log</file>-->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/app.log</file>
 
-<!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
-<!--            <fileNamePattern>.logs/app-%d{yy-MM-dd}.log</fileNamePattern>-->
-<!--            <maxHistory>30</maxHistory>-->
-<!--        </rollingPolicy>-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/app-%d{yyyy-MM-dd-HH}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> </rollingPolicy>
 
-<!--        <encoder>-->
-<!--            <pattern>${FILE_LOG_PATTERN}</pattern>-->
-<!--        </encoder>-->
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
 
-<!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
-<!--            <level>INFO</level>-->
-<!--        </filter>-->
-<!--    </appender>-->
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
 
-<!--    <root level="INFO">-->
-<!--        <appender-ref ref="CONSOLE" />-->
-<!--        <appender-ref ref="FILE" />-->
-<!--    </root>-->
-
-<!--</configuration>-->
+    <springProfile name="test, prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+</configuration>
