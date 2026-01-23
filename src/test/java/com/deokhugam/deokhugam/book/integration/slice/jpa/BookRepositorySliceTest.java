@@ -89,7 +89,6 @@ public class BookRepositorySliceTest {
             // given
             int limit = 10;
             BookSearchCondition condition = new BookSearchCondition(null, null, null, null, null, limit);
-            Pageable pageable = PageRequest.of(0, limit);
 
             for (int i = 0; i < 20; i++) {
                 bookRepository.save(Book.create(
@@ -108,7 +107,7 @@ public class BookRepositorySliceTest {
             em.clear();
 
             // when
-            CursorResult<BookDto> pageBooks = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> pageBooks = bookRepository.findBooks(condition);
 
             // then
             assertFalse(pageBooks.content().isEmpty());
@@ -124,7 +123,6 @@ public class BookRepositorySliceTest {
             int limit = 10;
             int savedCount = 8;
             BookSearchCondition condition = new BookSearchCondition(null, null, null, null, null, limit);
-            Pageable pageable = PageRequest.of(0, limit);
 
             for (int i = 0; i < savedCount; i++) {
                 bookRepository.save(Book.create(
@@ -142,7 +140,7 @@ public class BookRepositorySliceTest {
             em.clear();
 
             // when
-            CursorResult<BookDto> pageBooks = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> pageBooks = bookRepository.findBooks(condition);
 
             // then
             assertFalse(pageBooks.content().isEmpty());
@@ -172,10 +170,8 @@ public class BookRepositorySliceTest {
 
             BookSearchCondition condition = new BookSearchCondition(keyword, null, null, null, null, limit);
 
-            Pageable pageable = PageRequest.of(0, limit);
-
             // when
-            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition);
 
             // then
             assertEquals(2, result.total());
@@ -202,10 +198,9 @@ public class BookRepositorySliceTest {
             em.clear();
 
             BookSearchCondition condition = new BookSearchCondition(keyword, null, null, null, null, limit);
-            Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition);
 
             // then
             assertEquals(2, result.total());
@@ -236,10 +231,9 @@ public class BookRepositorySliceTest {
             em.clear();
 
             BookSearchCondition condition = new BookSearchCondition(keyword, null, null, null, null, limit);
-            Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition);
 
             // then
             assertTrue(result.hasNext());
@@ -273,10 +267,9 @@ public class BookRepositorySliceTest {
             BookSearchCondition condition =
                     new BookSearchCondition(keyword, SortCriteria.TITLE, SortDirection.DESC, null, null, limit);
 
-            Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition);
 
             // then
             List<String> titles = result.content()
@@ -313,10 +306,9 @@ public class BookRepositorySliceTest {
             BookSearchCondition condition =
                     new BookSearchCondition(keyword, SortCriteria.TITLE, null, null, null, limit);
 
-            Pageable pageable = PageRequest.of(0, limit);
 
             // when
-            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition);
 
             // then
             List<Instant> createdAtList = result.content()
@@ -361,10 +353,8 @@ public class BookRepositorySliceTest {
             BookSearchCondition condition =
                     new BookSearchCondition(keyword, SortCriteria.RATING, SortDirection.DESC, null, null, limit);
 
-            Pageable pageable = PageRequest.of(0, limit);
-
             // when
-            CursorResult<BookDto> result = bookRepository.findBooks(condition, pageable);
+            CursorResult<BookDto> result = bookRepository.findBooks(condition);
             // then
             List<Double> ratings = result.content()
                     .stream()
@@ -405,13 +395,11 @@ public class BookRepositorySliceTest {
             em.flush();
             em.clear();
 
-            Pageable pageable = PageRequest.of(0, limit);
-
             // when (1번째 페이지)
             BookSearchCondition firstCondition =
                     new BookSearchCondition(keyword, SortCriteria.TITLE, SortDirection.DESC, null, null, limit);
 
-            CursorResult<BookDto> firstPage = bookRepository.findBooks(firstCondition, pageable);
+            CursorResult<BookDto> firstPage = bookRepository.findBooks(firstCondition);
 
             // then (1번째 페이지 검증)
             assertTrue(firstPage.hasNext());
@@ -426,7 +414,7 @@ public class BookRepositorySliceTest {
             BookSearchCondition secondCondition =
                     new BookSearchCondition(keyword, SortCriteria.TITLE, SortDirection.DESC, nextCursor, nextAfter, limit);
 
-            CursorResult<BookDto> secondPage = bookRepository.findBooks(secondCondition, pageable);
+            CursorResult<BookDto> secondPage = bookRepository.findBooks(secondCondition);
 
             // then (2번째 페이지 검증)
             assertTrue(secondPage.hasNext()); // total=25면 2페이지(10개) 이후에도 남음(5개)
