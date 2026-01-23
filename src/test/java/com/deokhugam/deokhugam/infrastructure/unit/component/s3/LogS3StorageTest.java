@@ -12,6 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +24,7 @@ import java.time.format.DateTimeFormatter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LogS3StorageTest {
@@ -73,5 +73,24 @@ class LogS3StorageTest {
 
         // then
         verify(s3Client, times(0)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    @DisplayName("실패 케이스: S3 에러 발생 시 catch 블록이 실행되고 파일은 남아있어야 한다 (catch 라인 커버)")
+    void uploadLog_S3Fail() throws IOException {
+        // given
+        File tempFile = Files.createFile(tempDir.resolve("app-fail.log")).toFile();
+
+        ReflectionTestUtils.setField(logS3Storage, "logBucket", "test-bucket");
+        ReflectionTestUtils.setField(logS3Storage, "profile", "test");
+
+        doThrow(S3Exception.builder().message("S3 Error").build())
+                .when(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+        // when
+        logS3Storage.uploadLog(tempFile);
+
+        // then
+        assertThat(tempFile.exists()).isTrue();
     }
 }
