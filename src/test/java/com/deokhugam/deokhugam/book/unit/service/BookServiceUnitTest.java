@@ -11,6 +11,7 @@ import com.deokhugam.domain.book.exception.BookNotFoundException;
 import com.deokhugam.domain.book.mapper.BookUrlMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
 import com.deokhugam.domain.book.service.BookServiceImpl;
+import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.deokhugam.global.exception.ErrorCode;
 import com.deokhugam.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -276,12 +276,12 @@ public class BookServiceUnitTest {
 
             // given
             BookSearchCondition condition = mock(BookSearchCondition.class);
-            Page<BookDto> page = mock(Page.class);
+            CursorResult<BookDto> page = mock(CursorResult.class);
             when(condition.limit()).thenReturn(10);
             when(bookRepository.findBooks(eq(condition), any(Pageable.class))).thenReturn(page);
-            when(page.getContent()).thenReturn(List.of());
+            when(page.content()).thenReturn(List.of());
             when(page.hasNext()).thenReturn(false);
-            when(page.getTotalElements()).thenReturn(0L);
+            when(page.total()).thenReturn(0L);
             when(bookUrlMapper.withFullThumbnailUrl(anyList())).thenReturn(List.of());
             // when
             CursorPageResponseBookDto result = bookService.searchBooks(condition);

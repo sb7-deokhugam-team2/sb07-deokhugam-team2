@@ -1,0 +1,52 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    # HikariCP 튜닝 (Prod 전용)
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate # (중복 제거) 운영에선 validate 필수
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100 # (덮어쓰기) Prod는 성능 위해 100으로 증가
+
+# Prod 전용 로깅 (패키지별 상세 설정)
+logging:
+  level:
+    com.deokhugam: info
+
+# Prod 전용 모니터링 및 보안 설정 (덮어쓰기)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, metrics # (보안) Prod는 * 대신 필요한 것만 노출
+  endpoint:
+    health:
+      show-details: when_authorized # (보안) 상세 정보 숨김
+  metrics:
+    export:
+      cloudwatch:
+        namespace: deokhugam-monitoring
+        batch-size: 20
+        enabled: true
+        step: 1m
+        region: ap-northeast-2
