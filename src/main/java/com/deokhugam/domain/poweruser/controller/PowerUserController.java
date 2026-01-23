@@ -1,8 +1,10 @@
 package com.deokhugam.domain.poweruser.controller;
 
 import com.deokhugam.domain.base.PeriodType;
+import com.deokhugam.domain.poweruser.controller.docs.PowerUserControllerDocs;
 import com.deokhugam.domain.poweruser.dto.request.PowerUserSearchCondition;
 import com.deokhugam.domain.poweruser.dto.response.CursorPageResponsePowerUserDto;
+import com.deokhugam.domain.poweruser.scheduler.PowerUserScheduler;
 import com.deokhugam.domain.poweruser.service.PowerUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +20,10 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class PowerUserController {
+public class PowerUserController implements PowerUserControllerDocs {
 
     private final PowerUserService powerUserService;
+    private final PowerUserScheduler powerUserScheduler;
 
     @GetMapping("/api/users/power")
     public ResponseEntity<CursorPageResponsePowerUserDto> getPowerUsers(
@@ -31,11 +34,6 @@ public class PowerUserController {
 
     @GetMapping("/api/users/batch")
     public void start(){
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.systemDefault())
-                .truncatedTo(ChronoUnit.DAYS);
-        List<PeriodType> periodTypeList = List.of(PeriodType.values());
-        for (PeriodType periodType : periodTypeList) {
-            powerUserService.calculateRankingByPeriod(periodType, zonedDateTime);
-        }
+       powerUserScheduler.startRankingCalculate();
     }
 }

@@ -23,6 +23,9 @@ spring:
         jdbc:
           time_zone: UTC
           batch_size: 50
+  batch:
+    job:
+      enabled: false
 
 # 로깅 공통 설정
 logging:

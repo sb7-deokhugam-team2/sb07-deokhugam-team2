@@ -45,9 +45,10 @@ public class PowerUserServiceIntegrationTest {
         //given
         User user = User.create("test1234@gmail.com", "nickname", "password1!");
         userRepository.save(user);
-        PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 1L, 100.0, 0L, 0L, 200.0, user);
-        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 2L, 50.0, 0L, 0L, 100.0, user);
-        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 3L, 40.0, 0L, 0L, 80.0, user);
+        Instant calculateTime = Instant.now();
+        PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 1L, 100.0, 0L, 0L, 200.0, user);
+        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 2L, 50.0, 0L, 0L, 100.0, user);
+        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 3L, 40.0, 0L, 0L, 80.0, user);
         powerUserRepository.save(powerUser);
         powerUserRepository.save(powerUser2);
         powerUserRepository.save(powerUser3);
@@ -69,13 +70,13 @@ public class PowerUserServiceIntegrationTest {
     @DisplayName("기간 별 파워 유저 랭킹 계산 - 성공")
     void calculateRankingByPeriod() {
         //given
-        User user = User.create("test@gmail.com", "test", "12345678a!");
-        User user2 = User.create("test2@gmail.com", "test2", "12345678a!");
-        User user3 = User.create("test3@gmail.com", "test", "12345678a!");
-        User user4 = User.create("test4@gmail.com", "test", "12345678a!");
+        User user = User.create("etest@gmail.com", "test", "12345678a!");
+        User user2 = User.create("etest2@gmail.com", "test2", "12345678a!");
+        User user3 = User.create("etest3@gmail.com", "test", "12345678a!");
+        User user4 = User.create("etest4@gmail.com", "test", "12345678a!");
         Book book = Book.create("title",
                 "content",
-                "12345678",
+                "123838378",
                 LocalDate.now().minusDays(2),
                 "publisher",
                 "thumbnailUrl",
