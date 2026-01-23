@@ -24,10 +24,10 @@ public class NotificationBatchConfig {
     private final NotificationService notificationService;
 
     @Bean
-    public Job notificationJob(Step notificationDelete) {
+    public Job notificationJob(Step notificationDelete, NotificationJobMetricsListener metricsListener) {
         return new JobBuilder("notificationJob", jobRepository)
                 .start(notificationDelete)
-//                .listener(metricsListener)
+                .listener(metricsListener)
                 .build();
     }
 
