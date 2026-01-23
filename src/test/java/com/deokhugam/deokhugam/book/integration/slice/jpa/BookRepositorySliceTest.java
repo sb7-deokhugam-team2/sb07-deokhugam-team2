@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -28,6 +27,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -445,6 +445,35 @@ public class BookRepositorySliceTest {
         }
 
         // TODO: 예외상황
+    }
+
+    @Nested
+    @DisplayName("도서 물리 삭제 - deleteById")
+    class SoftDelete {
+        @Test
+        @DisplayName("[Success] 도서 물리 삭제 - 삭제 완료후 조회시 결과 없음")
+        void softDelete_success() {
+
+            // given
+            Book book = bookRepository.save(Book.create(
+                    "title", "author", "isbn", LocalDate.of(2026, 1, 1), "publisher", null, "description"
+            ));
+
+            em.flush();
+            em.clear();
+
+            // when
+            bookRepository.deleteById(book.getId());
+
+            em.flush();
+            em.clear();
+
+            // then
+            assertThat(em.find(Book.class, book.getId())).isNull();
+            assertThat(bookRepository.findById(book.getId())).isEmpty();
+
+        }
+
     }
 
 }

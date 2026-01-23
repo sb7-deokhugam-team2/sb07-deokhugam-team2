@@ -37,8 +37,7 @@ import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -700,6 +699,36 @@ public class BookControllerSliceTest {
                             .file(imageFile))
                     .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.message").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE  /api/books (도서 물리 삭제)")
+    class HardDeleteBook{
+        @Test
+        @DisplayName("[204] 도서 물리 삭제 - 204 No Content 반환")
+        void hardDeleteBook_success() throws Exception {
+            // given
+            UUID bookId = UUID.randomUUID();
+
+            // when & then
+            mockMvc.perform(delete("/api/books/hard/{bookId}", bookId))
+                    .andExpect(status().isNoContent());
+
+            // 서비스 호출 검증
+            verify(bookService).hardDeleteBook(bookId);
+        }
+
+        @Test
+        @DisplayName("[Fail] 도서 물리 삭제 - 존재하지 않는 도서면 404 반환")
+        void hardDeleteBook_notFound() throws Exception {
+            UUID bookId = UUID.randomUUID();
+
+            doThrow(new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND)) // 반환값없는 메서드 doThrow
+                    .when(bookService).hardDeleteBook(bookId);
+
+            mockMvc.perform(delete("/api/books/hard/{bookId}", bookId))
+                    .andExpect(status().isNotFound());
         }
     }
 }
