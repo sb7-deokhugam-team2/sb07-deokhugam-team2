@@ -1,12 +1,21 @@
 spring:
+  application:
+    name: deokhugam-@version@
   profiles:
-    active: local
+    active: ${APP_RUNNING_ENV_TYPE:local}
+  # 파일 업로드 제한
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   jpa:
+    open-in-view: false # (중복 제거) 운영/로컬 모두 false 추천
     properties:
       hibernate:
-        show_sql: false
+        show_sql: false # (중복 제거) 기본 false, 필요하면 로컬에서만 킴
         format_sql: true
-        default_batch_fetch_size: 50
+        default_batch_fetch_size: 50 # 기본값
         type:
           preferred_instant_jdbc_type: TIMESTAMP_WITH_TIMEZONE
         order_inserts: true
@@ -14,43 +23,51 @@ spring:
         jdbc:
           time_zone: UTC
           batch_size: 50
-    open-in-view: false
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
   batch:
     job:
       enabled: false
 
+# 로깅 공통 설정
 logging:
   level:
     root: info
 
+# 사용자 정의 설정 (Storage, API 등)
 storage:
   type: s3
   app:
     aws:
       cloud-front:
-        domain: https://d1ippd9dh5xjdt.cloudfront.net
+        domain: https://d35x48g7y2fvef.cloudfront.net
       credentials:
         AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
         AWS_SECRET_KEY: ${AWS_SECRET_KEY}
       region:
         static: ap-northeast-2
       s3:
-        bucket: deokhugam-v1-deploy-bucket
-#       access-key: ${AWS_ACCESS_KEY}
-#       secret-key: ${AWS_SECRET_KEY}
+        bucket: deokhugam-prod-v1-bucket
   local:
     upload-path: /Users/dev/uploads
 
 api:
   naver:
-   client:
-    ID: ${NAVER_CLIENT_ID}
-    SECRET: ${NAVER_CLIENT_SECRET}
-   url:
-    search: https://openapi.naver.com/v1/search/book.json
+    client:
+      ID: ${NAVER_CLIENT_ID}
+      SECRET: ${NAVER_CLIENT_SECRET}
+    url:
+      search: https://openapi.naver.com/v1/search/book.json
   ocr:
     key: ${OCR_API_KEY}
+
+# Actuator 공통 (Local 기준, Prod에서 덮어쓰기)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
