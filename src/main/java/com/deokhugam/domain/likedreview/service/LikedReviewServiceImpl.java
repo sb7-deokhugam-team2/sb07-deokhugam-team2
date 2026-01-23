@@ -67,6 +67,8 @@ public class LikedReviewServiceImpl implements LikedReviewService {
         long likedCountDelta = 0;
         if (!before && after) {
             likedCountDelta = likedCountDelta + 1;
+            likedReviewRepository.saveAndFlush(likedReview);
+            notificationCreator.createNotification(likedReview);
         }
         else if (before && !after) {
             likedCountDelta = likedCountDelta - 1;
