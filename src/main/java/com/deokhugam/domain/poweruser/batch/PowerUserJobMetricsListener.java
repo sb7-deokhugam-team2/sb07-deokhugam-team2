@@ -18,13 +18,13 @@ public class PowerUserJobMetricsListener implements JobExecutionListener {
 
     private final MeterRegistry meterRegistry;
 
-//    @Override
-//    public void beforeJob(JobExecution jobExecution) {
-//        meterRegistry.counter(
-//                "batch_power_user_job_started_total",
-//                "job", jobExecution.getJobInstance().getJobName()
-//        ).increment();
-//    }
+    @Override
+    public void beforeJob(JobExecution jobExecution) {
+        meterRegistry.counter(
+                "batch_power_user_job_started_total",
+                "job", jobExecution.getJobInstance().getJobName()
+        ).increment();
+    }
 
     @Override
     public void afterJob(JobExecution jobExecution) {
