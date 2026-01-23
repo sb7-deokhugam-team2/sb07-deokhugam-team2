@@ -2,6 +2,7 @@ package com.deokhugam.domain.book.repository;
 
 import com.deokhugam.domain.book.dto.request.BookSearchCondition;
 import com.deokhugam.domain.book.dto.response.BookDto;
+import com.deokhugam.domain.book.enums.SortCriteria;
 import com.deokhugam.domain.book.enums.SortDirection;
 import com.deokhugam.domain.popularbook.dto.response.CursorResult;
 import com.querydsl.core.types.OrderSpecifier;
@@ -9,8 +10,10 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -26,6 +29,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class BookRepositoryImpl implements BookRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+    private final EntityManager em;
 
     @Override
     public Optional<BookDto> findBookDetailById(UUID bookId) {
@@ -70,7 +74,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
     @Override
     public CursorResult<BookDto> findBooks(BookSearchCondition condition, Pageable pageable) {
-        int size = pageable.getPageSize();
+        int size = pageable.getPageSize(); // TODO: Pageable 지운걸로 변경
         Instant after = condition.after();
 
         NumberExpression<Long> reviewCount = review.id.countDistinct().coalesce(0L);
@@ -129,40 +133,11 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             bookDtos.remove(size); // hasNext 여부를 위해 하나 더 가져온 건 잘라내기
         }
 
-        // totalCount 쿼리, Querydsl JPA는 FROM (subquery) 같은 걸 못해서,
-        // groupBy/having 적용된 book.id 목록을 가져와 size()로 총 개수 계산하는 방식
-        // NOTE: 프로토타입에는 있기도해서 카운트쿼리를 넣지만 이게 무한스크롤, 커서기반 페이지네이션에서 필요할지 생각할 필요있음
-        // NOTE: 데이터가 엄청 크면 이 totalCount는 무거울 수 있음(그땐 요구사항 협의/별도 count 전략 필요), 네트워크 + 메모리 + GC 지옥 그래서 fetch().size()로 안쓸려고도 fetchCount()를 deprecated 한것도 있음
-        // TODO: 추후 성능이슈로 인해 native query, blaze-persistence, 별도 집계테이블 혹은 해당 컬럼 book 테이블에 비정규화 고려하서 개선할 것
-        List<UUID> allMatchedIds = queryFactory
-                .select(book.id)
-                .from(book)
-                .leftJoin(review).on(review.book.id.eq(book.id))
-                .where(
-                        book.isDeleted.isFalse(),
-                        keywordPredicate(condition.keyword())
-                )
-                .groupBy(
-                        book.id,
-                        book.title,
-                        book.author,
-                        book.description,
-                        book.publisher,
-                        book.publishedDate,
-                        book.isbn,
-                        book.thumbnailUrl,
-                        book.createdAt,
-                        book.updatedAt
-                )
-                .having(
-                        cursorHavingPredicate(condition, after, reviewCount, avgRating)
-                )
-                .fetch();
-
-        long total = allMatchedIds.size();
+        long total = countTotal(condition);
 
         return new CursorResult<>(bookDtos, hasNext, total);
     }
+
 
     private BooleanExpression keywordPredicate(String keyword) {
         if (hasText(keyword)) { // where like %키워드% 역할
@@ -173,7 +148,6 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
         }
         return null;
     }
-
 
 
     private OrderSpecifier<?> primaryOrder(BookSearchCondition condition,
@@ -241,5 +215,116 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
             }
             case TITLE, PUBLISHED_DATE -> null;
         };
+    }
+
+
+    @Override
+    public long countTotal(BookSearchCondition condition) {
+        // NOTE: fetch().size()로 사용시 네트워크 + 메모리 + GC 과부하로 subquery 사용을 위해 native query로 적용
+        String keyword = condition.keyword();
+        String cursor = condition.cursor();
+        Instant after = condition.after();
+
+        boolean hasCursor = hasCursor(cursor, after);
+
+        String aggregateExpression = resolveAggregateExpression(condition.orderBy());
+        String keywordWhere = buildKeywordWhere();
+        String havingClause = buildHavingClause(condition, hasCursor, aggregateExpression);
+
+        String sql = buildTotalCountSql(keywordWhere, havingClause);
+
+        Query query = em.createNativeQuery(sql);
+        bindParameters(query, condition, keyword, hasCursor, aggregateExpression, cursor, after);
+
+        Number result = (Number) query.getSingleResult();
+        return result.longValue();
+    }
+
+    private boolean hasCursor(String cursor, Instant after) {
+        return cursor != null && after != null;
+    }
+
+    private String resolveAggregateExpression(SortCriteria orderBy) {
+        return switch (orderBy) {
+            case REVIEW_COUNT -> "COUNT(DISTINCT r.id)";
+            case RATING -> "COALESCE(AVG(r.rating), 0)";
+            case TITLE, PUBLISHED_DATE -> null; // 현재 구현: having 불필요
+        };
+    }
+
+    private String buildKeywordWhere() {
+        return """
+            AND (
+                :keyword IS NULL OR :keyword = '' OR
+                LOWER(b.title) LIKE CONCAT('%%', LOWER(:keyword), '%%') OR
+                LOWER(b.isbn) LIKE CONCAT('%%', LOWER(:keyword), '%%') OR
+                LOWER(b.author) LIKE CONCAT('%%', LOWER(:keyword), '%%') OR
+                LOWER(b.publisher) LIKE CONCAT('%%', LOWER(:keyword), '%%')
+            )
+        """;
+    }
+
+    private String buildHavingClause(BookSearchCondition condition,
+                                     boolean hasCursor,
+                                     String aggregateExpression) {
+        // 집계 커서(REVIEW_COUNT / RATING)만 having을 만든다
+        if (!hasCursor) return "";
+        if (aggregateExpression == null) return ""; // TITLE/PUBLISHED_DATE 케이스
+
+        SortCriteria orderBy = condition.orderBy();
+        if (orderBy != SortCriteria.REVIEW_COUNT && orderBy != SortCriteria.RATING) return "";
+
+        String operator = (condition.direction() == SortDirection.ASC) ? ">" : "<";
+
+        return """
+            HAVING (
+                (%s %s :cursorVal)
+                OR (%s = :cursorVal AND b.created_at %s :after)
+            )
+        """.formatted(aggregateExpression, operator, aggregateExpression, operator);
+    }
+
+    private String buildTotalCountSql(String keywordWhere, String havingClause) {
+        return """
+            SELECT COUNT(*) AS total
+            FROM (
+                SELECT b.id
+                FROM books b
+                LEFT JOIN reviews r
+                       ON r.book_id = b.id
+                      AND r.is_deleted = false
+                WHERE b.is_deleted = false
+                %s
+                GROUP BY
+                  b.id, b.title, b.author, b.description, b.publisher,
+                  b.published_date, b.isbn, b.thumbnail_url,
+                  b.created_at, b.updated_at
+                %s
+            ) x
+        """.formatted(keywordWhere, havingClause);
+    }
+
+    private void bindParameters(Query query,
+                                BookSearchCondition condition,
+                                String keyword,
+                                boolean hasCursor,
+                                String aggregateExpression,
+                                String cursor,
+                                Instant after) {
+        query.setParameter("keyword", keyword);
+
+        // having이 붙는 케이스에서만 cursorVal/after를 바인딩
+        if (!hasCursor) return;
+        if (aggregateExpression == null) return;
+
+        if (condition.orderBy() == SortCriteria.REVIEW_COUNT) {
+            query.setParameter("cursorVal", Long.parseLong(cursor));
+        } else if (condition.orderBy() == SortCriteria.RATING) {
+            query.setParameter("cursorVal", Double.parseDouble(cursor));
+        } else {
+            return;
+        }
+
+        query.setParameter("after", after);
     }
 }
