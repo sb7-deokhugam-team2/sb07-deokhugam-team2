@@ -11,7 +11,6 @@ import java.io.File;
 import java.util.Arrays;
 
 @Component
-@EnableScheduling
 @RequiredArgsConstructor
 public class LogScheduler {
 
@@ -19,7 +18,7 @@ public class LogScheduler {
     @Value("${log.path:./logs}")
     private String logDir;
 
-    @Scheduled(cron = "0 1 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void uploadPastHourLog() {
         File dir = new File(logDir);
 
