@@ -89,7 +89,14 @@ def jacocoExcludes = [
         '**/policy/**',
 
         // 커스텀 예외 제외
-        '**/exception/**/*.class'
+        '**/exception/**/*.class',
+
+        // dto 제외
+        '**/dto/**',
+
+        // config 제외
+        '**/config/**',
+        '**/*Config.class'
 ]
 
 jacocoTestReport {
