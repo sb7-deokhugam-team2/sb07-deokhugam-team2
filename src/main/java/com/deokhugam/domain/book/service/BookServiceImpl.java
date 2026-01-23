@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -105,11 +106,49 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
+        Optional<Book> existingBookOp = bookRepository.findByIsbn(bookCreateRequest.isbn());
 
-        if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
-            log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
-            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        if (existingBookOp.isPresent()) {
+            Book targetBook = existingBookOp.get();
+            if(!targetBook.isDeleted()){
+                log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
+                throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+            }
+            log.info("삭제된 도서 복구 및 업데이트 진행: {}", bookCreateRequest.isbn());
+
+            String newS3Key = null;
+            String oldKeyToDelete = null;
+
+            if (thumbnail != null && !thumbnail.isEmpty()) {
+                newS3Key = generateUniqueKey(thumbnail.getOriginalFilename());
+                fileStorage.upload(thumbnail, newS3Key);
+
+                bookCreateFailedRollbackCleanup(newS3Key);
+
+                oldKeyToDelete = targetBook.getThumbnailUrl();
+            }else {
+                newS3Key = targetBook.getThumbnailUrl();
+            }
+            targetBook.restore();
+            targetBook.update(
+                    bookCreateRequest.title(),
+                    bookCreateRequest.author(),
+                    bookCreateRequest.publishedDate(),
+                    bookCreateRequest.publisher(),
+                    bookCreateRequest.description(),
+                    newS3Key
+            );
+            if (oldKeyToDelete != null) {
+                deleteFileAfterCommit(oldKeyToDelete);
+            }
+            String finalCdnUrl = (newS3Key != null) ? fileStorage.generateUrl(newS3Key) : null;
+            log.info("삭제된 도서 복구 완료: {}", bookCreateRequest.isbn());
+
+            BookDto dto = bookRepository.findBookDetailById(targetBook.getId())
+                    .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
+            return BookMapper.toDto(targetBook, finalCdnUrl, dto.reviewCount(), dto.rating());
         }
+
         String fullS3Key = null;
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
@@ -173,12 +212,12 @@ public class BookServiceImpl implements BookService {
         if (oldKeyToDelete != null) {
             deleteFileAfterCommit(oldKeyToDelete);
         }
-        String cdnUrl = fileStorage.generateUrl(existingBook.getThumbnailUrl());
+        String finalCdnUrl = (existingBook.getThumbnailUrl() != null) ? fileStorage.generateUrl(existingBook.getThumbnailUrl()) : null;
         log.info("책 수정 완료 - ID: {}", existingBook.getId());
 
         BookDto dto = bookRepository.findBookDetailById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
-        return BookMapper.toDto(existingBook, cdnUrl, dto.reviewCount(), dto.rating());
+        return BookMapper.toDto(existingBook, finalCdnUrl, dto.reviewCount(), dto.rating());
     }
 
     @Override

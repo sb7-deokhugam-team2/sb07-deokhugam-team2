@@ -2,7 +2,7 @@ name: Dev CD (Test Deploy)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "feature/book-refactor-sungyeon" ]
 
 
 # GitHub Actions 토큰 권한 설정 (보안 강화)
