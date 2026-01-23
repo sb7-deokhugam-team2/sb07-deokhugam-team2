@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s #15초마다 메트릭 수집
+
+scrape_configs: # 메트릭 수집 대상을 정의하는 블록
+  - job_name: "my-spring-app"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+    - targets: ["host.docker.internal:8080"
+#    - targets: ["EC2_PRIVATE_IP:8080"] # SpringBoot가 EC2 외부(다른 서버)에서 실행 중
