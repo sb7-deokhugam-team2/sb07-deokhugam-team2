@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class LogScheduler {
 
     private final LogS3Storage logS3Storage; // 👈 새로 만든 클래스 주입
-    private static final String LOG_DIR = "./logs";
+    private static final String LOG_DIR = "./.logs";
 
     @Scheduled(cron = "0 1 * * * *")
     public void uploadPastHourLog() {
