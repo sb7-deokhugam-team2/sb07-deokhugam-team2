@@ -7,9 +7,8 @@ import com.deokhugam.domain.popularreview.entity.PopularReview;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 public interface PopularReviewRepositoryCustom {
     List<PopularReview> calculatePopularReviews(PeriodType periodType, Instant calculatedDate);
-    PopularReviewPageResponseDto searchPopularReviews(PopularReviewSearchCondition condition, UUID requestUserId);
+    PopularReviewPageResponseDto searchPopularReviews(PopularReviewSearchCondition condition);
 }
