@@ -48,9 +48,10 @@ public class PowerUserRepositoryTest {
         User user = User.create("test@gmail.com", "test", "12121212qw!");
         User user2 = User.create("test2@gmail.com", "test2", "12121212qw!");
         User user3 = User.create("test3@gmail.com", "test3", "12121212qw!");
-        PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 1L, 100.0, 0L, 0L, 200.0, user);
-        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 2L, 80.0, 0L, 0L, 160.0, user2);
-        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 3L, 60.0, 0L, 0L, 120.0, user3);
+        Instant calculateTime = Instant.now();
+        PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 1L, 100.0, 0L, 0L, 200.0, user);
+        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 2L, 80.0, 0L, 0L, 160.0, user2);
+        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 3L, 60.0, 0L, 0L, 120.0, user3);
         em.persist(user);
         em.persist(user2);
         em.persist(user3);
@@ -211,9 +212,10 @@ public class PowerUserRepositoryTest {
         User user = User.create("test@gmail.com", "test", "12121212qw!");
         User user2 = User.create("test2@gmail.com", "test2", "12121212qw!");
         User user3 = User.create("test3@gmail.com", "test3", "12121212qw!");
-        PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 1L, 100.0, 0L, 0L, 200.0, user);
-        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 2L, 80.0, 0L, 0L, 160.0, user2);
-        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, Instant.now(), 3L, 60.0, 0L, 0L, 120.0, user3);
+        Instant calculateTime = Instant.now();
+        PowerUser powerUser = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 1L, 100.0, 0L, 0L, 200.0, user);
+        PowerUser powerUser2 = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 2L, 80.0, 0L, 0L, 160.0, user2);
+        PowerUser powerUser3 = PowerUser.create(PeriodType.ALL_TIME, calculateTime, 3L, 60.0, 0L, 0L, 120.0, user3);
         em.persist(user);
         em.persist(user2);
         em.persist(user3);
