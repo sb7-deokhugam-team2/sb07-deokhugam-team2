@@ -97,11 +97,13 @@ public class PowerUserServiceImpl implements PowerUserService {
                 .limit(10)
                 .toList();
 
+
         List<PowerUser> powerUsers = new ArrayList<>();
+        Instant savedTime = Instant.now();
         for (int i = 0; i < ranker.size(); i++) {
             PowerUserRanking powerUserRanking = ranker.get(i);
             PowerUser powerUser = PowerUser.create(period,
-                    time.toInstant(),
+                    savedTime,
                     (long) i + 1,
                     powerUserRanking.getTotalScore(),
                     powerUserRanking.getLikedCount(),
