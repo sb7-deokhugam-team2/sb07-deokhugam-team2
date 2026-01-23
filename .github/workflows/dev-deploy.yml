@@ -1,0 +1,97 @@
+name: Dev CD (Test Deploy)
+
+on:
+  push:
+    branches: [ "main" ]
+
+
+# GitHub Actions 토큰 권한 설정 (보안 강화)
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: deokhugam-prod-v1-repo
+  ECS_SERVICE: deokhugam-test-service
+  ECS_CLUSTER: deokhugam-prod-v1-cluster
+  ECS_TASK_DEFINITION: deokhugam-test-task
+  CONTAINER_NAME: deokhugam-test-container
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30 # 배포가 30분 이상 걸리면 실패 처리 (무한 대기 방지)
+
+    steps:
+      # 1. 소스 코드 가져오기
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # 2. JDK 설치 및 Gradle 캐싱 (setup-java 기능 활용)
+      - name: Setup JDK 17 & Cache Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle' # 이렇게 하면 별도의 cache 스텝 없이 자동으로 처리됨
+
+      # 3. 권한 부여
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      # 4. 빌드 (테스트 제외)
+      - name: Build Spring Boot Application (Skip Tests)
+        run: ./gradlew clean build -x test
+
+      # 5. AWS 인증
+      - name: Authenticate with AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 6. ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 7. 도커 이미지 빌드 및 푸시
+      - name: Build and Push Docker Image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: test-${{ github.sha }}
+        run: |
+          # Fargate 호환성을 위해 platform 옵션 추가
+          docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # 8. 현재 실행 중인 Task Definition 가져오기 (환경변수 유지용)
+      - name: Fetch Current ECS Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+          # [중요] 불필요한 속성 제거 (배포 에러 방지)
+          jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' task-definition.json > task-definition-cleaned.json
+          mv task-definition-cleaned.json task-definition.json
+
+      # 9. 새 이미지 ID로 Task Definition 업데이트
+      - name: Update Task Definition with New Image
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      # 10. ECS에 배포 (Rolling Update)
+      - name: Deploy to Amazon ECS Cluster
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
