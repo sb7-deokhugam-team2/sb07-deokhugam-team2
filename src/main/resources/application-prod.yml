@@ -32,7 +32,14 @@ spring:
 logging:
   level:
     com.deokhugam: info
-
+  file:
+    name:
+    # Spring Boot 3.4+ 네이티브 JSON 로그 기능 활성화
+  structured:
+    format:
+      console: logstash # elastic common schema(ecs)나 gelf도 가능
+  # MDC에 들어있는 requestId, method, uri 등을 JSON 필드에 자동 포함
+  include-mdc: true
 # Prod 전용 모니터링 및 보안 설정 (덮어쓰기)
 management:
   endpoints:

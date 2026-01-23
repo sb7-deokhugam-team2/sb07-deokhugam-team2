@@ -22,6 +22,17 @@ logging:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
     com.deokhugam: debug
+  pattern:
+    console: "%green(%d{yy-MM-dd HH:mm:ss.SSS}) %cyan([%thread]) %boldYellow(%-5level) %highlight(%logger{36}) - %magenta([requestId=%X{requestId}]) %boldGreen([%X{method}]) %boldGreen([%X{uri}]) %msg%n"
+    file: "%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [requestId=%X{requestId}] [%X{method} %X{uri}] %msg%n"
+
+    # 로컬 개발 때는 파일로도 남기기 (ECS에서는 무시됨)
+  file:
+    name: .logs/app.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: .logs/app-%d{yy-MM-dd}.log
+      max-history: 30
 
 management:
   endpoints:
