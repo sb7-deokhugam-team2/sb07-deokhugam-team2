@@ -16,7 +16,7 @@ import java.util.Arrays;
 public class LogScheduler {
 
     private final LogS3Storage logS3Storage;
-    @Value("${log.path:./logs}")
+    @Value("${log.path:./.logs}")
     private String logDir;
 
 
