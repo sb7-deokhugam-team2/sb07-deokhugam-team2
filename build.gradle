@@ -46,6 +46,7 @@ dependencies {
     //healthcheck
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-cloudwatch2'
+    implementation 'org.owasp.encoder:encoder:1.2.3'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

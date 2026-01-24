@@ -404,7 +404,36 @@ public class BookControllerSliceTest {
                     .andExpect(status().is4xxClientError())
                     .andExpect(jsonPath("$.message").exists());
         }
+
+        @Test
+        @DisplayName("[400] 유효성 검사 실패: 필수 필드(ISBN 등)가 누락되면 400 에러")
+        void createBook_fail_validation() throws Exception {
+            // given
+            BookCreateRequest invalidRequest = new BookCreateRequest(
+                    "Title",
+                    "Author",
+                    "Desc",
+                    "Pub",
+                    LocalDate.now(),
+                    ""
+            );
+
+            MockMultipartFile bookDataFile = new MockMultipartFile(
+                    "bookData", "", "application/json",
+                    objectMapper.writeValueAsString(invalidRequest).getBytes(StandardCharsets.UTF_8)
+            );
+
+            // when & then
+            mockMvc.perform(multipart(ENDPOINT)
+                            .file(bookDataFile)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+
+            verify(bookService, never()).createBook(any(), any());
+        }
     }
+
 
 
     @Nested
@@ -419,10 +448,9 @@ public class BookControllerSliceTest {
             BookUpdateRequest updateRequest = new BookUpdateRequest(
                     "Updated Title",
                     "Updated Author",
-                    "Updated Publisher",
                     "Updated Description",
+                    "Updated Publisher",
                     LocalDate.now()
-
             );
 
             MockMultipartFile bookDataFile = new MockMultipartFile(
@@ -523,10 +551,10 @@ public class BookControllerSliceTest {
             // given
             UUID nonExistentId = UUID.randomUUID();
             BookUpdateRequest updateRequest = new BookUpdateRequest(
-                    "T",
-                    "A",
-                    "D",
-                    "P",
+                    "Valid Title",
+                    "Valid Author",
+                    "Valid Description",
+                    "Valid Publisher",
                     LocalDate.now()
             );
 
@@ -548,6 +576,37 @@ public class BookControllerSliceTest {
                             .contentType(MediaType.MULTIPART_FORM_DATA))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").exists());
+        }
+        @Test
+        @DisplayName("[400] 유효성 검사 실패: 필수 값이 비어있으면 400 에러를 반환한다")
+        void updateBook_fail_validation() throws Exception {
+            // given
+            UUID bookId = UUID.randomUUID();
+
+            BookUpdateRequest invalidRequest = new BookUpdateRequest(
+                    "",
+                    "",
+                    "Desc",
+                    "Pub",
+                    LocalDate.now()
+            );
+
+            MockMultipartFile bookDataFile = new MockMultipartFile(
+                    "bookData", "", "application/json",
+                    objectMapper.writeValueAsString(invalidRequest).getBytes(StandardCharsets.UTF_8)
+            );
+
+            // when & then
+            mockMvc.perform(multipart(ENDPOINT + "/{bookId}", bookId)
+                            .file(bookDataFile)
+                            .with(request -> {
+                                request.setMethod("PATCH");
+                                return request;
+                            })
+                            .contentType(MediaType.MULTIPART_FORM_DATA))
+                    .andExpect(status().isBadRequest()); // 400 Bad Request 기대
+
+            verify(bookService, times(0)).updateBook(any(), any(), any());
         }
     }
 
