@@ -5,5 +5,5 @@ scrape_configs:
   - job_name: 'deokhugam-app'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['http://deokhugam-prod-v1-alb-1905938263.ap-northeast-2.elb.amazonaws.com']
+      - targets: ['127.0.0.1:8080']
 #    - targets: ["EC2_PRIVATE_IP:8080"] # SpringBoot가 EC2 외부(다른 서버)에서 실행 중
