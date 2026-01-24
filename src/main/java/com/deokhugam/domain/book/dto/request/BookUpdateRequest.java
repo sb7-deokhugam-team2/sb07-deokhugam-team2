@@ -12,9 +12,9 @@ public record BookUpdateRequest(
         String author,
         @NotBlank
         String description,
-        @NotNull
-        String publisher,
         @NotBlank
+        String publisher,
+        @NotNull
         LocalDate publishedDate
 ) {
 }
