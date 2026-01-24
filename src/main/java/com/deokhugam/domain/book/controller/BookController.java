@@ -8,8 +8,11 @@ import com.deokhugam.domain.book.dto.response.BookDto;
 import com.deokhugam.domain.book.dto.response.CursorPageResponseBookDto;
 import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.owasp.encoder.Encode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,7 +32,7 @@ public class BookController implements BookControllerDocs {
     public ResponseEntity<CursorPageResponseBookDto> getAllBooks(
             BookSearchCondition searchCondition
     ) {
-        log.debug("도서 목록 조회 요청 - bookId={}, keyword={}, orderBy={}, direction={}, limit={}, cursor={}, after={}",
+        log.debug("도서 목록 조회 요청 - keyword={}, orderBy={}, direction={}, limit={}, cursor={}, after={}",
                 searchCondition.keyword(),
                 searchCondition.orderBy(),
                 searchCondition.direction(),
@@ -70,23 +73,28 @@ public class BookController implements BookControllerDocs {
     @PostMapping()
     @Override
     public ResponseEntity<BookDto> createBook(
-            @RequestPart(value = "bookData") BookCreateRequest createRequest,
+            @Valid @RequestPart(value = "bookData") BookCreateRequest createRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
         String fileName = (thumbnail != null) ? thumbnail.getOriginalFilename() : "NONE";
-        log.info("도서 생성 요청 - Title: {}, ISBN: {}, Thumbnail: {}", createRequest.title(), createRequest.isbn(), fileName);
+
+        String safeTitle = Encode.forJava(createRequest.title());
+        String safeFileName = Encode.forJava(fileName);
+        String safeIsbn = Encode.forJava(createRequest.isbn());
+
+        log.info("도서 생성 요청 - Title: {}, ISBN: {}, Thumbnail: {}", safeTitle, safeIsbn, safeFileName);
 
         BookDto dto = bookService.createBook(createRequest, thumbnail);
 
         log.info("도서 생성 완료 - Generated ID: {}", dto.id());
-        return ResponseEntity.status(201).body(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @PatchMapping("/{bookId}")
     @Override
     public ResponseEntity<BookDto> updateBook(
             @PathVariable UUID bookId,
-            @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
+            @Valid @RequestPart(value = "bookData") BookUpdateRequest updateRequest,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnail
     ) {
         String fileName = (thumbnail != null) ? thumbnail.getOriginalFilename() : "NONE";

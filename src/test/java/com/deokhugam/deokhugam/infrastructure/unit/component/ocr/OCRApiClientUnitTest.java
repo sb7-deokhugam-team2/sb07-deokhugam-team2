@@ -56,7 +56,7 @@ public class OCRApiClientUnitTest {
             MockMultipartFile file = new MockMultipartFile(
                     "file", "test.jpg", "image/jpeg", "dummy-content".getBytes()
             );
-            String expectedIsbn = "9788912345678";
+            String expectedIsbn = "9788966260959";
             String extractedText = "Text with ISBN: " + expectedIsbn;
 
             OCRResponse.ParsedResult parsedResult = new OCRResponse.ParsedResult(
