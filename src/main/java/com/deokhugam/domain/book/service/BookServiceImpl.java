@@ -9,6 +9,7 @@ import com.deokhugam.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.domain.book.entity.Book;
 import com.deokhugam.domain.book.exception.BookException;
 import com.deokhugam.domain.book.exception.BookNotFoundException;
+import com.deokhugam.domain.book.mapper.BookApiMapper;
 import com.deokhugam.domain.book.mapper.BookMapper;
 import com.deokhugam.domain.book.mapper.BookUrlMapper;
 import com.deokhugam.domain.book.repository.BookRepository;
@@ -94,8 +95,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public NaverBookDto getBookByIsbn(String isbn) {
         BookGlobalApiDto globalApiDto = bookApiManager.searchWithFallback(isbn);
-        return new NaverBookDto(globalApiDto.title(), globalApiDto.author(), globalApiDto.description(),
-                globalApiDto.publisher(), globalApiDto.publishedDate(), globalApiDto.isbn(), globalApiDto.thumbnailImage());
+        return BookApiMapper.toNaverBookDto(globalApiDto);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class BookServiceImpl implements BookService {
     }
     private BookDto createNewBook(BookCreateRequest request, MultipartFile thumbnail) {
         String fullS3Key = null;
-        if (thumbnail != null && !thumbnail.isEmpty()) {
+        if (isValidFile(thumbnail)) {
             fullS3Key = generateUniqueKey(thumbnail.getOriginalFilename());
             fileStorage.upload(thumbnail, fullS3Key);
             bookCreateFailedRollbackCleanup(fullS3Key);
@@ -157,9 +157,8 @@ public class BookServiceImpl implements BookService {
                 request.description()
         ));
         log.info("책 생성 완료 - ID: {}", savedBook.getId());
-        BookMapper.toDto(savedBook, 0L, 0.0);
-        BookDto bookDto = BookMapper.toDto(savedBook, 0L, 0.0);
-        return bookUrlMapper.withFullThumbnailUrl(bookDto);
+        BookDto rawDto = BookMapper.toDto(savedBook, 0L, 0.0);
+        return bookUrlMapper.withFullThumbnailUrl(rawDto);
     }
 
     @Override
@@ -200,22 +199,10 @@ public class BookServiceImpl implements BookService {
     }
 
     private BookDto convertToDto(Book book, String s3Key) {
-        String cdnUrl = getCdnUrl(s3Key);
         BookDto dto = bookRepository.findBookDetailById(book.getId())
-                .orElse(null);
+                .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
 
-        long reviewCount = (dto != null) ? dto.reviewCount() : 0L;
-        double rating = (dto != null) ? dto.rating() : 0.0;
-
-        return BookMapper.toDto(book, reviewCount, rating);
-    }
-
-    private String getCdnUrl(String key) {
-        return (key != null) ? fileStorage.generateUrl(key) : null;
-    }
-
-    private boolean isValidFile(MultipartFile file) {
-        return file != null && !file.isEmpty();
+        return bookUrlMapper.withFullThumbnailUrl(dto);
     }
 
     @Override
@@ -281,6 +268,10 @@ public class BookServiceImpl implements BookService {
     private String getExtension(String filename) {
         if (filename == null || filename.lastIndexOf('.') == -1) return "jpg";
         return filename.substring(filename.lastIndexOf('.') + 1);
+    }
+
+    private boolean isValidFile(MultipartFile file) {
+        return file != null && !file.isEmpty();
     }
 
 
