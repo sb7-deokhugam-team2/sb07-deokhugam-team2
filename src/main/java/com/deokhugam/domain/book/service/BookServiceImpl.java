@@ -105,119 +105,117 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public BookDto createBook(BookCreateRequest bookCreateRequest, MultipartFile thumbnail) {
-        Optional<Book> existingBookOp = bookRepository.findByIsbn(bookCreateRequest.isbn());
+    public BookDto createBook(BookCreateRequest request, MultipartFile thumbnail) {
+        Optional<Book> existingBookOp = bookRepository.findByIsbn(request.isbn());
 
-        if (existingBookOp.isPresent()) {
-            Book targetBook = existingBookOp.get();
-            if(!targetBook.isDeleted()){
-                log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", bookCreateRequest.isbn());
-                throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
-            }
-            log.info("삭제된 도서 복구 및 업데이트 진행: {}", bookCreateRequest.isbn());
+        return existingBookOp.map(book -> restoreDeletedBook(book, request, thumbnail)).orElseGet(() -> createNewBook(request, thumbnail));
+    }
 
-            String newS3Key = null;
-            String oldKeyToDelete = null;
+    private BookDto restoreDeletedBook(Book targetBook, BookCreateRequest request, MultipartFile thumbnail) {
+        if (!targetBook.isDeleted()) {
+            log.warn("책 생성 실패: 이미 존재하는 ISBN - {}", request.isbn());
+            throw new BookException(ErrorCode.DUPLICATE_BOOK_ISBN);
+        }
+        log.info("삭제된 도서 복구 및 업데이트 진행: {}", request.isbn());
 
-            if (thumbnail != null && !thumbnail.isEmpty()) {
-                newS3Key = generateUniqueKey(thumbnail.getOriginalFilename());
-                fileStorage.upload(thumbnail, newS3Key);
+        String newS3Key = targetBook.getThumbnailUrl();
+        String oldKeyToDelete = null;
 
-                bookCreateFailedRollbackCleanup(newS3Key);
-
-                oldKeyToDelete = targetBook.getThumbnailUrl();
-            }else {
-                newS3Key = targetBook.getThumbnailUrl();
-            }
-            targetBook.restore();
-            targetBook.update(
-                    bookCreateRequest.title(),
-                    bookCreateRequest.author(),
-                    bookCreateRequest.publishedDate(),
-                    bookCreateRequest.publisher(),
-                    bookCreateRequest.description(),
-                    newS3Key
-            );
-            if (oldKeyToDelete != null) {
-                deleteFileAfterCommit(oldKeyToDelete);
-            }
-            String finalCdnUrl = (newS3Key != null) ? fileStorage.generateUrl(newS3Key) : null;
-            log.info("삭제된 도서 복구 완료: {}", bookCreateRequest.isbn());
-
-            BookDto dto = bookRepository.findBookDetailById(targetBook.getId())
-                    .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
-            return BookMapper.toDto(targetBook, finalCdnUrl, dto.reviewCount(), dto.rating());
+        if (isValidFile(thumbnail)) {
+            newS3Key = uploadImageAndRegisterRollback(thumbnail);
+            oldKeyToDelete = targetBook.getThumbnailUrl();
         }
 
-        String fullS3Key = null;
+        targetBook.restore();
+        targetBook.update(
+                request.title(), request.author(), request.publishedDate(),
+                request.publisher(), request.description(), newS3Key
+        );
 
+        if (oldKeyToDelete != null && !oldKeyToDelete.equals(newS3Key)) {
+            deleteFileAfterCommit(oldKeyToDelete);
+        }
+
+        return convertToDto(targetBook, newS3Key);
+    }
+    private BookDto createNewBook(BookCreateRequest request, MultipartFile thumbnail) {
+        String fullS3Key = null;
         if (thumbnail != null && !thumbnail.isEmpty()) {
             fullS3Key = generateUniqueKey(thumbnail.getOriginalFilename());
-
             fileStorage.upload(thumbnail, fullS3Key);
-            log.debug("썸네일 업로드 완료 - Key: {}", fullS3Key);
             bookCreateFailedRollbackCleanup(fullS3Key);
         }
-        log.info("책 생성 요청 - 제목: {}, ISBN: {}",
-                bookCreateRequest.title(), bookCreateRequest.isbn());
-        Book savedBook = bookRepository.save(
-                Book.create(
-                        bookCreateRequest.title(),
-                        bookCreateRequest.author(),
-                        bookCreateRequest.isbn(),
-                        bookCreateRequest.publishedDate(),
-                        bookCreateRequest.publisher(),
-                        fullS3Key,
-                        bookCreateRequest.description()
-                ));
 
-        String finalCdnUrl = (fullS3Key != null) ? fileStorage.generateUrl(fullS3Key) : null;
-
-        log.info("책 생성 완료 - ID: {}, 제목: {}", savedBook.getId(), savedBook.getTitle());
-
-        return BookMapper.toDto(savedBook, finalCdnUrl, 0L, 0.0);
+        log.info("책 생성 요청 - 제목: {}, ISBN: {}", request.title(), request.isbn());
+        Book savedBook = bookRepository.save(Book.create(
+                request.title(),
+                request.author(),
+                request.isbn(),
+                request.publishedDate(),
+                request.publisher(),
+                fullS3Key,
+                request.description()
+        ));
+        log.info("책 생성 완료 - ID: {}", savedBook.getId());
+        BookMapper.toDto(savedBook, 0L, 0.0);
+        BookDto bookDto = BookMapper.toDto(savedBook, 0L, 0.0);
+        return bookUrlMapper.withFullThumbnailUrl(bookDto);
     }
 
     @Override
     @Transactional
-    public BookDto updateBook(UUID bookId, BookUpdateRequest bookUpdateRequest, MultipartFile thumbnail) {
-        Book existingBook = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
-        String newKey = null;
+    public BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnail) {
+        Book existingBook = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
+
+        if (existingBook.isDeleted()) throw new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND);
+
+        String newKey = existingBook.getThumbnailUrl();
         String oldKeyToDelete = null;
 
-        if (existingBook.isDeleted()) {
-            throw new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND);
-        }
-
-        if (thumbnail != null && !thumbnail.isEmpty()) {
-            String newOriginalFileName = thumbnail.getOriginalFilename();
-            newKey = generateUniqueKey(newOriginalFileName);
-
-            fileStorage.upload(thumbnail, newKey);
-            log.info("썸네일 업로드(수정) 완료 - Key: {}", newKey);
-
-            bookCreateFailedRollbackCleanup(newKey);
-
+        if (isValidFile(thumbnail)) {
+            newKey = uploadImageAndRegisterRollback(thumbnail);
             oldKeyToDelete = existingBook.getThumbnailUrl();
         }
+
         existingBook.update(
-                bookUpdateRequest.title(),
-                bookUpdateRequest.author(),
-                bookUpdateRequest.publishedDate(),
-                bookUpdateRequest.publisher(),
-                bookUpdateRequest.description(),
-                (newKey != null) ? newKey : existingBook.getThumbnailUrl()
+                request.title(), request.author(), request.publishedDate(),
+                request.publisher(), request.description(), newKey
         );
 
-        if (oldKeyToDelete != null) {
+        if (oldKeyToDelete != null && !oldKeyToDelete.equals(newKey)) {
             deleteFileAfterCommit(oldKeyToDelete);
         }
-        String finalCdnUrl = (existingBook.getThumbnailUrl() != null) ? fileStorage.generateUrl(existingBook.getThumbnailUrl()) : null;
-        log.info("책 수정 완료 - ID: {}", existingBook.getId());
 
-        BookDto dto = bookRepository.findBookDetailById(bookId)
-                .orElseThrow(() -> new BookNotFoundException(ErrorCode.BOOK_NOT_FOUND));
-        return BookMapper.toDto(existingBook, finalCdnUrl, dto.reviewCount(), dto.rating());
+        return convertToDto(existingBook, newKey);
+    }
+
+    private String uploadImageAndRegisterRollback(MultipartFile file) {
+        String key = generateUniqueKey(file.getOriginalFilename());
+        fileStorage.upload(file, key);
+        log.debug("썸네일 업로드 완료 - Key: {}", key);
+
+        bookCreateFailedRollbackCleanup(key);
+        return key;
+    }
+
+    private BookDto convertToDto(Book book, String s3Key) {
+        String cdnUrl = getCdnUrl(s3Key);
+        BookDto dto = bookRepository.findBookDetailById(book.getId())
+                .orElse(null);
+
+        long reviewCount = (dto != null) ? dto.reviewCount() : 0L;
+        double rating = (dto != null) ? dto.rating() : 0.0;
+
+        return BookMapper.toDto(book, reviewCount, rating);
+    }
+
+    private String getCdnUrl(String key) {
+        return (key != null) ? fileStorage.generateUrl(key) : null;
+    }
+
+    private boolean isValidFile(MultipartFile file) {
+        return file != null && !file.isEmpty();
     }
 
     @Override
@@ -284,4 +282,6 @@ public class BookServiceImpl implements BookService {
         if (filename == null || filename.lastIndexOf('.') == -1) return "jpg";
         return filename.substring(filename.lastIndexOf('.') + 1);
     }
+
+
 }
