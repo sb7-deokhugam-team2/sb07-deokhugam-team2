@@ -49,9 +49,6 @@ public class BookServiceUnitTest {
     private BookRepository bookRepository;
 
     @Mock
-    private FileStorage s3Storage;
-
-    @Mock
     private FileStorage fileStorage;
 
     @Mock
