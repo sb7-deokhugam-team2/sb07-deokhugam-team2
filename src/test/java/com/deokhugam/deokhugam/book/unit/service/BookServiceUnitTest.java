@@ -21,9 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -174,8 +174,8 @@ public class BookServiceUnitTest {
             assertThat(deletedBook.isDeleted()).isFalse();
             assertThat(deletedBook.getTitle()).isEqualTo(request.title());
 
-            verify(fileStorage).upload(any(), anyString());
             // verify
+            verify(fileStorage).upload(any(MultipartFile.class), anyString());
         }
 
         @Test
@@ -224,7 +224,7 @@ public class BookServiceUnitTest {
             BookDto result = bookService.updateBook(bookId, request, newThumbnail);
 
             // then
-            verify(fileStorage).upload(any(MockMultipartFile.class), anyString());
+            verify(fileStorage).upload(any(MultipartFile.class), anyString());
             assertThat(existingBook.getThumbnailUrl()).isNotEqualTo(oldKey);
             assertThat(existingBook.getTitle()).isEqualTo(request.title()); // 필드 변경 확인
         }
