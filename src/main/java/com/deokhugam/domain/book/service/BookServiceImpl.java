@@ -56,8 +56,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(readOnly = true)
     public CursorPageResponseBookDto searchBooks(BookSearchCondition bookSearchCondition) {
-        Pageable pageable = PageRequest.of(0, bookSearchCondition.limit());
-        CursorResult<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition, pageable);
+        CursorResult<BookDto> pageBook = bookRepository.findBooks(bookSearchCondition);
         List<BookDto> content = bookUrlMapper.withFullThumbnailUrl(pageBook.content());
         BookDto last = content.isEmpty() ? null : content.get(content.size() - 1);
         String nextCursor = null;

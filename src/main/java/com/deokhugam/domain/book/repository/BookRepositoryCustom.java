@@ -10,5 +10,6 @@ import java.util.UUID;
 
 public interface BookRepositoryCustom {
     Optional<BookDto> findBookDetailById(UUID bookId);
-    CursorResult<BookDto> findBooks(BookSearchCondition condition, Pageable pageable);
+    CursorResult<BookDto> findBooks(BookSearchCondition condition);
+    long countTotal(BookSearchCondition condition);
 }
