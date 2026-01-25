@@ -183,7 +183,7 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
                         review.content,
                         review.rating,
                         popularReview.periodType,
-                        popularReview.createdAt,
+                        popularReview.calculatedDate,
                         popularReview.rank,
                         popularReview.score,
                         popularReview.likedCount,
