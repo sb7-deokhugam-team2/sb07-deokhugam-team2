@@ -45,7 +45,7 @@ management:
   metrics:
     export:
       cloudwatch:
-        namespace: deokhugam-monitoring
+        namespace: deokhugam-monitoring-test
         batch-size: 20
         enabled: true
         step: 1m
