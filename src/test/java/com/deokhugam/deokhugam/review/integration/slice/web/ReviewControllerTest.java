@@ -91,7 +91,7 @@ public class ReviewControllerTest {
                 .andExpect(status().isOk());
 
         verify(reviewService, times(1))
-                .updateReview(any(ReviewUpdateRequest.class),eq(reviewId), eq(userId));
+                .updateReview(any(ReviewUpdateRequest.class),eq(userId), eq(reviewId));
     }
 
     @Test
