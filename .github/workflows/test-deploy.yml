@@ -12,7 +12,7 @@ permissions:
 env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: deokhugam-prod-v1-repo
-  ECS_SERVICE: deokhugam-test-service
+  ECS_SERVICE: deokhugam-test-serv-1
   ECS_CLUSTER: deokhugam-prod-v1-cluster
   ECS_TASK_DEFINITION: deokhugam-test-task
   CONTAINER_NAME: deokhugam-test-container
