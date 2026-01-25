@@ -40,12 +40,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.postgresql:postgresql'
 
+    implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.17.0-M1'
     implementation platform('software.amazon.awssdk:bom:2.29.0')
     implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:cloudwatch'
 
     //healthcheck
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-cloudwatch:1.11.0'
+
     implementation 'org.owasp.encoder:encoder:1.2.3'
 
     compileOnly 'org.projectlombok:lombok'
