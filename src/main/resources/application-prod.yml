@@ -33,6 +33,7 @@ logging:
   level:
     com.deokhugam: info
     io.micrometer.cloudwatch: DEBUG
+    software.amazon.awssdk: ERROR
 
 # Prod 전용 모니터링 및 보안 설정 (덮어쓰기)
 management:
@@ -46,8 +47,7 @@ management:
   metrics:
     export:
       cloudwatch:
-        namespace: deokhugam-monitoring-test
+        namespace: deokhugam/monitoring/test
         batch-size: 20
         enabled: true
         step: 1m
-        region: ap-northeast-2
