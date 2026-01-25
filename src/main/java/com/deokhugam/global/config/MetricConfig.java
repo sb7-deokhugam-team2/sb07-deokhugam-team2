@@ -20,7 +20,6 @@ public class MetricConfig {
     public MetricConfig() {
         // 이 로그가 안 뜨거나, 앱이 안 죽으면 코드가 반영 안 된 것임!
         System.out.println("🔥🔥🔥 [확인사살] MetricConfig 클래스가 로딩되었습니다!!! 🔥🔥🔥");
-        throw new RuntimeException("💀 [테스트] 배포 확인용 강제 에러 발생! 이 에러가 보여야 정상입니다.");
     }
 
     @Bean
