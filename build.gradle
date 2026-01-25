@@ -43,7 +43,6 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.17.0-M1'
     implementation platform('software.amazon.awssdk:bom:2.29.0')
     implementation 'software.amazon.awssdk:s3'
-    implementation 'software.amazon.awssdk:cloudwatch'
 
     //healthcheck
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
