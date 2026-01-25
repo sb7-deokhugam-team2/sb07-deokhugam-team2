@@ -53,7 +53,7 @@ public class ReviewServiceImpl implements ReviewService {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (reviewRepository.existsReviewByUserIdAndBookId(request.userId(), request.bookId())) {
+        if (reviewRepository.existsReviewByUserIdAndBookIdAndIsDeletedFalse(request.userId(), request.bookId())) {
             throw new ReviewAlreadyExistsException(ErrorCode.REVIEW_ALREADY_EXISTS);
         }
 

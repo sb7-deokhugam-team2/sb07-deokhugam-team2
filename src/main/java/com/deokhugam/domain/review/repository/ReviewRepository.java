@@ -10,6 +10,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
 
     Optional<Review> findByIdAndIsDeletedFalse(UUID id);
 
-    boolean existsReviewByUserIdAndBookId(UUID userId, UUID bookId);
+    boolean existsReviewByUserIdAndBookIdAndIsDeletedFalse(UUID userId, UUID bookId);
 
 }

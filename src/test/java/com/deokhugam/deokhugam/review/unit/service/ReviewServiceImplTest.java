@@ -107,7 +107,7 @@ class ReviewServiceImplTest {
                 .thenReturn(Optional.of(testUser));
         when(bookRepository.findById(testBookId))
                 .thenReturn(Optional.of(testBook));
-        when(reviewRepository.existsReviewByUserIdAndBookId(testUserId, testBookId))
+        when(reviewRepository.existsReviewByUserIdAndBookIdAndIsDeletedFalse(testUserId, testBookId))
                 .thenReturn(false);
 
         Review mockReview = mock(Review.class);
@@ -160,7 +160,7 @@ class ReviewServiceImplTest {
     @DisplayName("실패: 이미 활성 리뷰가 존재함")
     void createReview_Fail_ReviewAlreadyExists() {
         // given
-        when(reviewRepository.existsReviewByUserIdAndBookId(testUserId, testBookId))
+        when(reviewRepository.existsReviewByUserIdAndBookIdAndIsDeletedFalse(testUserId, testBookId))
                 .thenReturn(true);
         when(bookRepository.findById(testBookId))
                 .thenReturn(Optional.of(testBook));

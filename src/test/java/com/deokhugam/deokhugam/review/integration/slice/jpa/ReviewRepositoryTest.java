@@ -127,7 +127,7 @@ public class ReviewRepositoryTest {
         em.clear();
 
         // when
-        boolean exists = reviewRepository.existsReviewByUserIdAndBookId(user.getId(), book.getId());
+        boolean exists = reviewRepository.existsReviewByUserIdAndBookIdAndIsDeletedFalse(user.getId(), book.getId());
 
         // then
         assertThat(exists).isTrue();
@@ -141,7 +141,7 @@ public class ReviewRepositoryTest {
         UUID nonExistentBookId = UUID. randomUUID();
 
         // when
-        boolean exists = reviewRepository. existsReviewByUserIdAndBookId(nonExistentUserId, nonExistentBookId);
+        boolean exists = reviewRepository. existsReviewByUserIdAndBookIdAndIsDeletedFalse(nonExistentUserId, nonExistentBookId);
 
         // then
         assertThat(exists).isFalse();
