@@ -22,17 +22,19 @@ public class PopularReviewBatchService {
     @Transactional
     public void calculateAndSaveAllPeriods() {
         Instant calculatedDate = getTodayStartKst();
+        Instant now = Instant.now();
 
-        calculateAndSave(PeriodType.DAILY, calculatedDate);
-        calculateAndSave(PeriodType.WEEKLY, calculatedDate);
-        calculateAndSave(PeriodType.MONTHLY, calculatedDate);
-        calculateAndSave(PeriodType.ALL_TIME, calculatedDate);
+        calculateAndSave(PeriodType.DAILY, calculatedDate, now);
+        calculateAndSave(PeriodType.WEEKLY, calculatedDate, now);
+        calculateAndSave(PeriodType.MONTHLY, calculatedDate, now);
+        calculateAndSave(PeriodType.ALL_TIME, calculatedDate, now);
     }
 
-    private void calculateAndSave(PeriodType periodType, Instant calculatedDate) {
-        log.info("[PopularReviewBatch] period={}, calculatedDate={}", periodType, calculatedDate);
+    private void calculateAndSave(PeriodType periodType, Instant calculatedDate, Instant now) {
+        log.info("[PopularReviewBatch] period={}, calculatedDate={}, now = {}", periodType, calculatedDate, now);
 
-        List<PopularReview> popularReviews = popularReviewRepository.calculatePopularReviews(periodType, calculatedDate);
+        List<PopularReview> popularReviews = popularReviewRepository.calculatePopularReviews(periodType, calculatedDate, now);
+        log.info("[PopularReviewBatch] calculated size={}", popularReviews.size());
 
         popularReviewRepository.deleteByPeriodTypeAndCalculatedDate(periodType, calculatedDate);
 

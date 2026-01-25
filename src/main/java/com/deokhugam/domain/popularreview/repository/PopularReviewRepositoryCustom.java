@@ -9,6 +9,6 @@ import java.time.Instant;
 import java.util.List;
 
 public interface PopularReviewRepositoryCustom {
-    List<PopularReview> calculatePopularReviews(PeriodType periodType, Instant calculatedDate);
+    List<PopularReview> calculatePopularReviews(PeriodType periodType, Instant calculatedDate, Instant now);
     PopularReviewPageResponseDto searchPopularReviews(PopularReviewSearchCondition condition);
 }
