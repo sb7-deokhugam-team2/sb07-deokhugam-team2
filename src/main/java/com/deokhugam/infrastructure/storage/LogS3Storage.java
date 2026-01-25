@@ -2,6 +2,7 @@ package com.deokhugam.infrastructure.storage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -14,7 +15,6 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class LogS3Storage {
     private final S3Client s3Client;
 
@@ -23,6 +23,10 @@ public class LogS3Storage {
 
     @Value("${spring.profiles.active:unknown}")
     private String profile;
+
+    public LogS3Storage(@Qualifier("logS3Client") S3Client s3Client) {
+        this.s3Client = s3Client;
+    }
 
     public void uploadLog(File file) {
         if (!file.exists()) return;

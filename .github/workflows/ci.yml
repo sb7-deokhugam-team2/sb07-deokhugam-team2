@@ -7,6 +7,8 @@ on:
       - develop
 
 env:
+  AWS_LOG_ACCESS_KEY: ${{secrets.AWS_LOG_ACCESS_KEY}}
+  AWS_LOG_SECRET_KEY: ${{secrets.AWS_LOG_SECRET_KEY}}
   AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY}}
   AWS_SECRET_KEY: ${{secrets.AWS_SECRET_KEY}}
   NAVER_CLIENT_ID: ${{secrets.NAVER_CLIENT_ID}}

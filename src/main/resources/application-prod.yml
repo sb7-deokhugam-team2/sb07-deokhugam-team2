@@ -45,8 +45,7 @@ management:
   metrics:
     export:
       cloudwatch:
-        namespace: deokhugam-monitoring
+        namespace: deokhugam/monitoring
         batch-size: 20
         enabled: true
         step: 1m
-        region: ap-northeast-2
