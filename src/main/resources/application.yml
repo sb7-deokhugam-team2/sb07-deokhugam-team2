@@ -23,6 +23,9 @@ spring:
         jdbc:
           time_zone: UTC
           batch_size: 50
+  batch:
+    job:
+      enabled: false
 
 # 로깅 공통 설정
 logging:
@@ -39,10 +42,14 @@ storage:
       credentials:
         AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
         AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+      log-credentials:
+        AWS_ACCESS_KEY: ${AWS_LOG_ACCESS_KEY}
+        AWS_SECRET_KEY: ${AWS_LOG_SECRET_KEY}
       region:
         static: ap-northeast-2
       s3:
         bucket: deokhugam-prod-v1-bucket
+        log-bucket: deokhugam-prod-v1-log-bucket
   local:
     upload-path: /Users/dev/uploads
 

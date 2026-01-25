@@ -108,9 +108,32 @@ public class OCRApiClient implements IsbnExtractor{
 
         Matcher matcher = ISBN_PATTERN.matcher(cleanText);
 
-        if (matcher.find()) {
-            return matcher.group();
+        while (matcher.find()) {
+            String candidate = matcher.group();
+            if (isValidIsbn13(candidate)) {
+                return candidate;
+            }
+            log.debug("ISBN 패턴은 맞으나 체크섬 실패 (무시됨): {}", candidate);
         }
         return null;
+    }
+
+    private boolean isValidIsbn13(String isbn) {
+        if (isbn == null || isbn.length() != 13) return false;
+
+        try {
+            int sum = 0;
+            for (int i = 0; i < 12; i++) {
+                int digit = Character.getNumericValue(isbn.charAt(i));
+                sum += (i % 2 == 0) ? digit : digit * 3;
+            }
+
+            int checkDigit = 10 - (sum % 10);
+            if (checkDigit == 10) checkDigit = 0;
+
+            return checkDigit == Character.getNumericValue(isbn.charAt(12));
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

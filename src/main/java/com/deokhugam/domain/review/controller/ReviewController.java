@@ -94,9 +94,9 @@ public class ReviewController implements ReviewControllerDocs {
         log.debug("리뷰 수정 요청 시작 - ReviewId: {}, UserId: {}, New Content: {}",
                 reviewId, requestId, reviewUpdateRequest.content());
 
-        ReviewDto updatedReview = reviewService.updateReview(reviewUpdateRequest, reviewId, requestId);
+        ReviewDto updatedReview = reviewService.updateReview(reviewUpdateRequest, requestId, reviewId);
 
-        log.info("리뷰 수정 처리 완료 - ReviewId: {}, UserId: {}", reviewId, requestId);
+        log.info("리뷰 수정 처리 완료 - ReviewId: {}, UserId: {}", requestId, reviewId);
         return ResponseEntity.ok(updatedReview);
     }
 

@@ -40,4 +40,41 @@ public class PopularReview extends BaseEntity {
     @JoinColumn(name = "review_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Review review;
+
+    private PopularReview(
+            PeriodType periodType,
+            Instant calculatedDate,
+            Long rank,
+            Double score,
+            Long likedCount,
+            Long commentCount,
+            Review review) {
+        this.periodType = periodType;
+        this.calculatedDate = calculatedDate;
+        this.rank = rank;
+        this.score = score;
+        this.likedCount = likedCount;
+        this.commentCount = commentCount;
+        this.review = review;
+    }
+
+    public static PopularReview create(
+            PeriodType periodType,
+            Instant calculatedDate,
+            long rank,
+            double score,
+            long likedCount,
+            long commentCount,
+            Review review
+    ) {
+        return new PopularReview(
+                periodType,
+                calculatedDate,
+                rank,
+                score,
+                likedCount,
+                commentCount,
+                review
+        );
+    }
 }

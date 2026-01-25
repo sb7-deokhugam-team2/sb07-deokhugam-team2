@@ -40,12 +40,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.postgresql:postgresql'
 
+    implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.17.0-M1'
     implementation platform('software.amazon.awssdk:bom:2.29.0')
     implementation 'software.amazon.awssdk:s3'
 
     //healthcheck
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-cloudwatch2'
+
+    implementation 'org.owasp.encoder:encoder:1.2.3'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -56,6 +58,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
     testImplementation 'io.findify:s3mock_2.13:0.2.6'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Swagger UI
@@ -82,6 +85,22 @@ jacoco {
     toolVersion = "0.8.8" // 버전 명시
 }
 
+def jacocoExcludes = [
+        // 스프링 배치 제외
+        '**/batch/**',
+        '**/scheduler/**',
+        '**/policy/**',
+
+        // 커스텀 예외 제외
+        '**/exception/**/*.class',
+
+        // dto 제외
+        '**/dto/**',
+
+        // config 제외
+        '**/config/**',
+        '**/*Config.class'
+]
 
 jacocoTestReport {
     dependsOn test // 리포트 생성 전에 test를 반드시 수행해야 한다!
@@ -90,4 +109,9 @@ jacocoTestReport {
         html.required.set(true)
         // 경로 명시 안 할 경우 기본 경로는 build/reports/jacoco 이하 경로
     }
+
+    classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+        fileTree(dir: dir, exclude: jacocoExcludes)
+    }))
+
 }
