@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,12 +122,10 @@ public class PopularReviewIntegrationTest {
 
         Review review = reviewRepository.save(Review.create(4.5, "content", book, author));
 
-        Instant calculatedDate = LocalDate.now(ZoneId.of("Asia/Seoul"))
-                .atStartOfDay(ZoneId.of("Asia/Seoul"))
-                .toInstant();
+        Instant now = Instant.now();
 
-        Instant yesterday = calculatedDate.minusSeconds(60);
-        Instant today = calculatedDate.plusSeconds(60);
+        Instant oldTime = now.minus(8, ChronoUnit.DAYS);
+        Instant recentTime = now.minusSeconds(30);
 
         LikedReview oldLikedReview = likedReviewRepository.save(LikedReview.create(review, oldUser));
         LikedReview newLikedReview = likedReviewRepository.save(LikedReview.create(review, newUser));
@@ -133,11 +133,11 @@ public class PopularReviewIntegrationTest {
         Comment oldComment = commentRepository.save(Comment.create("oldContent", oldUser, review));
         Comment newComment = commentRepository.save(Comment.create("newContent", newUser, review));
 
-        updateLikedReviewUpdatedAt(oldLikedReview.getId(), yesterday);
-        updateLikedReviewUpdatedAt(newLikedReview.getId(), today);
+        updateLikedReviewUpdatedAt(oldLikedReview.getId(), oldTime);
+        updateLikedReviewUpdatedAt(newLikedReview.getId(), recentTime);
 
-        updateCommentCreatedAt(oldComment.getId(), yesterday);
-        updateCommentCreatedAt(newComment.getId(), today);
+        updateCommentCreatedAt(oldComment.getId(), oldTime);
+        updateCommentCreatedAt(newComment.getId(), recentTime);
 
         em.flush();
         em.clear();
@@ -148,41 +148,25 @@ public class PopularReviewIntegrationTest {
         em.clear();
 
         // then
-        PopularReview daily = popularReviewRepository.findAll().stream()
-                .filter(pr -> pr.getPeriodType() == PeriodType.DAILY && pr.getCalculatedDate().equals(calculatedDate))
-                .findFirst()
-                .orElseThrow();
-
+        PopularReview daily = findLatestByPeriod(PeriodType.DAILY);
         assertThat(daily.getLikedCount()).isEqualTo(1L);
         assertThat(daily.getCommentCount()).isEqualTo(1L);
         assertThat(daily.getScore()).isCloseTo(1.0, within(0.0001));
 
-        PopularReview weekly = popularReviewRepository.findAll().stream()
-                .filter(pr -> pr.getPeriodType() == PeriodType.WEEKLY && pr.getCalculatedDate().equals(calculatedDate))
-                .findFirst()
-                .orElseThrow();
-
+        PopularReview weekly = findLatestByPeriod(PeriodType.WEEKLY);
         assertThat(weekly.getLikedCount()).isEqualTo(1L);
         assertThat(weekly.getCommentCount()).isEqualTo(1L);
         assertThat(weekly.getScore()).isCloseTo(1.0, within(0.0001));
 
-        PopularReview monthly = popularReviewRepository.findAll().stream()
-                .filter(pr -> pr.getPeriodType() == PeriodType.MONTHLY && pr.getCalculatedDate().equals(calculatedDate))
-                .findFirst()
-                .orElseThrow();
+        PopularReview monthly = findLatestByPeriod(PeriodType.MONTHLY);
+        assertThat(monthly.getLikedCount()).isEqualTo(2L);
+        assertThat(monthly.getCommentCount()).isEqualTo(2L);
+        assertThat(monthly.getScore()).isCloseTo(2.0, within(0.0001));
 
-        assertThat(monthly.getLikedCount()).isEqualTo(1L);
-        assertThat(monthly.getCommentCount()).isEqualTo(1L);
-        assertThat(monthly.getScore()).isCloseTo(1.0, within(0.0001));
-
-        PopularReview allTime = popularReviewRepository.findAll().stream()
-                .filter(pr -> pr.getPeriodType() == PeriodType.ALL_TIME && pr.getCalculatedDate().equals(calculatedDate))
-                .findFirst()
-                .orElseThrow();
-
-        assertThat(allTime.getLikedCount()).isEqualTo(1L);
-        assertThat(allTime.getCommentCount()).isEqualTo(1L);
-        assertThat(allTime.getScore()).isCloseTo(1.0, within(0.0001));
+        PopularReview allTime = findLatestByPeriod(PeriodType.ALL_TIME);
+        assertThat(allTime.getLikedCount()).isEqualTo(2L);
+        assertThat(allTime.getCommentCount()).isEqualTo(2L);
+        assertThat(allTime.getScore()).isCloseTo(2.0, within(0.0001));
 
     }
 
@@ -198,5 +182,12 @@ public class PopularReviewIntegrationTest {
                 .setParameter(1, createdAt)
                 .setParameter(2, commentId)
                 .executeUpdate();
+    }
+
+    private PopularReview findLatestByPeriod(PeriodType periodType) {
+        return popularReviewRepository.findAll().stream()
+                .filter(pr -> pr.getPeriodType() == periodType)
+                .max(Comparator.comparing(PopularReview::getCalculatedDate))
+                .orElseThrow((() -> new AssertionError("popular review not found: " + periodType)));
     }
 }
