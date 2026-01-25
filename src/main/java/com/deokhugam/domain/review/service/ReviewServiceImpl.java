@@ -71,12 +71,6 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        log.info("[UPDATE] found review. isDeleted={}, author={}",
-                review.isDeleted(),
-                review.getUser().getId()
-        );
-
-
         if (review.isDeleted()) {
             throw new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
         }
@@ -86,7 +80,6 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         review.update(request.rating(), request.content());
-        reviewRepository.flush();
 
         ReviewDto reviewDetail = reviewRepository.findDetail(reviewId, requestUserId)
                 .orElseThrow(() -> new ReviewNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
