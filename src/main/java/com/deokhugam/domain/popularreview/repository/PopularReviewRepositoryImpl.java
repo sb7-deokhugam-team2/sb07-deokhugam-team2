@@ -46,8 +46,8 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
 
     private final static int TOP = 10;
     @Override
-    public List<PopularReview> calculatePopularReviews(PeriodType periodType, Instant calculatedDate) {
-        PeriodRange range = PeriodRange.from(periodType, calculatedDate);
+    public List<PopularReview> calculatePopularReviews(PeriodType periodType, Instant calculatedDate, Instant now) {
+        PeriodRange range = PeriodRange.from(periodType, calculatedDate, Instant.now());
         Instant start = range.start();
         Instant end = range.end();
 

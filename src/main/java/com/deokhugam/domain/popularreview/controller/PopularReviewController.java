@@ -4,6 +4,7 @@ import com.deokhugam.domain.popularreview.controller.docs.PopularReviewControlle
 import com.deokhugam.domain.popularreview.dto.request.PopularReviewSearchCondition;
 import com.deokhugam.domain.popularreview.dto.response.PopularReviewPageResponseDto;
 import com.deokhugam.domain.popularreview.service.PopularReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class PopularReviewController implements PopularReviewControllerDocs {
     @Override
     @GetMapping("/popular")
     public ResponseEntity<PopularReviewPageResponseDto> getPopularReviews(
-            PopularReviewSearchCondition popularReviewSearchCondition
+            @Valid PopularReviewSearchCondition popularReviewSearchCondition
     ) {
         log.debug("getPopularReviews 시작 - 요청 파라미터: {}", popularReviewSearchCondition);
 
