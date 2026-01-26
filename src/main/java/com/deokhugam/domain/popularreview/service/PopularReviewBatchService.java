@@ -1,6 +1,7 @@
 package com.deokhugam.domain.popularreview.service;
 
 import com.deokhugam.domain.base.PeriodType;
+import com.deokhugam.domain.popularreview.dto.PeriodRange;
 import com.deokhugam.domain.popularreview.entity.PopularReview;
 import com.deokhugam.domain.popularreview.repository.PopularReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class PopularReviewBatchService {
         Instant calculatedDate = getTodayStartKst();
         Instant now = Instant.now();
 
+        log.info("[PopularReviewBatch] calculatedDate={}, now={}", calculatedDate, now);
+
         calculateAndSave(PeriodType.DAILY, calculatedDate, now);
         calculateAndSave(PeriodType.WEEKLY, calculatedDate, now);
         calculateAndSave(PeriodType.MONTHLY, calculatedDate, now);
@@ -31,6 +34,11 @@ public class PopularReviewBatchService {
     }
 
     private void calculateAndSave(PeriodType periodType, Instant calculatedDate, Instant now) {
+        PeriodRange range = PeriodRange.from(periodType, calculatedDate, now);
+
+        log.info("[PopularReviewBatch] period={}, start={}, end={}",
+                periodType, range.start(), range.end());
+
         log.info("[PopularReviewBatch] period={}, calculatedDate={}, now = {}", periodType, calculatedDate, now);
 
         List<PopularReview> popularReviews = popularReviewRepository.calculatePopularReviews(periodType, calculatedDate, now);
