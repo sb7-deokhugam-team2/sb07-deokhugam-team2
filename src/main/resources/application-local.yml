@@ -2,7 +2,7 @@ spring:
   application:
     name: deokhugam
   datasource:
-    url: jdbc:h2:mem:deokhugam
+    url: jdbc:h2:mem:deokhugam;MODE=PostgreSQL
     driver-class-name: org.h2.Driver
     username: sa
     password:
