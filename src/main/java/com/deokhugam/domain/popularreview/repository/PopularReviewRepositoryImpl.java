@@ -28,11 +28,13 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCustom {
     private final JPAQueryFactory queryFactory;
@@ -47,9 +49,12 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
     private final static int TOP = 10;
     @Override
     public List<PopularReview> calculatePopularReviews(PeriodType periodType, Instant calculatedDate, Instant now) {
-        PeriodRange range = PeriodRange.from(periodType, calculatedDate, Instant.now());
+        PeriodRange range = PeriodRange.from(periodType, calculatedDate, now);
         Instant start = range.start();
         Instant end = range.end();
+
+        log.info("[PopularReviewRepo] period={}, calculatedDate={}, start={}, end={}",
+                periodType, calculatedDate, start, end);
 
         Expression<Long> likedCountExpr = JPAExpressions
                 .select(likedReview.id.count())
@@ -86,6 +91,8 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
                 .orderBy(scoreExpr.desc(), review.createdAt.desc())
                 .limit(TOP)
                 .fetch();
+
+        log.info("[PopularReviewRepo] period={}, rows(size)={}", periodType, rows.size());
 
         List<PopularReview> result = new ArrayList<>();
 
