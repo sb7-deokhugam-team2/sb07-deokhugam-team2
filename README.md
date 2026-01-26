@@ -5,18 +5,18 @@
 
 <br>
 
-## 1. 프로젝트 소개
+## 프로젝트 소개
 **"독서를 혼자만의 취미가 아닌, 함께 나누는 즐거움으로"**
 
 덕후감은 사용자가 읽은 책을 검색하고, OCR(광학 문자 인식) 기능을 통해 책 정보를 손쉽게 불러와 리뷰를 작성할 수 있는 도서 커뮤니티 플랫폼입니다. 단순한 기록을 넘어 좋아요, 댓글, 파워 유저 랭킹 시스템을 통해 독서가들 간의 활발한 소통을 지향합니다.
 
-* **프로젝트 기간**: 2026.01.xx ~ 2026.01.xx (스프린트 SB07기 Part3)
+* **프로젝트 기간**: 2026.01.05 ~ 2026.01.26 (스프린트 SB07기 Part3)
 * **배포 링크**: [https://d13piuebfxvrtf.cloudfront.net](https://d13piuebfxvrtf.cloudfront.net)
 * **팀 노션/협업 문서**: [링크를 입력해주세요]
 
 <br>
 
-## 2. 팀원 구성
+## 팀원 구성
 **스프린트 SB07기 Part3 2팀**
 
 | **이형일 (PM)** | **김유미** | **김태언** | **안대식** | **조성연** | **최현석** |
@@ -24,7 +24,7 @@
 
 <br>
 
-## 3. 기술 스택 (Tech Stack)
+## 기술 스택 (Tech Stack)
 
 ### Backend
 * **Core**: Java 17, Spring Boot 3.x
@@ -44,7 +44,7 @@
 
 <br>
 
-## 4. 팀원별 구현 기능 상세
+## 팀원별 구현 기능 상세
 
 ### 👤 [안대식, 김유미] : 사용자(User) 관리
 * **회원 정보 관리**
@@ -107,7 +107,7 @@
 
 <br>
 
-## 5. 프로젝트 파일 구조
+## 프로젝트 파일 구조
 ```bash
 src/main/java/com/deokhugam
 ├── domain            # 도메인별 비즈니스 로직 (DDD 구조)
@@ -129,8 +129,10 @@ src/main/java/com/deokhugam
     ├── storage       # AWS S3 파일 업로드
     └── search        # 검색 API 연동
 ```
+## 아키텍처
+![img.png](src/main/resources/architecture.png)
 
-## 6. 트러블 슈팅 및 회고 (Troubleshooting & Retrospective)
+## 트러블 슈팅 및 회고 (Troubleshooting & Retrospective)
 
 ### ⚠️ 트러블 슈팅 (Troubleshooting)
 > 프로젝트 진행 중 발생한 주요 이슈와 해결 과정을 기록했습니다.
@@ -164,7 +166,7 @@ src/main/java/com/deokhugam
 
 <br>
 
-## 7. 발표 자료 및 링크
+## 발표 자료 및 링크
 프로젝트 최종 발표에 사용된 자료입니다.
 
 * 🔗 **서비스 링크**: [https://d13piuebfxvrtf.cloudfront.net](https://d13piuebfxvrtf.cloudfront.net)
