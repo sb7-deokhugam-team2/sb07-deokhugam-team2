@@ -12,7 +12,7 @@
 
 * **프로젝트 기간**: 2026.01.05 ~ 2026.01.26 (스프린트 SB07기 Part3)
 * **배포 링크**: [https://d13piuebfxvrtf.cloudfront.net](https://d13piuebfxvrtf.cloudfront.net)
-* **팀 노션/협업 문서**: [링크를 입력해주세요]
+* **팀 노션/협업 문서**: https://plume-second-3a7.notion.site/2df60c0f562780d0a50fde1dfd2e8d33
 
 <br>
 
@@ -131,6 +131,9 @@ src/main/java/com/deokhugam
 ```
 ## 아키텍처
 ![img.png](src/main/resources/architecture.png)
+
+## ERD
+![Deokhugam-ERD.png](src/main/resources/Deokhugam-ERD.png)
 
 ## 트러블 슈팅 및 회고 (Troubleshooting & Retrospective)
 
