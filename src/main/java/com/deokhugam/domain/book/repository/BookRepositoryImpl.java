@@ -254,13 +254,13 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
     private String buildKeywordWhere() {
         return """
-            AND (
-                :keyword IS NULL OR :keyword = '' OR
-                LOWER(b.title) LIKE CONCAT('%%', LOWER(:keyword), '%%') OR
-                LOWER(b.isbn) LIKE CONCAT('%%', LOWER(:keyword), '%%') OR
-                LOWER(b.author) LIKE CONCAT('%%', LOWER(:keyword), '%%') OR
-                LOWER(b.publisher) LIKE CONCAT('%%', LOWER(:keyword), '%%')
-            )
+           AND (
+                       CAST(:keyword AS TEXT) IS NULL OR CAST(:keyword AS TEXT) = '' OR
+                       LOWER(b.title) LIKE CONCAT('%%', LOWER(CAST(:keyword AS TEXT)), '%%')
+                       OR LOWER(b.isbn) LIKE CONCAT('%%', LOWER(CAST(:keyword AS TEXT)), '%%')
+                       OR LOWER(b.author) LIKE CONCAT('%%', LOWER(CAST(:keyword AS TEXT)), '%%')
+                       OR LOWER(b.publisher) LIKE CONCAT('%%', LOWER(CAST(:keyword AS TEXT)), '%%')
+                   )
         """;
     }
 
